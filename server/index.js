@@ -165,7 +165,7 @@ app.get('/api/auth/login', (req, res) => {
     // Store code verifier in session for later use
     req.session.codeVerifier = codeVerifier;
     
-    const redirectUri = `${process.env.BASE_URL || `http://localhost:${PORT}`}/api/auth/callback`;
+    const redirectUri = `${(process.env.BASE_URL || `http://localhost:${PORT}`).trim()}/api/auth/callback`;
     
     const params = new URLSearchParams({
         client_id: process.env.FB_APP_ID,
@@ -201,7 +201,7 @@ app.get('/api/auth/callback', async (req, res) => {
     }
     
     try {
-        const redirectUri = `${process.env.BASE_URL || `http://localhost:${PORT}`}/api/auth/callback`;
+        const redirectUri = `${(process.env.BASE_URL || `http://localhost:${PORT}`).trim()}/api/auth/callback`;
         
         // Exchange code for access token using PKCE
         const tokenParams = new URLSearchParams({
