@@ -19,6 +19,8 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.set('trust proxy', 1);
+
 // Rate limiting storage (in production, use Redis)
 const rateLimits = new Map();
 
