@@ -15,11 +15,16 @@ const express = require('express');
 const session = require('express-session');
 const crypto = require('crypto');
 const path = require('path');
+const helmet = require('helmet');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.set('trust proxy', 1);
+
+app.use(helmet({
+    contentSecurityPolicy: false
+}));
 
 // Rate limiting storage (in production, use Redis)
 const rateLimits = new Map();
