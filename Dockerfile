@@ -20,8 +20,8 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
         curl \
         fileinfo
 
-# Apache modules
-RUN a2enmod rewrite headers expires deflate
+# Apache modules — disable mpm_event first to avoid MPM conflict
+RUN a2dismod mpm_event && a2enmod mpm_prefork rewrite headers expires deflate
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
