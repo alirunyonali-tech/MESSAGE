@@ -1,9 +1,0 @@
-2026-04-29T09:02:41+00:00 - Stripe API error (HTTP 401): {
-  "error": {
-    "message": "Invalid API Key provided: sk_live_************_key",
-    "type": "invalid_request_error"
-  }
-}
-
-#0 /home/u234491585/domains/pageinteractorprosite.site/public_html/create_checkout.php(195): stripePost()
-#1 {main}

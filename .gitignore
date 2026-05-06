@@ -1,0 +1,17 @@
+# Sensitive — never commit
+.env
+*.log
+
+# Cache and temp
+.cache/
+logs/
+
+# Large files
+*.mp4
+*.mov
+*.avi
+Screencast*
+
+# OS
+.DS_Store
+Thumbs.db
