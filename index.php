@@ -947,72 +947,87 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
 
     <!-- COL 4: PERFORMANCE PANEL -->
     <div class="stats-panel">
+
       <!-- Stat Strip -->
       <div class="stat-strip">
-        <div class="stat-box s-total" title="Total recipients loaded">
-          <i class="fa-solid fa-users stat-icon"></i>
+        <div class="stat-box s-total">
+          <div class="stat-row"><i class="fa-solid fa-users stat-icon"></i><span class="stat-lbl">Total</span></div>
           <span class="stat-val" id="statTotal">0</span>
-          <span class="stat-lbl">Total</span>
         </div>
-        <div class="stat-box s-sent" title="Successfully sent">
-          <i class="fa-solid fa-circle-check stat-icon"></i>
+        <div class="stat-box s-sent">
+          <div class="stat-row"><i class="fa-solid fa-circle-check stat-icon"></i><span class="stat-lbl">Sent</span></div>
           <span class="stat-val" id="statSent">0</span>
-          <span class="stat-lbl">Sent</span>
         </div>
-        <div class="stat-box s-failed" title="Failed deliveries">
-          <i class="fa-solid fa-circle-xmark stat-icon"></i>
+        <div class="stat-box s-failed">
+          <div class="stat-row"><i class="fa-solid fa-circle-xmark stat-icon"></i><span class="stat-lbl">Failed</span></div>
           <span class="stat-val" id="statFailed">0</span>
-          <span class="stat-lbl">Failed</span>
         </div>
       </div>
 
       <!-- Progress -->
       <div class="progress-bar-area">
         <div class="progress-row">
-          <span class="progress-label">Progress</span>
-          <div class="progress-meta">
-            <span id="etaText"></span>
-            <span id="progressPct">0%</span>
-          </div>
+          <div class="progress-left"><i class="fa-solid fa-bolt"></i><span>Progress</span></div>
+          <div class="progress-meta"><span id="etaText" class="eta-text"></span><span id="progressPct" class="progress-pct">0%</span></div>
         </div>
-        <div class="progress-track"><div id="progressBar"></div></div>
+        <div class="progress-track"><div id="progressBar" class="progress-fill"></div></div>
       </div>
 
       <!-- Campaign Intelligence -->
-      <div class="compose-section">
-        <div class="compose-hdr">
-          <h3><i class="fa-solid fa-chart-line compose-hdr-icon"></i> Campaign Intelligence</h3>
+      <div class="panel-section">
+        <div class="panel-hdr">
+          <span><i class="fa-solid fa-brain"></i> Campaign Intelligence</span>
         </div>
         <div class="intel-grid">
-          <div class="intel-card">
-            <span class="intel-label">Audience</span>
+          <div class="intel-card ic-violet">
+            <span class="intel-label"><i class="fa-solid fa-users"></i> Audience</span>
             <strong id="intelAudience" class="intel-val">Auto-load on start</strong>
           </div>
-          <div class="intel-card">
-            <span class="intel-label">Delivery Pace</span>
+          <div class="intel-card ic-cyan">
+            <span class="intel-label"><i class="fa-solid fa-gauge-high"></i> Delivery Pace</span>
             <strong id="intelPace" class="intel-val intel-neutral">Balanced</strong>
           </div>
-          <div class="intel-card">
-            <span class="intel-label">Policy Risk</span>
-            <strong id="intelRisk" class="intel-val intel-neutral">Low</strong>
+          <div class="intel-card ic-green">
+            <span class="intel-label"><i class="fa-solid fa-shield-halved"></i> Policy Risk</span>
+            <strong id="intelRisk" class="intel-val intel-good">Low</strong>
           </div>
-          <div class="intel-card">
-            <span class="intel-label">Est. Duration</span>
+          <div class="intel-card ic-amber">
+            <span class="intel-label"><i class="fa-solid fa-clock"></i> Est. Duration</span>
             <strong id="intelEta" class="intel-val">After load</strong>
           </div>
         </div>
         <div id="intelAdvice" class="intel-advice">
-          Select page and write your message to see live quality checks.
+          <i class="fa-solid fa-lightbulb"></i>
+          <span>Select a page and write your message to see live quality checks.</span>
         </div>
       </div>
 
-      <div class="ops-card">
-        <div class="ops-title"><i class="fa-solid fa-shield-heart"></i> Delivery Operations</div>
-        <div class="ops-line"><span>System</span><strong>Stable</strong></div>
-        <div class="ops-line"><span>Retry Engine</span><strong>Active</strong></div>
-        <div class="ops-line"><span>Network Guard</span><strong>Live Monitoring</strong></div>
-        <div class="ops-line"><span>Execution Mode</span><strong>Continuous Queue</strong></div>
+      <!-- Delivery Operations -->
+      <div class="panel-section">
+        <div class="panel-hdr">
+          <span><i class="fa-solid fa-shield-heart"></i> Delivery Operations</span>
+          <span class="live-badge"><i class="fa-solid fa-circle fa-beat"></i> Live</span>
+        </div>
+        <div class="ops-grid">
+          <div class="ops-row">
+            <div class="ops-row-left"><span class="ops-dot ops-dot-green"></span><span class="ops-row-label">System</span></div>
+            <span class="ops-badge ops-badge-green">Stable</span>
+          </div>
+          <div class="ops-row">
+            <div class="ops-row-left"><span class="ops-dot ops-dot-violet"></span><span class="ops-row-label">Retry Engine</span></div>
+            <span class="ops-badge ops-badge-violet">Active</span>
+          </div>
+          <div class="ops-row">
+            <div class="ops-row-left"><span class="ops-dot ops-dot-cyan"></span><span class="ops-row-label">Network Guard</span></div>
+            <span class="ops-badge ops-badge-cyan">Monitoring</span>
+          </div>
+          <div class="ops-row">
+            <div class="ops-row-left"><span class="ops-dot ops-dot-amber"></span><span class="ops-row-label">Execution Mode</span></div>
+            <span class="ops-badge ops-badge-amber">Queue</span>
+          </div>
+        </div>
       </div>
+
     </div>
 
     <!-- Backdrop for recipients drawer on small screens -->
