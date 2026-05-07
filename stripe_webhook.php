@@ -326,8 +326,9 @@ function markWebhookFailed(PDO $db, string $eventId, string $error): void {
 }
 
 function activatePlan(PDO $db, string $fbUserId, string $plan, string $subId, string $email = ''): void {
-    $planData = STRIPE_PLANS[$plan];
-    $interval = strtolower((string)($planData['interval'] ?? 'month'));
+    $planData   = STRIPE_PLANS[$plan];
+    $dbPlan     = $planData['db_plan'] ?? $plan;
+    $interval   = strtolower((string)($planData['interval'] ?? 'month'));
     $expiresSql = $interval === 'year'
         ? 'DATE_ADD(NOW(), INTERVAL 1 YEAR)'
         : 'DATE_ADD(NOW(), INTERVAL 1 MONTH)';
@@ -340,7 +341,7 @@ function activatePlan(PDO $db, string $fbUserId, string $plan, string $subId, st
                  subscription_expires = $expiresSql,
                  email = ?
              WHERE fb_user_id = ?"
-        )->execute([$plan, $planData['limit'], $storedSubId, $email, $fbUserId]);
+        )->execute([$dbPlan, $planData['limit'], $storedSubId, $email, $fbUserId]);
     } else {
         $db->prepare(
             "UPDATE users
@@ -348,7 +349,7 @@ function activatePlan(PDO $db, string $fbUserId, string $plan, string $subId, st
                  stripe_subscription_id = ?,
                  subscription_expires = $expiresSql
              WHERE fb_user_id = ?"
-        )->execute([$plan, $planData['limit'], $storedSubId, $fbUserId]);
+        )->execute([$dbPlan, $planData['limit'], $storedSubId, $fbUserId]);
     }
     $planTypeLabel = $interval === 'year' ? 'yearly' : 'monthly';
     logActivity($db, $fbUserId, 'subscription', "Activated: {$plan} ({$planTypeLabel}) | {$planData['limit']} messages");

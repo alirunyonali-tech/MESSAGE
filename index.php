@@ -461,6 +461,22 @@ window.fbAsyncInit = function() {
           </ul>
           <button class="price-btn price-btn--pro" id="pricingProBtn" onclick="triggerConnect('pro')">Get Pro — $50/mo</button>
         </div>
+        <div class="price-card">
+          <div class="price-name">Pro Unlimited</div>
+          <div class="price-amount price-amount-monthly">$300<sub>/yr</sub></div>
+          <div class="price-amount price-amount-annual">$300<sub>/yr</sub></div>
+          <div class="price-billing price-billing-monthly">Best value for high-volume senders</div>
+          <div class="price-billing price-billing-annual">One-time yearly payment · no monthly bills</div>
+          <div class="price-sep"></div>
+          <ul class="price-feats">
+            <li><i class="fas fa-check"></i> Unlimited messages for 12 months</li>
+            <li><i class="fas fa-check"></i> Auto All Pages mode</li>
+            <li><i class="fas fa-check"></i> Priority support</li>
+            <li><i class="fas fa-check"></i> 60-day token refresh</li>
+            <li><i class="fas fa-check"></i> All Pro features</li>
+          </ul>
+          <button class="price-btn price-btn--pro" id="pricingProUnlimitedBtn" onclick="triggerConnect('pro_unlimited')">Get Pro Unlimited — $300/yr</button>
+        </div>
       </div>
     </div>
   </div>

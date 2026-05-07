@@ -154,19 +154,30 @@ define('STRIPE_WEBHOOK_SECRET',  env_value('STRIPE_WEBHOOK_SECRET', ''));
 define('STRIPE_PLANS', [
     'basic' => [
         'price_id'  => env_value('STRIPE_BASIC_PRICE_ID', ''),
-        'amount'    => 2000,  // $20.00 = 2000 cents
+        'amount'    => 2500,  // $25.00
         'currency'  => 'usd',
         'interval'  => 'month',
-        'limit'     => 200000,
-        'name'      => 'Basic'
+        'limit'     => 300000,
+        'name'      => 'Basic',
+        'db_plan'   => 'basic'
     ],
     'pro' => [
         'price_id'  => env_value('STRIPE_PRO_PRICE_ID', ''),
-        'amount'    => 4000,  // $40.00 = 4000 cents
+        'amount'    => 5000,  // $50.00
         'currency'  => 'usd',
         'interval'  => 'month',
-        'limit'     => 500000,
-        'name'      => 'Pro'
+        'limit'     => 650000,
+        'name'      => 'Pro',
+        'db_plan'   => 'pro'
+    ],
+    'pro_unlimited' => [
+        'price_id'  => env_value('STRIPE_PRO_UNLIMITED_PRICE_ID', ''),
+        'amount'    => 30000, // $300.00/year
+        'currency'  => 'usd',
+        'interval'  => 'year',
+        'limit'     => 999999999,
+        'name'      => 'Pro Unlimited',
+        'db_plan'   => 'pro'  // stored as 'pro' in DB (same ENUM)
     ]
 ]);
 
