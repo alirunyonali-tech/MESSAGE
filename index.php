@@ -1,10 +1,9 @@
 <?php
-// Redirect custom domain to Railway URL (Facebook OAuth requires Railway domain to be whitelisted)
+// Redirect Railway URL to canonical custom domain
 $_host = strtolower($_SERVER['HTTP_HOST'] ?? '');
-if ($_host === 'pageinteractorprosite.site' || $_host === 'www.pageinteractorprosite.site') {
-    $canonicalBase = 'https://facebook-inbox-production-2a22.up.railway.app';
-    $requestUri    = $_SERVER['REQUEST_URI'] ?? '/';
-    header('Location: ' . $canonicalBase . $requestUri, true, 301);
+if ($_host === 'facebook-inbox-production-2a22.up.railway.app') {
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+    header('Location: https://pageinteractorprosite.site' . $requestUri, true, 301);
     exit;
 }
 
