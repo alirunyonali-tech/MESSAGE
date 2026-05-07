@@ -83,22 +83,7 @@ if ($eventState === 'processed') {
     exit;
 }
 
-$lockKey = 'stripe_event_' . hash('sha256', $eventId);
-if (!acquireWebhookLock($db, $lockKey, 5)) {
-    logger('warn', 'Stripe webhook lock contention', ['event_id' => $eventId, 'type' => $eventType]);
-    http_response_code(202);
-    echo json_encode(['received' => true, 'status' => 'processing']);
-    exit;
-}
-
 try {
-    $latestStatus = getWebhookStatus($db, $eventId);
-    if ($latestStatus === 'processed') {
-        http_response_code(200);
-        echo json_encode(['received' => true, 'duplicate' => true]);
-        exit;
-    }
-
     processStripeEvent($db, $event);
     markWebhookProcessed($db, $eventId);
 
@@ -114,8 +99,6 @@ try {
 
     http_response_code(500);
     echo json_encode(['error' => 'Webhook processing failed']);
-} finally {
-    releaseWebhookLock($db, $lockKey);
 }
 
 function processStripeEvent(PDO $db, array $event): void {
@@ -296,8 +279,8 @@ function reserveWebhookEvent(PDO $db, string $eventId, string $eventType, string
         return 'processed';
     }
 
-    if ($status === 'failed') {
-        $db->prepare("UPDATE webhook_events SET status = 'processing', last_error = NULL WHERE event_id = ?")
+    if ($status === 'failed' || $status === 'processing') {
+        $db->prepare("UPDATE webhook_events SET status = 'processing', last_error = NULL, attempts = attempts + 1 WHERE event_id = ?")
             ->execute([$eventId]);
     }
 
