@@ -66,8 +66,12 @@ if ($eventId === '' || $eventType === '') {
     exit;
 }
 
-// Process both test and live events (remove this block when only live keys are in use)
-// if (APP_ENV === 'production' && empty($event['livemode'])) { ... }
+if (APP_ENV === 'production' && empty($event['livemode'])) {
+    logger('warn', 'Ignored Stripe test-mode event in production', ['event_id' => $eventId, 'type' => $eventType]);
+    http_response_code(200);
+    echo json_encode(['received' => true, 'ignored' => 'test_mode']);
+    exit;
+}
 
 $db = getDB();
 ensureWebhookTables($db);
