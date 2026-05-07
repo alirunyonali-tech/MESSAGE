@@ -822,28 +822,28 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
 
         <!-- IMAGE ATTACHMENT -->
         <div class="img-attach-wrap">
-          <button class="img-attach-toggle" id="imgAttachToggle" type="button" aria-expanded="false" aria-controls="imgAttachPanel">
+          <button class="img-attach-toggle" id="imgAttachToggle" type="button" aria-expanded="true" aria-controls="imgAttachPanel">
             <i class="fa-solid fa-image"></i>
             <span>Attach Image</span>
             <span class="img-attach-badge" id="imgAttachBadge" style="display:none">1</span>
           </button>
         </div>
-        <div class="img-attach-panel" id="imgAttachPanel" hidden>
+        <div class="img-attach-panel" id="imgAttachPanel">
           <div class="img-tab-row" role="tablist">
-            <button class="img-tab-btn active" id="imgTabUrl" data-tab="url" type="button" role="tab" aria-selected="true">
+            <button class="img-tab-btn" id="imgTabUrl" data-tab="url" type="button" role="tab" aria-selected="false">
               <i class="fa-solid fa-link"></i> URL
             </button>
-            <button class="img-tab-btn" id="imgTabUpload" data-tab="upload" type="button" role="tab" aria-selected="false">
+            <button class="img-tab-btn active" id="imgTabUpload" data-tab="upload" type="button" role="tab" aria-selected="true">
               <i class="fa-solid fa-cloud-arrow-up"></i> Upload
             </button>
           </div>
-          <div class="img-url-area" id="imgUrlArea">
+          <div class="img-url-area" id="imgUrlArea" style="display:none">
             <input type="url" id="imgUrlInput" placeholder="https://example.com/image.jpg" class="img-url-input" autocomplete="off">
             <button type="button" id="imgUrlLoad" class="img-url-load-btn" title="Load image from URL">
               <i class="fa-solid fa-check"></i>
             </button>
           </div>
-          <div class="img-upload-area" id="imgUploadArea" style="display:none">
+          <div class="img-upload-area" id="imgUploadArea">
             <label class="img-drop-zone" for="imgFileInput" id="imgDropZone">
               <i class="fa-solid fa-cloud-arrow-up"></i>
               <span>Click or drag image here</span>

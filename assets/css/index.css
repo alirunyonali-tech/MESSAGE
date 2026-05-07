@@ -560,9 +560,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   border-left-color:rgba(124,58,237,.55);
   background:rgba(124,58,237,.02);
 }
-/* Compose section stretches but textarea stays fixed height */
-.compose > .compose-section:last-child{flex:1}
-.compose > .compose-section:last-child #messageText{height:160px;min-height:160px;max-height:160px;resize:none}
+/* Compose section stretches, textarea fixed, image panel fills rest */
+.compose > .compose-section:last-child{flex:1;display:flex;flex-direction:column}
+.compose > .compose-section:last-child #messageText{height:160px;min-height:160px;max-height:160px;resize:none;flex-shrink:0}
+.compose > .compose-section:last-child .img-attach-panel{flex:1;display:flex;flex-direction:column;min-height:0}
+.compose > .compose-section:last-child .img-upload-area{flex:1;display:flex;flex-direction:column;min-height:0}
+.compose > .compose-section:last-child .img-drop-zone{flex:1;min-height:80px}
 .compose-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:10px;display:flex;align-items:center;gap:8px}
 .compose-section-title i{font-size:12px;color:var(--primary-light)}
 /* Section header row */
@@ -580,7 +583,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 #messageText:focus{border-color:rgba(124,58,237,.4);background:var(--surface2);box-shadow:0 0 0 3px var(--primary-dim)}
 #messageText::placeholder{color:var(--text3)}
 /* IMAGE ATTACH UI */
-.img-attach-wrap{margin-top:7px}
+.img-attach-wrap{margin-top:7px;flex-shrink:0}
 .img-attach-toggle{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
 .img-attach-toggle:hover,.img-attach-toggle[aria-expanded="true"]{background:var(--primary-dim);border-color:rgba(124,58,237,.25);color:var(--primary-light)}
 .img-attach-badge{background:var(--primary);color:#fff;border-radius:999px;padding:1px 5px;font-size:9px;font-weight:800}
@@ -619,7 +622,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .compose-textarea::placeholder{color:var(--text3)}
 
 .compose-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
-#charCount{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+#charCount{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;flex-shrink:0;margin-top:4px}
 #charCount.warn{color:var(--amber)}
 #charCount.danger{color:var(--red)}
 
@@ -636,7 +639,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 #attachInput:focus{border-color:rgba(124,58,237,.35)}
 #attachInput::placeholder{color:var(--text3)}
 
-.compose-notice{display:flex;gap:8px;margin-top:7px;padding:8px 11px;background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.12);border-radius:var(--radius);font-size:11px;color:var(--text2);line-height:1.55}
+.compose-notice{display:flex;gap:8px;margin-top:8px;padding:8px 11px;background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.12);border-radius:var(--radius);font-size:11px;color:var(--text2);line-height:1.55;flex-shrink:0}
 .compose-notice i{color:var(--amber);font-size:12px;flex-shrink:0;margin-top:1px}
 .compose-notice strong{color:#D97706}
 
