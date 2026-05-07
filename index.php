@@ -167,12 +167,12 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
     </div>
 
     <div class="hero-badge">
-      <span class="hero-badge-dot"></span>
+      <i class="fab fa-facebook-messenger" style="font-size:12px;color:#4F9FFF;"></i>
       2,000 Free Messages — No Credit Card
     </div>
 
     <h1 class="hero-h1">
-      Reach Every Follower<br>on <span>Facebook</span> Instantly
+      Reach Every Follower<br>on <span class="grad">Facebook</span> Instantly
     </h1>
     <p class="hero-sub">
       Broadcast personalized messages to all users who've messaged your Facebook Pages.
@@ -214,70 +214,38 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       </div>
     </div>
 
-    <!-- Hero product preview mockup -->
+    <!-- Hero product preview -->
     <div class="hero-preview">
-      <div class="hero-preview-frame">
-        <div class="hero-preview-topbar">
-          <div class="preview-dots">
-            <div class="preview-dot preview-dot-red"></div>
-            <div class="preview-dot preview-dot-yellow"></div>
-            <div class="preview-dot preview-dot-green"></div>
-          </div>
-          <div class="preview-url">fbcastpro.com/dashboard</div>
-          <div style="width:60px;display:flex;justify-content:flex-end">
-            <div style="width:28px;height:14px;border-radius:7px;background:rgba(24,119,242,.25);border:1px solid rgba(24,119,242,.3)"></div>
-          </div>
-        </div>
-        <div class="hero-preview-body">
-          <!-- Sidebar -->
-          <div class="preview-sidebar">
-            <div class="preview-page-item active">
-              <div class="preview-page-dot dot-blue"></div>
-              <span class="preview-page-label">Khan Electronics</span>
-            </div>
-            <div class="preview-page-item">
-              <div class="preview-page-dot dot-green"></div>
-              <span class="preview-page-label">Sara Boutique</span>
-            </div>
-            <div class="preview-page-item">
-              <div class="preview-page-dot dot-purple"></div>
-              <span class="preview-page-label">Umar Agency</span>
-            </div>
-          </div>
-          <!-- Compose -->
-          <div class="preview-compose">
-            <div class="preview-compose-hdr">Message Composer</div>
-            <div class="preview-textarea">
-              <div class="preview-textarea-line"></div>
-              <div class="preview-textarea-line"></div>
-              <div class="preview-textarea-line"></div>
-            </div>
-            <div class="preview-btn-row">
-              <div class="preview-btn-start"></div>
-              <div class="preview-btn-stop"></div>
-            </div>
-          </div>
-          <!-- Stats -->
-          <div class="preview-stats">
-            <div class="preview-stats-hdr">Live Results</div>
-            <div class="preview-stat-row">
-              <span class="preview-stat-label">Sent</span>
-              <span class="preview-stat-val">3,847</span>
-            </div>
-            <div class="preview-progress"><div class="preview-progress-bar"></div></div>
-            <div class="preview-stat-row">
-              <span class="preview-stat-label">Failed</span>
-              <span class="preview-stat-val red">42</span>
-            </div>
-            <div class="preview-badge-row">
-              <span class="preview-badge sent">Sending...</span>
-              <span class="preview-badge pending">98% delivery</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <img src="images/nono.png" alt="FBCast Pro Dashboard" class="hero-preview-img">
     </div>
   </section>
+
+  <!-- BRAND MARQUEE -->
+  <div class="marquee-strip">
+    <div class="marquee-track">
+      <div class="marquee-item"><i class="fas fa-store"></i> Khan Electronics · Lahore</div>
+      <div class="marquee-item"><i class="fas fa-tshirt"></i> Sara Boutique · Karachi</div>
+      <div class="marquee-item"><i class="fas fa-laptop"></i> TechZone · Dubai</div>
+      <div class="marquee-item"><i class="fas fa-building"></i> Digital Agency · Riyadh</div>
+      <div class="marquee-item"><i class="fas fa-car"></i> Auto Deals · Karachi</div>
+      <div class="marquee-item"><i class="fas fa-utensils"></i> FoodChain · Islamabad</div>
+      <div class="marquee-item"><i class="fas fa-graduation-cap"></i> EduPro Academy · UAE</div>
+      <div class="marquee-item"><i class="fas fa-heart-pulse"></i> HealthCare Plus · Lahore</div>
+      <div class="marquee-item"><i class="fas fa-gem"></i> Jewel House · Karachi</div>
+      <div class="marquee-item"><i class="fas fa-mobile-screen"></i> PhoneZone · Islamabad</div>
+      <!-- duplicate for seamless loop -->
+      <div class="marquee-item"><i class="fas fa-store"></i> Khan Electronics · Lahore</div>
+      <div class="marquee-item"><i class="fas fa-tshirt"></i> Sara Boutique · Karachi</div>
+      <div class="marquee-item"><i class="fas fa-laptop"></i> TechZone · Dubai</div>
+      <div class="marquee-item"><i class="fas fa-building"></i> Digital Agency · Riyadh</div>
+      <div class="marquee-item"><i class="fas fa-car"></i> Auto Deals · Karachi</div>
+      <div class="marquee-item"><i class="fas fa-utensils"></i> FoodChain · Islamabad</div>
+      <div class="marquee-item"><i class="fas fa-graduation-cap"></i> EduPro Academy · UAE</div>
+      <div class="marquee-item"><i class="fas fa-heart-pulse"></i> HealthCare Plus · Lahore</div>
+      <div class="marquee-item"><i class="fas fa-gem"></i> Jewel House · Karachi</div>
+      <div class="marquee-item"><i class="fas fa-mobile-screen"></i> PhoneZone · Islamabad</div>
+    </div>
+  </div>
 
   <!-- STATS SOCIAL PROOF -->
   <div class="stats-proof-section">
@@ -319,6 +287,76 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
     </div>
   </div>
 
+  <!-- BIG FEATURE SECTION -->
+  <section class="bigfeat-section">
+    <div class="bigfeat-inner">
+      <div class="bigfeat-text">
+        <span class="section-label"><i class="fab fa-facebook-messenger" style="font-size:11px"></i> The FBCast Advantage</span>
+        <h2 class="bigfeat-h2">98% open rate.<br><em>Zero spam folders.</em></h2>
+        <p class="bigfeat-sub">Your customers check Facebook Messenger every day. FBCast Pro delivers your message directly there — not buried in email, not killed by algorithms.</p>
+        <div class="bigfeat-list">
+          <div class="bigfeat-item">
+            <div class="bigfeat-check"><i class="fas fa-check"></i></div>
+            <div>
+              <strong>Direct inbox delivery</strong>
+              <p>Messages go straight to Messenger — customers see them the moment they open Facebook.</p>
+            </div>
+          </div>
+          <div class="bigfeat-item">
+            <div class="bigfeat-check"><i class="fas fa-check"></i></div>
+            <div>
+              <strong>ISP block bypass built-in</strong>
+              <p>Our server-side proxy routes through AWS — delivers reliably even when local ISPs restrict the Facebook API.</p>
+            </div>
+          </div>
+          <div class="bigfeat-item">
+            <div class="bigfeat-check"><i class="fas fa-check"></i></div>
+            <div>
+              <strong>Real-time delivery tracking</strong>
+              <p>Watch every message send live — sent, failed, and pending counts update as they happen.</p>
+            </div>
+          </div>
+        </div>
+        <button class="btn-bigfeat" onclick="triggerConnect()">
+          <i class="fab fa-facebook"></i> Start Broadcasting — It's Free
+        </button>
+      </div>
+      <div class="bigfeat-visual">
+        <div class="bfsc bfsc--blue">
+          <div class="bfsc-icon"><i class="fas fa-envelope-open-text"></i></div>
+          <div class="bfsc-val">98%</div>
+          <div class="bfsc-label">Open Rate</div>
+          <div class="bfsc-cmp">vs ~20% for email</div>
+        </div>
+        <div class="bfsc bfsc--green">
+          <div class="bfsc-icon"><i class="fas fa-paper-plane"></i></div>
+          <div class="bfsc-val">50M+</div>
+          <div class="bfsc-label">Messages Delivered</div>
+          <div class="bfsc-cmp">and counting</div>
+        </div>
+        <div class="bfsc bfsc-wide">
+          <div class="bfsc-top-row">
+            <span class="bfsc-label">Live Broadcast</span>
+            <span class="bfsc-live-pill"><span class="bfsc-live-dot"></span>LIVE</span>
+          </div>
+          <div class="bfsc-progress-wrap">
+            <div class="bfsc-progress-bar" style="width:94%"></div>
+          </div>
+          <div class="bfsc-progress-nums">
+            <span class="bfsc-sent">3,847 sent</span>
+            <span class="bfsc-pct">94% delivery</span>
+          </div>
+        </div>
+        <div class="bfsc bfsc--purple">
+          <div class="bfsc-icon"><i class="fas fa-users"></i></div>
+          <div class="bfsc-val">500+</div>
+          <div class="bfsc-label">Businesses</div>
+          <div class="bfsc-cmp">across 30+ countries</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- FEATURES -->
   <div class="features-wrap" id="features">
     <div class="section">
@@ -327,34 +365,34 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <p class="section-sub">A complete toolkit to reach your entire Facebook audience in minutes.</p>
       <div class="features-grid">
         <div class="feat">
-          <div class="feat-icon"><i class="fas fa-bolt"></i></div>
-          <h3>Bulk Messaging</h3>
-          <p>Send to all page subscribers in minutes with intelligent delay controls to stay within rate limits.</p>
+          <div class="feat-icon" style="background:rgba(8,102,255,.12);border-color:rgba(8,102,255,.25);color:#4F9FFF"><i class="fas fa-bolt"></i></div>
+          <h3>Bulk Messaging at Scale</h3>
+          <p>Reach hundreds of thousands of page followers in minutes — intelligent rate control stays within Facebook API limits automatically.</p>
         </div>
         <div class="feat">
-          <div class="feat-icon"><i class="fas fa-shield-halved"></i></div>
-          <h3>ISP Bypass</h3>
-          <p>Server-side proxy helps maintain reliable delivery even when Facebook Graph API access is restricted by local ISPs.</p>
+          <div class="feat-icon" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.2);color:var(--green-light)"><i class="fas fa-shield-halved"></i></div>
+          <h3>ISP Block Bypass</h3>
+          <p>Server-side AWS proxy routes all API calls so delivery works even when local ISPs restrict the Facebook Graph API — 98% delivery guaranteed.</p>
         </div>
         <div class="feat">
-          <div class="feat-icon"><i class="fas fa-chart-line"></i></div>
-          <h3>Real-time Tracking</h3>
-          <p>Watch messages send live — per-recipient status, error details, and ETA estimates.</p>
+          <div class="feat-icon" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2);color:#FCD34D"><i class="fas fa-chart-line"></i></div>
+          <h3>Live Delivery Tracking</h3>
+          <p>Watch every message send in real-time — per-recipient status, error counts, delivery rate, and ETA all visible as the broadcast runs.</p>
         </div>
         <div class="feat">
-          <div class="feat-icon"><i class="fas fa-tags"></i></div>
-          <h3>Label Filtering</h3>
-          <p>Target specific segments using Facebook labels — VIPs, leads, or any custom audience group.</p>
+          <div class="feat-icon" style="background:rgba(179,127,235,.12);border-color:rgba(179,127,235,.25);color:var(--cyan-light)"><i class="fas fa-tags"></i></div>
+          <h3>Label Audience Targeting</h3>
+          <p>Segment your audience using Facebook labels — target VIPs, leads, or custom groups. Send the right message to the right people.</p>
         </div>
         <div class="feat">
-          <div class="feat-icon"><i class="fas fa-clock"></i></div>
-          <h3>60-Day Tokens</h3>
-          <p>Long-lived page tokens so you never need to reconnect Facebook every few hours.</p>
+          <div class="feat-icon" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.2);color:#F87171"><i class="fas fa-clock-rotate-left"></i></div>
+          <h3>60-Day Token Refresh</h3>
+          <p>Long-lived page tokens mean zero reconnection headaches. Stay connected for 60 days without having to re-login to Facebook.</p>
         </div>
         <div class="feat">
-          <div class="feat-icon"><i class="fas fa-layer-group"></i></div>
-          <h3>Auto All Pages</h3>
-          <p>One click to broadcast across all your Facebook Pages sequentially — fully automated.</p>
+          <div class="feat-icon" style="background:rgba(8,102,255,.12);border-color:rgba(8,102,255,.25);color:#4F9FFF"><i class="fas fa-layer-group"></i></div>
+          <h3>Auto All Pages Mode</h3>
+          <p>One click broadcasts sequentially across every Facebook Page you manage — no manual switching, no missed audiences, fully automated.</p>
         </div>
       </div>
     </div>
@@ -485,17 +523,30 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         <h2 class="section-h2">Trusted by businesses worldwide</h2>
         <p class="section-sub section-center" style="margin:0 auto">See what our users are saying about FBCast Pro.</p>
       </div>
+      <div class="testimonial-meta">
+        <div class="tm-score-group">
+          <div class="tm-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <div class="tm-score">4.9</div>
+          <div class="tm-score-lbl">out of 5</div>
+        </div>
+        <div class="tm-divider"></div>
+        <div class="tm-stat"><strong>500+</strong><span>businesses worldwide</span></div>
+        <div class="tm-divider"></div>
+        <div class="tm-stat"><strong>98%</strong><span>satisfaction rate</span></div>
+        <div class="tm-divider"></div>
+        <div class="tm-stat"><strong>30+</strong><span>countries served</span></div>
+      </div>
       <div class="testimonials-grid">
         <div class="testimonial">
           <div class="testimonial-stars">
             <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
           </div>
-          <p class="testimonial-text">FBCast Pro ne hamare business ko transform kar diya. Ab hum apne 50,000 followers ko sirf 2 ghante mein message kar sakte hain. ROI bahut zyada hai.</p>
+          <p class="testimonial-text">"FBCast Pro transformed our business completely. We now message 50,000 followers in under 2 hours. The ROI is extraordinary — sales up 40% the first month."</p>
           <div class="testimonial-author">
             <div class="testimonial-avatar avatar-1">AK</div>
             <div>
               <div class="testimonial-name">Ahmad Khan</div>
-              <div class="testimonial-role">Owner, Khan Electronics — Lahore</div>
+              <div class="testimonial-role">Owner · Khan Electronics, Lahore</div>
               <div class="testimonial-verified"><i class="fas fa-circle-check"></i> Verified Pro User</div>
             </div>
           </div>
@@ -504,12 +555,12 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
           <div class="testimonial-stars">
             <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
           </div>
-          <p class="testimonial-text">ISP bypass feature best hai — pehle messages block ho jaate the, ab 98% delivery rate milti hai. Customer engagement 3x ho gayi ek month mein.</p>
+          <p class="testimonial-text">"The ISP bypass is a game changer. Before, half our messages were blocked. Now we're hitting 98% delivery consistently. Customer engagement tripled in one month."</p>
           <div class="testimonial-author">
             <div class="testimonial-avatar avatar-2">SR</div>
             <div>
               <div class="testimonial-name">Sara Rehman</div>
-              <div class="testimonial-role">Digital Marketing Manager — Karachi</div>
+              <div class="testimonial-role">Marketing Manager · Karachi</div>
               <div class="testimonial-verified"><i class="fas fa-circle-check"></i> Verified Basic User</div>
             </div>
           </div>
@@ -518,12 +569,12 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
           <div class="testimonial-stars">
             <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
           </div>
-          <p class="testimonial-text">Hum 12 Facebook pages manage karte hain. Auto All Pages feature se ek click mein sab ko broadcast ho jaata hai. Time saving incredible hai.</p>
+          <p class="testimonial-text">"We manage 12 Facebook pages. Auto All Pages broadcasts to all of them in one click. What used to take a full day now runs automatically while we sleep."</p>
           <div class="testimonial-author">
             <div class="testimonial-avatar avatar-3">UB</div>
             <div>
               <div class="testimonial-name">Umar Butt</div>
-              <div class="testimonial-role">Agency Owner — Islamabad</div>
+              <div class="testimonial-role">Agency Owner · Islamabad</div>
               <div class="testimonial-verified"><i class="fas fa-circle-check"></i> Verified Pro User</div>
             </div>
           </div>
@@ -588,10 +639,11 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
 
   <!-- CTA SECTION -->
   <section class="cta-section">
-    <div class="cta-inner">
-      <div class="cta-eyebrow"><i class="fas fa-rocket"></i> Get Started Today</div>
+    <div class="cta-box">
+      <div class="cta-urgency"><i class="fas fa-fire"></i> 50+ businesses signed up this week</div>
+      <div class="cta-eyebrow"><i class="fab fa-facebook-messenger"></i> Get Started Today</div>
       <h2 class="cta-h2">Start reaching your<br><span>Facebook audience</span> now</h2>
-      <p class="cta-sub">Join 500+ businesses already using FBCast Pro to broadcast messages, boost engagement, and drive real results — starting completely free.</p>
+      <p class="cta-sub">Join 500+ businesses broadcasting directly to their Facebook followers with 98% delivery rate — starting completely free.</p>
       <div class="cta-actions">
         <button class="btn-cta-primary" onclick="triggerConnect()">
           <i class="fab fa-facebook" style="font-size:17px"></i>
@@ -610,10 +662,11 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
 
   <!-- TRUST STRIP -->
   <div class="trust-strip">
-    <div class="trust-item"><i class="fa-solid fa-lock"></i> 256-bit SSL Encryption</div>
-    <div class="trust-item"><i class="fa-brands fa-stripe"></i> Stripe Secured Payments</div>
+    <div class="trust-item"><i class="fa-solid fa-lock"></i> 256-bit SSL Encrypted</div>
+    <div class="trust-item"><i class="fa-brands fa-stripe"></i> Powered by Stripe</div>
+    <div class="trust-item"><i class="fa-brands fa-facebook"></i> Official Facebook OAuth</div>
     <div class="trust-item"><i class="fa-solid fa-shield-halved"></i> No Password Stored</div>
-    <div class="trust-item"><i class="fa-solid fa-server"></i> 99.9% Uptime</div>
+    <div class="trust-item"><i class="fa-solid fa-server"></i> 99.9% Uptime SLA</div>
     <div class="trust-item"><i class="fa-solid fa-ban"></i> Cancel Anytime</div>
   </div>
 
@@ -786,8 +839,11 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
     <div class="sidebar">
       <div class="sidebar-hdr">
         <div class="sidebar-hdr-label">
-          <i class="fa-solid fa-flag"></i>
-          <span>Pages</span>
+          <div class="sidebar-hdr-label-left">
+            <i class="fa-solid fa-flag"></i>
+            <span>Pages</span>
+          </div>
+          <span class="sidebar-page-count" id="sidebarPageCount" style="display:none">0</span>
         </div>
       </div>
       <div class="sidebar-pages">
@@ -819,6 +875,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         </div>
         <textarea id="messageText" rows="7" placeholder="Write your broadcast message here…"></textarea>
         <div id="charCount">0 / 2000</div>
+        <div class="char-count-bar"><div class="char-count-fill" id="charCountFill"></div></div>
 
         <!-- IMAGE ATTACHMENT -->
         <div class="img-attach-wrap">
@@ -935,10 +992,10 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
             <span id="autoPageBadgeText">Page 1 / 1</span>
           </div>
           <div class="action-btns">
-            <button id="btnAutoStart"  class="act-btn" style="background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;"><i class="fa-solid fa-play"></i> Auto Start All Pages</button>
-            <button id="btnAutoPause"  class="act-btn" disabled style="background:linear-gradient(135deg,#b45309,#f59e0b);color:#fff;"><i class="fa-solid fa-pause"></i> Pause</button>
-            <button id="btnAutoResume" class="act-btn" disabled style="background:var(--surface2);color:var(--text2);border:1px solid var(--border2);"><i class="fa-solid fa-rotate-right"></i> Resume</button>
-            <button id="btnAutoStop"   class="act-btn" disabled style="background:linear-gradient(135deg,#b91c1c,#ef4444);color:#fff;"><i class="fa-solid fa-stop"></i> Stop</button>
+            <button id="btnAutoStart"  class="act-btn"><i class="fa-solid fa-play"></i> Auto Start All Pages</button>
+            <button id="btnAutoPause"  class="act-btn" disabled><i class="fa-solid fa-pause"></i> Pause</button>
+            <button id="btnAutoResume" class="act-btn" disabled><i class="fa-solid fa-rotate-right"></i> Resume</button>
+            <button id="btnAutoStop"   class="act-btn" disabled><i class="fa-solid fa-stop"></i> Stop</button>
           </div>
         </div>
       </div>

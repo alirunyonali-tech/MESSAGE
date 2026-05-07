@@ -250,10 +250,13 @@ function renderPages(pages) {
   container.innerHTML = '';
   select.innerHTML = '';
 
+  const pgCount = document.getElementById('sidebarPageCount');
   if (!pages || pages.length === 0) {
     container.innerHTML = `<div class="pages-empty"><i class="fa-brands fa-facebook"></i><p>No pages found.</p></div>`;
+    if (pgCount) pgCount.style.display = 'none';
     return;
   }
+  if (pgCount) { pgCount.textContent = pages.length; pgCount.style.display = ''; }
 
   pages.forEach(p => {
     const opt = document.createElement('option');

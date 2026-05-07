@@ -253,7 +253,7 @@
 }
 
 .modal-btn-primary {
-  background: linear-gradient(135deg, var(--primary), #6D28D9);
+  background: linear-gradient(135deg, var(--primary), #0044CC);
   color: #fff;
   box-shadow: 0 2px 12px var(--primary-glow);
 }

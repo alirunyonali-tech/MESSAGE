@@ -543,6 +543,7 @@ function restoreComposerDraft() {
   if (messageEl) {
     const savedMessage = localStorage.getItem(MESSAGE_DRAFT_KEY);
     if (savedMessage && !messageEl.value) messageEl.value = savedMessage;
+    updateCharBar(messageEl.value.length);
   }
   if (delayEl) {
     const savedDelay = parseInt(localStorage.getItem(DELAY_DRAFT_KEY) || '', 10);
@@ -550,10 +551,24 @@ function restoreComposerDraft() {
   }
 }
 
+function updateCharBar(len) {
+  const countEl = document.getElementById('charCount');
+  const fillEl = document.getElementById('charCountFill');
+  if (countEl) countEl.textContent = len + ' / 2000';
+  if (fillEl) {
+    const pct = Math.min(100, (len / 2000) * 100);
+    fillEl.style.width = pct + '%';
+    fillEl.className = 'char-count-fill' + (pct >= 100 ? ' danger' : pct >= 80 ? ' warn' : '');
+  }
+}
+
 function persistComposerDraft() {
   const messageEl = document.getElementById('messageText');
   const delayEl = document.getElementById('delayMs');
-  if (messageEl) localStorage.setItem(MESSAGE_DRAFT_KEY, messageEl.value.slice(0, 2000));
+  if (messageEl) {
+    localStorage.setItem(MESSAGE_DRAFT_KEY, messageEl.value.slice(0, 2000));
+    updateCharBar(messageEl.value.length);
+  }
   if (delayEl) {
     const delay = Math.max(500, parseInt(delayEl.value || '1200', 10) || 1200);
     localStorage.setItem(DELAY_DRAFT_KEY, String(delay));
