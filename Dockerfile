@@ -20,13 +20,11 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
         curl \
         fileinfo
 
-# Disable event/worker MPMs, then enable prefork + required modules
-RUN a2dismod mpm_event mpm_worker 2>/dev/null || true \
-    && rm -f /etc/apache2/mods-enabled/mpm_event.conf \
-             /etc/apache2/mods-enabled/mpm_event.load \
-             /etc/apache2/mods-enabled/mpm_worker.conf \
-             /etc/apache2/mods-enabled/mpm_worker.load \
-    && a2enmod mpm_prefork rewrite headers expires deflate
+# Remove ALL MPM modules then enable only prefork
+RUN rm -f /etc/apache2/mods-enabled/mpm_*.conf /etc/apache2/mods-enabled/mpm_*.load \
+    && ln -s /etc/apache2/mods-available/mpm_prefork.conf /etc/apache2/mods-enabled/mpm_prefork.conf \
+    && ln -s /etc/apache2/mods-available/mpm_prefork.load /etc/apache2/mods-enabled/mpm_prefork.load \
+    && a2enmod rewrite headers expires deflate
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
