@@ -1,2 +1,18 @@
-node_modules/
+# Sensitive — never commit
 .env
+node_modules/
+*.log
+
+# Cache and temp
+.cache/
+logs/
+
+# Large files
+*.mp4
+*.mov
+*.avi
+Screencast*
+
+# OS
+.DS_Store
+Thumbs.db
