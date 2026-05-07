@@ -1083,27 +1083,26 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
 
 <!-- ═══ UPGRADE MODAL ═══ -->
 <div class="overlay" id="upgradeModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="upgradeModalTitle" aria-hidden="true">
-  <div class="modal">
+  <div class="modal modal--upgrade">
     <div class="modal-head">
       <div class="modal-head-icon">🚀</div>
       <h2 id="upgradeModalTitle">Upgrade to Keep Broadcasting</h2>
       <p id="upgradeModalSub">Your free trial has ended. Choose a plan to continue.</p>
     </div>
     <div class="modal-security">
-      <i class="fas fa-lock" style="color:var(--green);font-size:12px;"></i>
+      <i class="fas fa-lock"></i>
       <span>256-bit SSL · Secure Payment</span>
-      <div style="display:flex;gap:4px;margin-left:4px;">
+      <div style="display:flex;gap:4px;margin-left:6px;">
         <span class="card-tag">VISA</span>
         <span class="card-tag">MC</span>
         <span class="card-tag">AMEX</span>
       </div>
     </div>
     <div class="modal-plans">
-      <div class="modal-plan">
-        <div class="modal-plan-label">Basic</div>
+      <div class="modal-plan modal-plan--basic">
+        <div class="modal-plan-label modal-plan-label--basic">Basic</div>
         <div class="modal-plan-price">$25<sub>/month</sub></div>
-        <div class="modal-plan-period">Up to 300,000 messages per month</div>
-        <div class="price-sep"></div>
+        <div class="modal-plan-period">Up to 300,000 messages/month</div>
         <ul class="modal-plan-feats">
           <li><i class="fas fa-check"></i> All Facebook Pages</li>
           <li><i class="fas fa-check"></i> Label targeting</li>
@@ -1117,11 +1116,10 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         <div class="modal-plan-note">Monthly billing · cancel anytime</div>
       </div>
       <div class="modal-plan modal-plan--featured">
-        <div class="price-popular">BEST VALUE</div>
-        <div class="modal-plan-label" style="color:#818cf8">Pro</div>
+        <div class="price-popular"><i class="fas fa-star" style="font-size:8px;margin-right:3px;"></i> MOST POPULAR</div>
+        <div class="modal-plan-label modal-plan-label--pro">Pro</div>
         <div class="modal-plan-price">$50<sub>/month</sub></div>
-        <div class="modal-plan-period">Up to 650,000 messages per month</div>
-        <div class="price-sep"></div>
+        <div class="modal-plan-period">Up to 650,000 messages/month</div>
         <ul class="modal-plan-feats">
           <li><i class="fas fa-check"></i> Everything in Basic</li>
           <li><i class="fas fa-check"></i> Auto All Pages mode</li>
@@ -1134,11 +1132,10 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         </button>
         <div class="modal-plan-note">Monthly billing · cancel anytime</div>
       </div>
-      <div class="modal-plan">
-        <div class="modal-plan-label">Pro Unlimited</div>
+      <div class="modal-plan modal-plan--unlimited">
+        <div class="modal-plan-label modal-plan-label--unlimited">Pro Unlimited</div>
         <div class="modal-plan-price modal-plan-price--yearly">$300<sub>/year</sub></div>
         <div class="modal-plan-period">Unlimited messages for 12 months</div>
-        <div class="price-sep"></div>
         <ul class="modal-plan-feats">
           <li><i class="fas fa-check"></i> Unlimited messages</li>
           <li><i class="fas fa-check"></i> Everything in Pro</li>
@@ -1146,10 +1143,10 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
           <li><i class="fas fa-check"></i> Custom integrations</li>
           <li><i class="fas fa-check"></i> Dedicated account manager</li>
         </ul>
-        <button class="modal-cta modal-cta--pro" id="upgradeUnlimitedBtn" onclick="if(typeof showPaymentPopup==='function')showPaymentPopup('unlimited');else alert('Loading...')">
+        <button class="modal-cta modal-cta--unlimited" id="upgradeUnlimitedBtn" onclick="if(typeof showPaymentPopup==='function')showPaymentPopup('unlimited');else alert('Loading...')">
           <i class="fas fa-infinity"></i> Start Unlimited
         </button>
-        <div class="modal-plan-note">Yearly billing · renews every 12 months</div>
+        <div class="modal-plan-note">Yearly billing · best per-message rate</div>
       </div>
     </div>
     <div class="modal-dismiss">
