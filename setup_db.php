@@ -15,6 +15,7 @@ if (php_sapi_name() !== 'cli') {
     }
 }
 
+require_once 'config/load-env.php';
 require_once 'db_config.php';
 
 try {
