@@ -131,11 +131,11 @@ if ($envFilePath !== null) {
 // Railway provides MYSQLHOST, MYSQLPORT, MYSQLDATABASE, MYSQLUSER, MYSQLPASSWORD
 // OR standard DB_HOST, DB_NAME, DB_USER, DB_PASS
 // ═════════════════════════════════════════════════════════════
-define('DB_HOST', env_value('MYSQLHOST', env_value('DB_HOST', 'localhost')));
-define('DB_PORT', env_value('MYSQLPORT', env_value('DB_PORT', '3306')));
-define('DB_NAME', env_value('MYSQLDATABASE', env_value('DB_NAME', '')));
-define('DB_USER', env_value('MYSQLUSER', env_value('DB_USER', '')));
-define('DB_PASS', env_value('MYSQLPASSWORD', env_value('DB_PASS', '')));
+define('DB_HOST', env_value('MYSQLHOST', env_value('MYSQL_HOST', env_value('DB_HOST', 'localhost'))));
+define('DB_PORT', env_value('MYSQLPORT', env_value('MYSQL_PORT', env_value('DB_PORT', '3306'))));
+define('DB_NAME', env_value('MYSQLDATABASE', env_value('MYSQL_DATABASE', env_value('DB_NAME', ''))));
+define('DB_USER', env_value('MYSQLUSER', env_value('MYSQL_USER', env_value('DB_USER', ''))));
+define('DB_PASS', env_value('MYSQLPASSWORD', env_value('MYSQL_PASSWORD', env_value('DB_PASS', ''))));
 
 // ═════════════════════════════════════════════════════════════
 // FACEBOOK APP CONFIGURATION
