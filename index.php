@@ -1,13 +1,4 @@
 <?php
-// Redirect legacy domain to canonical Railway URL
-$_host = strtolower($_SERVER['HTTP_HOST'] ?? '');
-if ($_host === 'pageinteractorprosite.site' || $_host === 'www.pageinteractorprosite.site') {
-    $canonicalBase = 'https://facebook-inbox-production-2a22.up.railway.app';
-    $requestUri    = $_SERVER['REQUEST_URI'] ?? '/';
-    header('Location: ' . $canonicalBase . $requestUri, true, 301);
-    exit;
-}
-
 // ═════════════════════════════════════════════════════════════
 // PRODUCTION SECURITY: Set security headers before any output
 // ═════════════════════════════════════════════════════════════
