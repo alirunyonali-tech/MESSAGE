@@ -497,13 +497,16 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   cursor:pointer;transition:all .15s;border:1px solid transparent;margin-bottom:4px;
 }
 .page-card:hover{background:var(--surface2);border-color:var(--border)}
-.page-card.active{background:var(--primary-dim);border-color:rgba(124,58,237,.2)}
-.page-card-img{width:36px;height:36px;border-radius:9px;flex-shrink:0;object-fit:cover;background:var(--surface3)}
-.page-card-info{flex:1;min-width:0}
-.page-card-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px}
-.page-card-cat{font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
-.page-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--text3)}
-.page-dot.online{background:var(--green);box-shadow:0 0 6px rgba(16,185,129,.5)}
+.page-card.active,.page-card.selected{background:var(--primary-dim);border-color:rgba(124,58,237,.25);box-shadow:0 0 0 1px rgba(124,58,237,.08) inset}
+.page-card.active .page-card-name,.page-card.selected .page-name,.page-card.active .page-name{color:var(--primary-light)}
+/* CSS name aliases to match JS-generated class names */
+.page-card-img,.page-avatar{width:36px;height:36px;border-radius:9px;flex-shrink:0;object-fit:cover;background:var(--surface3)}
+.page-avatar-fallback{width:36px;height:36px;border-radius:9px;flex-shrink:0;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:18px}
+.page-card-info,.page-info{flex:1;min-width:0}
+.page-card-name,.page-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px}
+.page-card-cat,.page-category{font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.page-dot,.page-indicator{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--text3)}
+.page-dot.online,.page-indicator.online{background:var(--green);box-shadow:0 0 6px rgba(16,185,129,.5)}
 .sidebar-foot,.sidebar-footer{padding:10px 8px;border-top:1px solid var(--border);flex-shrink:0}
 .btn-logout{
   width:100%;display:flex;align-items:center;gap:9px;padding:9px 12px;
@@ -515,8 +518,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* ── COL 2: COMPOSE ── */
 .compose-col,.compose{
-  flex:0 0 560px;min-width:0;display:flex;flex-direction:column;gap:10px;overflow-y:auto;
+  flex:0 0 560px;min-width:0;min-height:0;display:flex;flex-direction:column;gap:10px;overflow-y:auto;overflow-x:hidden;
+  scrollbar-width:thin;scrollbar-color:var(--surface3) transparent;
 }
+.compose-col::-webkit-scrollbar,.compose::-webkit-scrollbar{width:5px}
+.compose-col::-webkit-scrollbar-track,.compose::-webkit-scrollbar-track{background:transparent}
+.compose-col::-webkit-scrollbar-thumb,.compose::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
 .compose-section{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
   padding:16px 18px;flex-shrink:0;
