@@ -127,7 +127,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <a href="#how-it-works">How It Works</a>
       <a href="#pricing">Pricing</a>
     </div>
-    <button class="nav-cta" id="navConnectBtn" onclick="triggerConnect()">
+    <button type="button" class="nav-cta" id="navConnectBtn" onclick="triggerConnect()">
       <i class="fab fa-facebook"></i> Get Started Free
     </button>
     <button class="nav-hamburger" id="navHamburger" aria-label="Open menu">
@@ -188,7 +188,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         <div class="avatars">
           <img class="avatar hero-avatar avatar-1" data-hero-avatar="0" src="pics/p1.jpg" alt="Customer profile" loading="lazy" decoding="async">
           <img class="avatar hero-avatar avatar-2" data-hero-avatar="1" src="pics/p2.png" alt="Customer profile" loading="lazy" decoding="async">
-          <img class="avatar hero-avatar avatar-3" data-hero-avatar="2" src="pics/p3.webp" alt="Customer profile" loading="lazy" decoding="async">
+          <img class="avatar hero-avatar avatar-3" data-hero-avatar="2" src="pics/p3.jpeg" alt="Customer profile" loading="lazy" decoding="async">
           <img class="avatar hero-avatar avatar-4" data-hero-avatar="3" src="pics/p4.webp" alt="Customer profile" loading="lazy" decoding="async">
         </div>
         Trusted by 500+ businesses worldwide
@@ -681,8 +681,8 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         </a>
         <p class="footer-brand-tagline">The fastest way to broadcast messages to all your Facebook Page followers. Built for businesses worldwide.</p>
         <div style="display:flex;gap:10px;margin-top:4px">
-          <div style="width:32px;height:32px;border-radius:9px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--border2)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'"><i class="fab fa-facebook-f"></i></div>
-          <div style="width:32px;height:32px;border-radius:9px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--border2)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'"><i class="fab fa-twitter"></i></div>
+          <div class="footer-social-icon"><i class="fab fa-facebook-f"></i></div>
+          <div class="footer-social-icon"><i class="fab fa-twitter"></i></div>
         </div>
       </div>
       <!-- Product column -->
@@ -854,7 +854,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
           </div>
         </div>
         <select id="pageSelect" style="display:none"></select>
-        <img id="pageLogo" style="display:none" src="" alt="">
+        <img id="pageLogo" style="display:none" src="" alt="Facebook Page Logo">
       </div>
       <div class="sidebar-footer">
         <button onclick="triggerLogout()" class="btn-logout">
