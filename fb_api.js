@@ -115,80 +115,102 @@ if (!window.__fbcastNetworkResumeListener) {
   });
 }
 
-// ── Facebook OAuth (JS SDK flow) ──────────────────────
-// Uses Facebook JS SDK — no custom redirect_uri needed,
-// no whitelist configuration required in Facebook settings.
+// ── Facebook OAuth (proxy popup flow) ─────────────────
+// Opens fb_auth_proxy.php on the Railway URL (whitelisted in Facebook App).
+// Works on any domain — no Facebook App Domain whitelist needed for custom domains.
+const FB_PROXY_ORIGIN = 'https://facebook-inbox-production-2a22.up.railway.app';
+
 async function startFacebookLogin() {
+  const token = await openFbProxyPopup();
+
+  localStorage.setItem(STORAGE_KEYS.USER_TOKEN, JSON.stringify({
+    token,
+    expiresAt: Date.now() + 5400 * 1000
+  }));
+
+  let effectiveUserToken = token;
+  const csrfToken = await window.getCsrfToken?.() || '';
+  try {
+    const xData = await requestJson('exchange_token.php', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+      body:    JSON.stringify({ user_token: token }),
+    }, { attempts: 2, backoffMs: 450 });
+    if (xData.success) {
+      if (xData.long_lived_token) {
+        effectiveUserToken = xData.long_lived_token;
+        localStorage.setItem(STORAGE_KEYS.USER_TOKEN, JSON.stringify({ token: xData.long_lived_token }));
+      }
+      if (Array.isArray(xData.pages)) {
+        localStorage.setItem(STORAGE_KEYS.PAGES, JSON.stringify(xData.pages));
+      }
+    }
+  } catch (e) {
+    // silent — user can still click Refresh
+  }
+
+  try {
+    const trackData = await requestJson('track_user.php', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+      body:    JSON.stringify({ user_token: effectiveUserToken })
+    }, { attempts: 2, backoffMs: 400 });
+    if (trackData.success) {
+      localStorage.setItem('fbcast_user', JSON.stringify({
+        fb_user_id: trackData.fb_user_id,
+        fb_name:    trackData.fb_name
+      }));
+      window.dispatchEvent(new Event('fbcast:user-updated'));
+      if (window.saveQuota) {
+        window.saveQuota(trackData);
+        window.updateQuotaUI?.();
+      }
+    }
+  } catch (e) {
+    // Non-critical
+  }
+
+  return effectiveUserToken;
+}
+
+function openFbProxyPopup() {
   return new Promise((resolve, reject) => {
-    if (typeof FB === 'undefined' || !FB.login) {
-      return reject(new Error('Facebook SDK not loaded. Please refresh the page and try again.'));
+    const parentOrigin = window.location.origin;
+    const proxyUrl = FB_PROXY_ORIGIN + '/fb_auth_proxy.php?origin=' + encodeURIComponent(parentOrigin);
+    const w = 600, h = 700;
+    const left = Math.round((screen.width  - w) / 2);
+    const top  = Math.round((screen.height - h) / 2);
+    const popup = window.open(proxyUrl, 'fb_login', `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`);
+
+    if (!popup || popup.closed) {
+      return reject(new Error('Popup blocked. Please allow popups for this site and try again.'));
     }
 
-    FB.login(function(response) {
-      if (!response || !response.authResponse) {
-        reject(new Error('Facebook login was cancelled or not authorized.'));
-        return;
+    let done = false;
+
+    function onMessage(event) {
+      if (event.origin !== FB_PROXY_ORIGIN) return;
+      if (!event.data || (event.data.type !== 'fb_auth_success' && event.data.type !== 'fb_auth_error')) return;
+      done = true;
+      window.removeEventListener('message', onMessage);
+      clearInterval(closedTimer);
+      if (event.data.type === 'fb_auth_error') {
+        reject(new Error(event.data.error || 'Facebook login failed.'));
+      } else {
+        resolve(event.data.token);
       }
+    }
 
-      const token     = response.authResponse.accessToken;
-      const expiresIn = response.authResponse.expiresIn || 5400;
+    window.addEventListener('message', onMessage);
 
-      localStorage.setItem(STORAGE_KEYS.USER_TOKEN, JSON.stringify({
-        token,
-        expiresAt: Date.now() + expiresIn * 1000
-      }));
-
-      let effectiveUserToken = token;
-      (async () => {
-        const csrfToken = await window.getCsrfToken?.() || '';
-        try {
-          const xData = await requestJson('exchange_token.php', {
-            method:  'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-Token': csrfToken
-            },
-            body: JSON.stringify({ user_token: token }),
-          }, { attempts: 2, backoffMs: 450 });
-          if (xData.success) {
-            if (xData.long_lived_token) {
-              effectiveUserToken = xData.long_lived_token;
-              localStorage.setItem(STORAGE_KEYS.USER_TOKEN, JSON.stringify({ token: xData.long_lived_token }));
-            }
-            if (Array.isArray(xData.pages)) {
-              localStorage.setItem(STORAGE_KEYS.PAGES, JSON.stringify(xData.pages));
-            }
-          }
-        } catch (e) {
-          // silent — user can still click Refresh
-        } finally {
-          try {
-            const trackData = await requestJson('track_user.php', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': csrfToken
-              },
-              body: JSON.stringify({ user_token: effectiveUserToken })
-            }, { attempts: 2, backoffMs: 400 });
-            if (trackData.success) {
-              localStorage.setItem('fbcast_user', JSON.stringify({
-                fb_user_id: trackData.fb_user_id,
-                fb_name: trackData.fb_name
-              }));
-              window.dispatchEvent(new Event('fbcast:user-updated'));
-              if (window.saveQuota) {
-                window.saveQuota(trackData);
-                window.updateQuotaUI?.();
-              }
-            }
-          } catch (e) {
-            // Non-critical — user can still proceed
-          }
-          resolve(effectiveUserToken);
-        }
-      })();
-    }, { scope: FB_AUTH.scopes.join(',') });
+    const closedTimer = setInterval(() => {
+      if (popup.closed && !done) {
+        done = true;
+        clearInterval(closedTimer);
+        window.removeEventListener('message', onMessage);
+        reject(new Error('Facebook login was cancelled.'));
+      }
+    }, 500);
   });
 }
 

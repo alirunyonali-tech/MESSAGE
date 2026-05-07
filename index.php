@@ -111,11 +111,7 @@ window.APP_CONFIG={
   appEnv:'<?php echo $app_env;?>'
 };
 window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.csrfToken};
-window.fbAsyncInit = function() {
-  FB.init({ appId: window.APP_CONFIG.fbAppId, cookie: true, xfbml: false, version: 'v21.0' });
-};
 </script>
-<script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
 
 <!-- ═══ LANDING PAGE ═══ -->
 <div id="landingPage">
