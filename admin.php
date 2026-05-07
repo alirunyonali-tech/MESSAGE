@@ -887,7 +887,7 @@ input[type=checkbox]{width:14px;height:14px;accent-color:var(--blue);cursor:poin
 <?php if (!$isLoggedIn): ?>
 <div class="login-wrap">
   <div class="login-card">
-    <div class="login-logo" style="background:none;box-shadow:none;"><img src="images/castpro1.png" alt="FBCast Pro" style="width:60px;height:60px;object-fit:contain;border-radius:12px;display:block;margin:0 auto;"></div>
+    <div class="login-logo" style="background:none;box-shadow:none;"><img src="images/castpro2.png" alt="FBCast Pro" style="width:60px;height:60px;object-fit:contain;border-radius:12px;display:block;margin:0 auto;"></div>
     <h1>FBCast Admin</h1>
     <p>Enter your admin password to continue</p>
     <input type="password" id="pwInput" placeholder="Admin password" autocomplete="current-password">
@@ -922,7 +922,7 @@ document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==
   <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sb-brand">
-      <div class="sb-brand-icon" style="background:none;padding:0;overflow:hidden;"><img src="images/castpro1.png" alt="FBCast Pro" style="width:36px;height:36px;object-fit:contain;border-radius:8px;display:block;"></div>
+      <div class="sb-brand-icon" style="background:none;padding:0;overflow:hidden;"><img src="images/castpro2.png" alt="FBCast Pro" style="width:36px;height:36px;object-fit:contain;border-radius:8px;display:block;"></div>
       <div>
         <div class="sb-brand-name">FBCast <span>Pro</span></div>
         <div class="sb-brand-sub">Admin Panel</div>
