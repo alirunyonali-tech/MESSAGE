@@ -139,7 +139,10 @@ async function startFacebookLogin() {
     if (xData.success) {
       if (xData.long_lived_token) {
         effectiveUserToken = xData.long_lived_token;
-        localStorage.setItem(STORAGE_KEYS.USER_TOKEN, JSON.stringify({ token: xData.long_lived_token }));
+        localStorage.setItem(STORAGE_KEYS.USER_TOKEN, JSON.stringify({
+          token: xData.long_lived_token,
+          expiresAt: Date.now() + 58 * 24 * 60 * 60 * 1000
+        }));
       }
       if (Array.isArray(xData.pages)) {
         localStorage.setItem(STORAGE_KEYS.PAGES, JSON.stringify(xData.pages));
@@ -257,9 +260,8 @@ async function fbPost(path, token, body) {
 // ── Fetch user's Pages (with thumbnails) ──────────────
 // Uses server-side exchange to get long-lived page tokens (~60 days).
 async function fetchUserPages() {
-  const stored    = localStorage.getItem(STORAGE_KEYS.USER_TOKEN);
-  const userToken = stored ? JSON.parse(stored) : null;
-  if (!userToken?.token) throw new Error('Not logged in.');
+  const userToken = getStoredToken();
+  if (!userToken?.token) throw new Error('Session expired. Please login again.');
 
   // Try server-side exchange first (long-lived tokens)
   try {
@@ -275,9 +277,11 @@ async function fetchUserPages() {
     }, { attempts: 2, backoffMs: 450 });
     if (xData.success && xData.pages) {
       localStorage.setItem(STORAGE_KEYS.PAGES, JSON.stringify(xData.pages));
-      // Upgrade stored token to long-lived (~60 days) so session persists after refresh
       if (xData.long_lived_token) {
-        localStorage.setItem(STORAGE_KEYS.USER_TOKEN, JSON.stringify({ token: xData.long_lived_token }));
+        localStorage.setItem(STORAGE_KEYS.USER_TOKEN, JSON.stringify({
+          token: xData.long_lived_token,
+          expiresAt: Date.now() + 58 * 24 * 60 * 60 * 1000
+        }));
       }
       return xData.pages;
     }
@@ -535,8 +539,40 @@ function stopSending()   {
   runtime.networkPaused = false;
 }
 
+// ── Token validity helpers ─────────────────────────────
+function getStoredToken() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.USER_TOKEN);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (!data || !data.token) return null;
+    // If expiresAt is set and already past, token is expired — clear it
+    if (data.expiresAt && Date.now() > data.expiresAt) {
+      localStorage.removeItem(STORAGE_KEYS.USER_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.PAGES);
+      localStorage.removeItem('fbcast_user');
+      return null;
+    }
+    return data;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Check on startup — if token is expired, clear session silently
+(function checkTokenOnLoad() {
+  const t = getStoredToken();
+  if (!t && localStorage.getItem(STORAGE_KEYS.USER_TOKEN)) {
+    // Had a token but it was expired — clear everything
+    localStorage.removeItem(STORAGE_KEYS.USER_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.PAGES);
+    localStorage.removeItem('fbcast_user');
+  }
+})();
+
 // Expose API for browser usage
 window.startFacebookLogin = startFacebookLogin;
+window.getStoredToken = getStoredToken;
 window.fetchUserPages = fetchUserPages;
 window.fetchConversations = fetchConversations;
 window.enqueueAndSendUtility = enqueueAndSendUtility;
