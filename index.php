@@ -813,7 +813,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <!-- Message -->
       <div class="compose-section">
         <div class="compose-hdr">
-          <h3><img class="compose-hdr-img" src="images/messanger.jpg" alt=""> Message</h3>
+          <h3><i class="fa-brands fa-facebook-messenger compose-hdr-icon"></i> Message</h3>
           <button class="recipients-toggle-btn" id="recipientsToggleBtn" title="Show Recipients">
             <i class="fa-solid fa-users"></i> Recipients
           </button>
@@ -881,7 +881,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <!-- Settings -->
       <div class="compose-section">
         <div class="compose-hdr">
-          <h3><img class="compose-hdr-img" src="images/setting.webp" alt=""> Settings</h3>
+          <h3><i class="fa-solid fa-sliders compose-hdr-icon"></i> Settings</h3>
         </div>
         <label class="field-label">Delay between messages</label>
         <div class="delay-presets" id="delayPresets" role="group" aria-label="Delay between messages">
@@ -905,7 +905,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <!-- Send -->
       <div class="compose-section">
         <div class="compose-hdr">
-          <h3><img class="compose-hdr-img" src="images/broadcast.jpg" alt=""> Broadcast</h3>
+          <h3><i class="fa-solid fa-bullhorn compose-hdr-icon"></i> Broadcast</h3>
           <div class="mode-pills">
             <button class="mode-pill active" id="modeManualBtn">Manual</button>
             <button class="mode-pill" id="modeAutoBtn">Auto All</button>
@@ -980,7 +980,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <!-- Campaign Intelligence -->
       <div class="compose-section">
         <div class="compose-hdr">
-          <h3><img class="compose-hdr-img" src="images/compain.png" alt=""> Campaign Intelligence</h3>
+          <h3><i class="fa-solid fa-chart-line compose-hdr-icon"></i> Campaign Intelligence</h3>
         </div>
         <div class="intel-grid">
           <div class="intel-card">
