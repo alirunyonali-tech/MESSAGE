@@ -943,6 +943,20 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         </div>
       </div>
 
+      <!-- Best Practices -->
+      <div class="compose-section">
+        <div class="compose-hdr">
+          <h3><i class="fa-solid fa-lightbulb compose-hdr-icon"></i> Best Practices</h3>
+        </div>
+        <div class="tips-list">
+          <div class="tip-item"><i class="fa-solid fa-circle-check"></i><span>Keep messages under 200 chars for better readability</span></div>
+          <div class="tip-item"><i class="fa-solid fa-circle-check"></i><span>Use <strong>Normal</strong> delay to avoid Facebook rate limits</span></div>
+          <div class="tip-item"><i class="fa-solid fa-circle-check"></i><span>Test with a small page before broadcasting to all</span></div>
+          <div class="tip-item"><i class="fa-solid fa-circle-check"></i><span>Avoid promotional keywords to reduce policy risk</span></div>
+          <div class="tip-item"><i class="fa-solid fa-circle-check"></i><span>Add an image to increase message engagement rates</span></div>
+        </div>
+      </div>
+
     </div>
 
     <!-- COL 4: PERFORMANCE PANEL -->
