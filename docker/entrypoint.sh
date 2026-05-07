@@ -16,5 +16,8 @@ mkdir -p /var/www/html/uploads
 chown -R www-data:www-data /var/www/html/uploads
 chmod 775 /var/www/html/uploads
 
+echo "Testing Apache configuration..."
+apache2ctl configtest 2>&1
+
 echo "Starting Apache on port $PORT..."
-exec apache2-foreground
+exec apache2-foreground 2>&1
