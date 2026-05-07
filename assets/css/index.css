@@ -479,7 +479,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* ── COL 1: SIDEBAR ── */
 .sidebar{
-  width:228px;min-width:228px;
+  width:190px;min-width:190px;
   background:var(--surface);border:1px solid var(--border);
   border-radius:var(--radius-lg);display:flex;flex-direction:column;overflow:hidden;
 }
@@ -515,7 +515,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* ── COL 2: COMPOSE ── */
 .compose-col,.compose{
-  flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;overflow-y:auto;
+  flex:0 0 560px;min-width:0;display:flex;flex-direction:column;gap:10px;overflow-y:auto;
 }
 .compose-section{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
@@ -663,7 +663,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .page-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;background:var(--primary-dim);color:var(--primary-light);border:1px solid rgba(124,58,237,.18);margin-bottom:12px}
 
 /* ── COL 3: STATS ── */
-.stats-panel{width:360px;min-width:360px;max-width:360px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;flex-direction:column;overflow:hidden}
+.stats-panel{flex:1;min-width:280px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden}
 .recipients-panel{flex:1;min-width:300px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;flex-direction:column;overflow:hidden;min-height:0}
 
 .stat-strip{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
@@ -802,6 +802,8 @@ body.light .nav.scrolled{background:rgba(240,244,255,.96)}
 #ytIframe{width:100%;height:100%;border:none;display:block}
 
 /* RESPONSIVE */
+@media(max-width:1200px){.compose-col,.compose{flex:0 0 480px}}
+@media(max-width:960px){.compose-col,.compose{flex:1}.stats-panel{display:none}}
 @media(max-width:1024px){.pricing-grid,.modal-plans{grid-template-columns:1fr 1fr}.hero-metrics{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:900px){.features-grid,.steps-grid{grid-template-columns:repeat(2,1fr)}.testimonials-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:768px){.pricing-grid,.modal-plans,.features-grid,.steps-grid,.testimonials-grid{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr 1fr}.stats-strip{flex-wrap:wrap}.stat-strip-item{border-right:none;border-bottom:1px solid var(--border);width:50%}}
