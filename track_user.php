@@ -132,10 +132,39 @@ if (!$user) {
         'trial_used'     => 1,
     ];
 } else {
-    /* Returning user → update last_login + name, but DO NOT reset messages */
+    /* Returning user → update last_login + name */
     $db->prepare(
         "UPDATE users SET fb_name = ?, last_login = NOW(), ip_address = ? WHERE fb_user_id = ?"
     )->execute([$fbName, $ip, $fbId]);
+
+    /* ── Monthly reset safety net ──────────────────────────
+       If subscription_expires has passed and plan is paid,
+       downgrade to free (payment failed / webhook missed).
+       If subscription is still active, Stripe's
+       invoice.payment_succeeded webhook resets messages_used.
+    ────────────────────────────────────────────────────── */
+    $plan    = $user['plan'] ?? 'free';
+    $expires = $user['subscription_expires'] ?? null;
+    if ($plan !== 'free' && $expires !== null) {
+        $expiredSince = (new DateTime())->diff(new DateTime($expires));
+        $daysOver     = (int)$expiredSince->format('%r%a'); // negative = expired
+        if ($daysOver < -2) {
+            // Subscription expired more than 2 days ago — downgrade to free
+            $db->prepare(
+                "UPDATE users SET plan='free', messages_limit=?, messages_used=0,
+                 stripe_subscription_id=NULL, subscription_expires=NULL
+                 WHERE fb_user_id=?"
+            )->execute([$freeLimit, $fbId]);
+            $user['plan']            = 'free';
+            $user['messages_limit']  = $freeLimit;
+            $user['messages_used']   = 0;
+            $user['subscription_expires'] = null;
+            try {
+                $db->prepare("INSERT INTO activity_log (fb_user_id, action, detail) VALUES (?, 'subscription', ?)")
+                   ->execute([$fbId, 'Auto-downgraded to free: subscription_expires passed with no renewal webhook']);
+            } catch (Exception $e) {}
+        }
+    }
 }
 
 /* ── Log the login ─────────────────────────────────────── */
