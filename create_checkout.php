@@ -194,6 +194,7 @@ try {
 
     $sessionPayload = [
         'mode'                        => $isLifetime ? 'payment' : 'subscription',
+        'payment_method_types'        => ['card'],
         'customer'                    => $customerId,
         'line_items'                  => [['price' => $planData['price_id'], 'quantity' => 1]],
         'client_reference_id'         => $fbUserId,
