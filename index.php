@@ -123,7 +123,7 @@ window.fbAsyncInit = function() {
   <!-- NAV -->
   <nav class="nav">
     <a class="nav-brand" href="#">
-      <div class="nav-brand-mark"><img src="images/main.png" alt="FBCast Pro" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;"></div>
+      <div class="nav-brand-mark"><img src="images/fbcast-pro.png" alt="FBCast Pro" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;"></div>
       <span class="nav-brand-name">FBCast <em>Pro</em></span>
     </a>
     <div class="nav-links">
@@ -627,7 +627,7 @@ window.fbAsyncInit = function() {
       <!-- Brand column -->
       <div class="footer-brand-col">
         <a class="footer-brand" href="#">
-          <div class="nav-brand-mark" style="width:34px;height:34px;font-size:14px;"><img src="images/main.png" alt="FBCast Pro" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;"></div>
+          <div class="nav-brand-mark" style="width:34px;height:34px;font-size:14px;"><img src="images/fbcast-pro.png" alt="FBCast Pro" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;"></div>
           <span style="font-weight:800;font-size:15px;letter-spacing:-.3px;color:#fff">FBCast <em style="font-style:normal;color:var(--blue-light)">Pro</em></span>
         </a>
         <p class="footer-brand-tagline">The fastest way to broadcast messages to all your Facebook Page followers. Built for businesses worldwide.</p>
@@ -707,7 +707,7 @@ window.fbAsyncInit = function() {
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-brand">
-      <div class="topbar-mark"><img src="images/main.png" alt="FBCast Pro" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;"></div>
+      <div class="topbar-mark"><img src="images/fbcast-pro.png" alt="FBCast Pro" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;"></div>
       <div class="topbar-title">
         <h1>FBCast Pro</h1>
         <p>Facebook Broadcast Platform</p>
