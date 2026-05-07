@@ -16,38 +16,57 @@ if (!in_array($parentOrigin, $allowedOrigins, true)) {
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Connecting to Facebook...</title>
+<title>Connect Facebook</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: #18191a; color: #eee; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
-.wrap { text-align: center; }
-.spinner { width: 40px; height: 40px; border: 3px solid #333; border-top-color: #1877f2; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+.wrap { text-align: center; padding: 32px; }
+.logo { font-size: 40px; margin-bottom: 16px; }
+h2 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+p { color: #aaa; font-size: 13px; margin-bottom: 24px; }
+#btnLogin {
+  background: #1877f2; color: #fff; border: none; border-radius: 8px;
+  padding: 13px 28px; font-size: 15px; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 10px; transition: background .2s;
+}
+#btnLogin:hover { background: #1565d8; }
+#btnLogin:disabled { background: #333; color: #888; cursor: not-allowed; }
+.spinner { display: none; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-p { color: #aaa; font-size: 14px; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="spinner"></div>
-  <p>Connecting to Facebook...</p>
+  <div class="logo">&#xf09a;</div>
+  <h2>Connect with Facebook</h2>
+  <p>Click below to authorize FBCast Pro<br>with your Facebook account.</p>
+  <button id="btnLogin" onclick="doLogin()">
+    <span id="btnSpinner" class="spinner"></span>
+    <span id="btnText">Continue with Facebook</span>
+  </button>
 </div>
+
 <script>
 var PARENT_ORIGIN = <?php echo json_encode($parentOrigin); ?>;
+var sdkReady = false;
 
 function sendToParent(data) {
   if (window.opener) {
     window.opener.postMessage(data, PARENT_ORIGIN);
   }
-  setTimeout(function() { window.close(); }, 300);
+  setTimeout(function() { window.close(); }, 400);
 }
 
-window.fbAsyncInit = function() {
-  FB.init({
-    appId:   <?php echo json_encode(FB_APP_ID); ?>,
-    cookie:  true,
-    xfbml:  false,
-    version: 'v21.0'
-  });
+function doLogin() {
+  var btn = document.getElementById('btnLogin');
+  btn.disabled = true;
+  document.getElementById('btnSpinner').style.display = 'inline-block';
+  document.getElementById('btnText').textContent = 'Connecting...';
+
+  if (!sdkReady) {
+    setTimeout(doLogin, 300); // wait for SDK
+    return;
+  }
 
   FB.login(function(response) {
     if (response && response.authResponse) {
@@ -63,6 +82,16 @@ window.fbAsyncInit = function() {
       });
     }
   }, { scope: 'pages_show_list,pages_messaging' });
+}
+
+window.fbAsyncInit = function() {
+  FB.init({
+    appId:   <?php echo json_encode(FB_APP_ID); ?>,
+    cookie:  true,
+    xfbml:   false,
+    version: 'v21.0'
+  });
+  sdkReady = true;
 };
 
 (function(d, s, id) {
