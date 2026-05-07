@@ -137,13 +137,35 @@ if (!$user) {
         "UPDATE users SET fb_name = ?, last_login = NOW(), ip_address = ? WHERE fb_user_id = ?"
     )->execute([$fbName, $ip, $fbId]);
 
+    /* ── Free trial expiry ─────────────────────────────────
+       If user is on free plan, never sent a message,
+       and it has been more than 30 days since first_login
+       → expire the trial (set messages_limit = 0).
+    ────────────────────────────────────────────────────── */
+    $plan = $user['plan'] ?? 'free';
+    if ($plan === 'free' && (int)($user['messages_used'] ?? 0) === 0) {
+        $firstLogin = $user['first_login'] ?? null;
+        if ($firstLogin !== null) {
+            $daysSince = (int)(new DateTime())->diff(new DateTime($firstLogin))->days;
+            if ($daysSince > 30 && (int)($user['messages_limit'] ?? 0) > 0) {
+                $db->prepare(
+                    "UPDATE users SET messages_limit = 0 WHERE fb_user_id = ?"
+                )->execute([$fbId]);
+                $user['messages_limit'] = 0;
+                try {
+                    $db->prepare("INSERT INTO activity_log (fb_user_id, action, detail) VALUES (?, 'subscription', ?)")
+                       ->execute([$fbId, 'Free trial expired: 30 days passed with no messages sent']);
+                } catch (Exception $e) {}
+            }
+        }
+    }
+
     /* ── Monthly reset safety net ──────────────────────────
        If subscription_expires has passed and plan is paid,
        downgrade to free (payment failed / webhook missed).
        If subscription is still active, Stripe's
        invoice.payment_succeeded webhook resets messages_used.
     ────────────────────────────────────────────────────── */
-    $plan    = $user['plan'] ?? 'free';
     $expires = $user['subscription_expires'] ?? null;
     if ($plan !== 'free' && $expires !== null) {
         $expiredSince = (new DateTime())->diff(new DateTime($expires));
