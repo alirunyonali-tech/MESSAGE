@@ -11,7 +11,7 @@ header('Cross-Origin-Resource-Policy: same-site');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(self)');
 header('Strict-Transport-Security: max-age=31536000; includeSubDomains; preload');
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: https:; connect-src 'self' https://api.stripe.com https://graph.facebook.com https://www.facebook.com; frame-src https://js.stripe.com https://www.facebook.com https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://connect.facebook.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: https:; connect-src 'self' https://api.stripe.com https://graph.facebook.com https://www.facebook.com https://connect.facebook.net; frame-src https://js.stripe.com https://www.facebook.com https://www.youtube.com https://www.youtube-nocookie.com https://staticxx.facebook.com; object-src 'none'; base-uri 'self'");
 
 // Disable caching for page (user auth-sensitive)
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0, private');
@@ -102,7 +102,11 @@ window.APP_CONFIG={
   appEnv:'<?php echo $app_env;?>'
 };
 window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.csrfToken};
+window.fbAsyncInit = function() {
+  FB.init({ appId: window.APP_CONFIG.fbAppId, cookie: true, xfbml: false, version: 'v21.0' });
+};
 </script>
+<script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
 
 <!-- ═══ LANDING PAGE ═══ -->
 <div id="landingPage">

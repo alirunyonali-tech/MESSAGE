@@ -115,43 +115,29 @@ if (!window.__fbcastNetworkResumeListener) {
   });
 }
 
-// ── Facebook OAuth (postMessage flow) ─────────────────
-// Uses oauth_callback.html as redirect target.
-// oauth_callback.html posts the token back via window.postMessage —
-// no cross-origin polling, no chrome-error:// issues.
+// ── Facebook OAuth (JS SDK flow) ──────────────────────
+// Uses Facebook JS SDK — no custom redirect_uri needed,
+// no whitelist configuration required in Facebook settings.
 async function startFacebookLogin() {
-  const authUrl = new URL('https://www.facebook.com/v21.0/dialog/oauth');
-  authUrl.searchParams.set('client_id',     FB_AUTH.appId);
-  authUrl.searchParams.set('redirect_uri',  FB_AUTH.redirectUri);
-  authUrl.searchParams.set('response_type', 'token');
-  authUrl.searchParams.set('display',       'popup');
-  authUrl.searchParams.set('scope',         FB_AUTH.scopes.join(','));
-
   return new Promise((resolve, reject) => {
-    const popup = window.open(authUrl.toString(), 'fbLogin', 'width=600,height=700');
-    if (!popup) return reject(new Error('Popup blocked. Please allow popups for this page.'));
+    if (typeof FB === 'undefined' || !FB.login) {
+      return reject(new Error('Facebook SDK not loaded. Please refresh the page and try again.'));
+    }
 
-    // Listen for token posted back from oauth_callback.html
-    function onMessage(event) {
-      if (event.origin !== window.location.origin) return;
-      if (!event.data || event.data.type !== 'fb_oauth') return;
+    FB.login(function(response) {
+      if (!response || !response.authResponse) {
+        reject(new Error('Facebook login was cancelled or not authorized.'));
+        return;
+      }
 
-      window.removeEventListener('message', onMessage);
-      clearInterval(closedTimer);
-
-      const hash      = event.data.hash || '';
-      const params    = new URLSearchParams(hash.replace(/^#/, ''));
-      const token     = params.get('access_token');
-      const expiresIn = Number(params.get('expires_in') || 0);
-
-      if (!token) return reject(new Error('No access token received.'));
+      const token     = response.authResponse.accessToken;
+      const expiresIn = response.authResponse.expiresIn || 5400;
 
       localStorage.setItem(STORAGE_KEYS.USER_TOKEN, JSON.stringify({
         token,
         expiresAt: Date.now() + expiresIn * 1000
       }));
 
-      // ── Server-side long-lived token exchange ──────────
       let effectiveUserToken = token;
       (async () => {
         const csrfToken = await window.getCsrfToken?.() || '';
@@ -162,10 +148,9 @@ async function startFacebookLogin() {
               'Content-Type': 'application/json',
               'X-CSRF-Token': csrfToken
             },
-            body:    JSON.stringify({ user_token: token }),
+            body: JSON.stringify({ user_token: token }),
           }, { attempts: 2, backoffMs: 450 });
           if (xData.success) {
-            // Save long-lived token (~60 days) immediately after login
             if (xData.long_lived_token) {
               effectiveUserToken = xData.long_lived_token;
               localStorage.setItem(STORAGE_KEYS.USER_TOKEN, JSON.stringify({ token: xData.long_lived_token }));
@@ -177,7 +162,6 @@ async function startFacebookLogin() {
         } catch (e) {
           // silent — user can still click Refresh
         } finally {
-          // ── Track user and initialize quota on server ──
           try {
             const trackData = await requestJson('track_user.php', {
               method: 'POST',
@@ -188,12 +172,10 @@ async function startFacebookLogin() {
               body: JSON.stringify({ user_token: effectiveUserToken })
             }, { attempts: 2, backoffMs: 400 });
             if (trackData.success) {
-              // Save user and quota to localStorage
               localStorage.setItem('fbcast_user', JSON.stringify({
                 fb_user_id: trackData.fb_user_id,
                 fb_name: trackData.fb_name
               }));
-              // storage event only fires in other tabs — dispatch manually for same-tab UI update
               window.dispatchEvent(new Event('fbcast:user-updated'));
               if (window.saveQuota) {
                 window.saveQuota(trackData);
@@ -206,18 +188,7 @@ async function startFacebookLogin() {
           resolve(effectiveUserToken);
         }
       })();
-    }
-
-    window.addEventListener('message', onMessage);
-
-    // Fallback: if user closes popup without logging in
-    const closedTimer = setInterval(() => {
-      if (popup.closed) {
-        clearInterval(closedTimer);
-        window.removeEventListener('message', onMessage);
-        reject(new Error('Login window closed before completing authentication.'));
-      }
-    }, 500);
+    }, { scope: FB_AUTH.scopes.join(',') });
   });
 }
 
