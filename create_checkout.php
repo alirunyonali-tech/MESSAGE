@@ -224,10 +224,7 @@ try {
     $env = defined('APP_ENV') ? APP_ENV : getenv('APP_ENV');
     $debugMsg = ($env && $env !== 'production') ? $e->getMessage() : null;
 
-    $resp = ['error' => 'Payment gateway error. Please try again or contact support.'];
-    if ($debugMsg) {
-        $resp['debug'] = $debugMsg;
-    }
+    $resp = ['error' => 'Payment gateway error: ' . $e->getMessage()];
 
     die(json_encode($resp));
 }
