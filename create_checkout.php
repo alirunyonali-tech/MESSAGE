@@ -94,10 +94,11 @@ if ($_SESSION[$rate_key]['count'] > 5) {
     die(json_encode(['error' => 'Too many checkout attempts. Please wait 1 minute and try again.']));
 }
 
-if (!$plan || !isset(STRIPE_PLANS[$plan])) {
+$validPlans = array_keys(STRIPE_PLANS);
+if (!$plan || !in_array($plan, $validPlans, true)) {
     ob_end_clean();
     http_response_code(400);
-    die(json_encode(['error' => 'Invalid plan. Must be: basic, pro, or unlimited']));
+    die(json_encode(['error' => 'Invalid plan: "' . $plan . '". Valid: ' . implode(', ', $validPlans)]));
 }
 if (!$fbUserId) {
     ob_end_clean();
