@@ -158,7 +158,17 @@ if (empty(STRIPE_SECRET_KEY) || strpos(STRIPE_SECRET_KEY, 'YOUR') !== false || s
 }
 
 try {
-    // Create Stripe customer if not yet linked
+    // Create Stripe customer if not yet linked, or if stored ID no longer exists
+    if ($customerId) {
+        // Verify the stored customer still exists in Stripe
+        $existing = stripeGet('/customers/' . $customerId);
+        if (!empty($existing['deleted']) || !empty($existing['error'])) {
+            $customerId = ''; // stale ID — create fresh below
+            $db->prepare("UPDATE users SET stripe_customer_id = NULL WHERE fb_user_id = ?")
+               ->execute([$fbUserId]);
+        }
+    }
+
     if (!$customerId) {
         $customerRes = stripePost('/customers', [
             'name'     => $user['fb_name'] ?: $fbUserId,
