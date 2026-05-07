@@ -807,10 +807,9 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       </div>
     </div>
 
-    <!-- COL 2: COMPOSE -->
+    <!-- COL 2: MESSAGE COMPOSE -->
     <div class="compose">
 
-      <!-- Message -->
       <div class="compose-section">
         <div class="compose-hdr">
           <h3><i class="fa-brands fa-facebook-messenger compose-hdr-icon"></i> Message</h3>
@@ -818,7 +817,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
             <i class="fa-solid fa-users"></i> Recipients
           </button>
         </div>
-        <textarea id="messageText" rows="4" placeholder="Write your broadcast message here…"></textarea>
+        <textarea id="messageText" rows="7" placeholder="Write your broadcast message here…"></textarea>
         <div id="charCount">0 / 2000</div>
 
         <!-- IMAGE ATTACHMENT -->
@@ -838,14 +837,12 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
               <i class="fa-solid fa-cloud-arrow-up"></i> Upload
             </button>
           </div>
-          <!-- URL mode -->
           <div class="img-url-area" id="imgUrlArea">
             <input type="url" id="imgUrlInput" placeholder="https://example.com/image.jpg" class="img-url-input" autocomplete="off">
             <button type="button" id="imgUrlLoad" class="img-url-load-btn" title="Load image from URL">
               <i class="fa-solid fa-check"></i>
             </button>
           </div>
-          <!-- Upload mode -->
           <div class="img-upload-area" id="imgUploadArea" style="display:none">
             <label class="img-drop-zone" for="imgFileInput" id="imgDropZone">
               <i class="fa-solid fa-cloud-arrow-up"></i>
@@ -858,7 +855,6 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
               <span id="imgUploadProgressText">Uploading…</span>
             </div>
           </div>
-          <!-- Preview -->
           <div class="img-preview-wrap" id="imgPreviewWrap" style="display:none">
             <div class="img-preview-box">
               <img id="imgPreviewThumb" src="" alt="Image preview">
@@ -877,6 +873,11 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
           <div>Promotional messages may violate Facebook policies. <strong>Send at your own risk.</strong></div>
         </div>
       </div>
+
+    </div>
+
+    <!-- COL 3: SETTINGS + BROADCAST -->
+    <div class="broadcast-col">
 
       <!-- Settings -->
       <div class="compose-section">
@@ -902,7 +903,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         <div class="field-hint">Slow: safer · Normal: recommended · Fast: aggressive</div>
       </div>
 
-      <!-- Send -->
+      <!-- Broadcast -->
       <div class="compose-section">
         <div class="compose-hdr">
           <h3><i class="fa-solid fa-bullhorn compose-hdr-icon"></i> Broadcast</h3>
@@ -944,7 +945,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
 
     </div>
 
-    <!-- COL 3: PERFORMANCE PANEL -->
+    <!-- COL 4: PERFORMANCE PANEL -->
     <div class="stats-panel">
       <!-- Stat Strip -->
       <div class="stat-strip">
