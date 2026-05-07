@@ -261,11 +261,15 @@ function renderPages(pages) {
     select.appendChild(opt);
 
     const picUrl = p.picture?.data?.url || '';
+    const initial = (p.name || '?').charAt(0).toUpperCase();
     const card = document.createElement('div');
     card.className = 'page-card';
     card.dataset.id = p.id;
     card.innerHTML = `
-      ${picUrl ? `<img class="page-avatar" src="${escHtml(picUrl)}" alt="">` : `<div class="page-avatar-fallback">📄</div>`}
+      ${picUrl
+        ? `<img class="page-avatar" src="${escHtml(picUrl)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+        : ''}
+      <div class="page-avatar-fallback" style="${picUrl ? 'display:none' : ''}">${escHtml(initial)}</div>
       <div class="page-info">
         <div class="page-name">${escHtml(p.name)}</div>
         ${p.category ? `<div class="page-category">${escHtml(p.category)}</div>` : ''}

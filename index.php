@@ -818,7 +818,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
             <i class="fa-solid fa-users"></i> Recipients
           </button>
         </div>
-        <textarea id="messageText" rows="6" placeholder="Write your broadcast message here…"></textarea>
+        <textarea id="messageText" rows="4" placeholder="Write your broadcast message here…"></textarea>
         <div id="charCount">0 / 2000</div>
 
         <!-- IMAGE ATTACHMENT -->
