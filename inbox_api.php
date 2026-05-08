@@ -306,31 +306,35 @@ function syncFromFacebook(string $fbUserId, array $body): void {
 function getMessages(string $fbUserId): void {
     $db       = getDB();
     $convId   = (int)($_GET['conv_id']   ?? 0);
-    $since    = $_GET['since']    ?? null; // ISO — poll only newer
-    $beforeId = (int)($_GET['before_id'] ?? 0); // DB id — load older
+    $since    = $_GET['since']    ?? null;
+    $beforeId = (int)($_GET['before_id'] ?? 0);
     $limit    = 50;
 
     if (!$convId) { http_response_code(400); die(json_encode(['error' => 'conv_id required'])); }
 
-    $stmt = $db->prepare("SELECT id FROM inbox_conversations WHERE id=? AND fb_user_id=?");
+    // Verify ownership + load conv details + agent name in one query
+    $stmt = $db->prepare("
+        SELECT c.*, COALESCE(u.fb_name, 'Agent') AS agent_name
+        FROM inbox_conversations c
+        LEFT JOIN users u ON u.fb_user_id = c.fb_user_id
+        WHERE c.id=? AND c.fb_user_id=?
+    ");
     $stmt->execute([$convId, $fbUserId]);
-    if (!$stmt->fetch()) { http_response_code(403); die(json_encode(['error' => 'Forbidden'])); }
+    $conv = $stmt->fetch();
+    if (!$conv) { http_response_code(403); die(json_encode(['error' => 'Forbidden'])); }
 
     if ($since) {
-        // Polling — fetch only messages newer than timestamp
         $stmt = $db->prepare("SELECT * FROM inbox_messages WHERE conversation_id=? AND sent_at > ? ORDER BY sent_at ASC LIMIT $limit");
         $stmt->execute([$convId, $since]);
         $rows    = $stmt->fetchAll();
         $hasMore = false;
     } elseif ($beforeId > 0) {
-        // Load older — fetch messages before given DB id, newest-first then reverse
         $stmt = $db->prepare("SELECT * FROM inbox_messages WHERE conversation_id=? AND id < ? ORDER BY sent_at DESC LIMIT " . ($limit + 1));
         $stmt->execute([$convId, $beforeId]);
         $rows    = array_reverse($stmt->fetchAll());
         $hasMore = count($rows) > $limit;
         if ($hasMore) array_shift($rows);
     } else {
-        // Initial load — latest 50, oldest-first
         $stmt = $db->prepare("SELECT * FROM inbox_messages WHERE conversation_id=? ORDER BY sent_at DESC LIMIT " . ($limit + 1));
         $stmt->execute([$convId]);
         $rows    = array_reverse($stmt->fetchAll());
@@ -338,29 +342,70 @@ function getMessages(string $fbUserId): void {
         if ($hasMore) array_shift($rows);
     }
 
-    $messages = array_map(function($row) {
-        $dir = $row['direction'] === 'out' ? 'outgoing' : 'incoming';
+    $agentName = $conv['agent_name'];
+    $now       = time();
+
+    $messages = array_map(function($row) use ($fbUserId, $agentName) {
+        $dir   = $row['direction'] === 'out' ? 'outgoing' : 'incoming';
+        $aType = strtolower($row['attachment_type'] ?? '');
+        $isImg = in_array($aType, ['image','photo','sticker']) ||
+                 ($row['attachment_url'] && preg_match('/\.(jpg|jpeg|png|gif|webp)/i', $row['attachment_url']));
+        $msgType = $isImg ? 'image' : ($aType ? $aType : 'text');
+
+        // Build attachment_metadata only when there is an attachment
+        $attachMeta = new \stdClass();
+        if ($row['attachment_url']) {
+            $mime = $isImg ? 'image/jpeg' : 'application/octet-stream';
+            $attachMeta = [
+                'url'       => $row['attachment_url'],
+                'name'      => $row['attachment_type'] ?? 'file',
+                'type'      => $aType ?: 'file',
+                'mime_type' => $mime,
+                'all_attachments' => [[
+                    'url'       => $row['attachment_url'],
+                    'name'      => $row['attachment_type'] ?? 'file',
+                    'type'      => $aType ?: 'file',
+                    'mime_type' => $mime,
+                ]],
+            ];
+        }
+
         return [
-            'id'                  => $row['fb_message_id'],
-            'text'                => $row['message_text'],
+            'id'                  => (int)$row['id'],
+            'text'                => $row['message_text'] ?? '',
             'direction'           => $dir,
             'sender_type'         => $dir === 'outgoing' ? 'agent' : 'customer',
-            'message_type'        => $row['attachment_type'] ? 'attachment' : 'text',
+            'message_type'        => $msgType,
             'attachment_url'      => $row['attachment_url'],
-            'attachment_metadata' => new \stdClass(),
+            'attachment_metadata' => $attachMeta,
             'delivery_status'     => 'sent',
             'sent_at'             => $row['sent_at']    ? gmdate('c', strtotime($row['sent_at']))    : null,
             'created_at'          => $row['created_at'] ? gmdate('c', strtotime($row['created_at'])) : null,
-            'sender_user'         => null,
+            'sender_user'         => $dir === 'outgoing'
+                                       ? ['id' => $fbUserId, 'name' => $agentName]
+                                       : null,
             'source'              => 'facebook',
-            '_db_id'              => (int)$row['id'], // internal cursor for pagination
+            '_db_id'              => (int)$row['id'],
         ];
     }, $rows);
 
+    $oldestId = $rows ? (int)$rows[0]['id']          : null;
+    $newestId = $rows ? (int)end($rows)['id']         : null;
+
+    $withinWindow = $conv['last_user_message_at'] &&
+                    strtotime($conv['last_user_message_at']) > ($now - 86400);
+
     echo json_encode([
-        'messages'    => $messages,
+        'messages'     => $messages,
+        'conversation' => [
+            'id'                      => (int)$conv['id'],
+            'customer_name'           => $conv['customer_name'],
+            'within_messaging_window' => $withinWindow,
+            'facebook_page_name'      => '',
+        ],
         'has_more'    => $hasMore,
-        'next_cursor' => null,
+        'oldest_id'   => $oldestId,
+        'newest_id'   => $newestId,
         'source'      => 'facebook',
     ]);
 }

@@ -122,6 +122,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 /* Load older messages */
 .load-older-btn{align-self:center;padding:5px 16px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--text2);font-size:11.5px;font-family:inherit;cursor:pointer;margin:6px 0 4px;transition:background .15s}
 .load-older-btn:hover{background:var(--surface3)}
+/* Image bubbles */
+.msg-img{display:block;max-width:220px;max-height:200px;border-radius:10px;cursor:pointer;object-fit:cover}
+.msg-img:hover{opacity:.9}
+/* Image lightbox */
+.img-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;animation:msg-in .15s ease}
+.img-lightbox img{max-width:92vw;max-height:92vh;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+/* Sender name above outgoing bubble */
+.msg-sender{font-size:10px;color:var(--text3);margin-bottom:2px;padding:0 3px}
 
 /* ── MIDDLE — Chat ── */
 .ib-chat{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);position:relative}
@@ -534,10 +542,18 @@ function fetchMsgs(convId, since, append) {
       if (activeId !== convId) return;
       var msgs = d.messages || [];
 
-      // Store has_more and oldest _db_id for "load older" cursor
+      // Store has_more and pagination cursors
       hasMoreMsgs[convId] = !!d.has_more;
-      if (msgs.length && msgs[0]._db_id && !oldestDbId[convId]) {
+      // Use oldest_id from response if available, else fall back to _db_id
+      if (d.oldest_id && !oldestDbId[convId]) {
+        oldestDbId[convId] = d.oldest_id;
+      } else if (msgs.length && msgs[0]._db_id && !oldestDbId[convId]) {
         oldestDbId[convId] = msgs[0]._db_id;
+      }
+      // Update within_messaging_window from conversation object
+      if (d.conversation && activeId === convId) {
+        var warn = document.getElementById('winWarning');
+        if (warn) warn.style.display = d.conversation.within_messaging_window ? 'none' : 'flex';
       }
 
       if (!msgs.length && append) return;
@@ -719,9 +735,34 @@ function buildBubble(m) {
   var col = document.createElement('div');
   col.className = 'msg-col';
 
+  // Sender name (outgoing messages with known sender)
+  if (isOut && m.sender_user && m.sender_user.name) {
+    var sn = document.createElement('div');
+    sn.className = 'msg-sender';
+    sn.textContent = m.sender_user.name;
+    col.appendChild(sn);
+  }
+
   var bub = document.createElement('div');
   bub.className = 'msg-bubble';
-  if (m.attachment_url) {
+
+  var msgType = m.message_type || 'text';
+  if (msgType === 'image' && m.attachment_url) {
+    // Inline image with lightbox
+    var img = document.createElement('img');
+    img.className = 'msg-img';
+    img.src = m.attachment_url;
+    img.alt = 'Image';
+    img.onclick = function(){ openLightbox(m.attachment_url); };
+    img.onerror = function(){ this.style.display='none'; };
+    bub.appendChild(img);
+    if (text) {
+      var cap = document.createElement('div');
+      cap.style.cssText = 'margin-top:5px;font-size:13px';
+      cap.textContent = text;
+      bub.appendChild(cap);
+    }
+  } else if (m.attachment_url) {
     bub.innerHTML = (text ? esc(text)+'<br>' : '') +
       '<span class="msg-attach"><a href="'+esc(m.attachment_url)+'" target="_blank" rel="noopener">📎 View attachment</a></span>';
   } else {
@@ -730,8 +771,8 @@ function buildBubble(m) {
 
   var tm = document.createElement('div');
   tm.className = 'msg-time';
-  // delivery_status tick for sent outgoing messages
-  var tick = (isOut && m.delivery_status === 'sent') ? ' ✓' : '';
+  // delivery_status tick
+  var tick = isOut ? (m.delivery_status === 'delivered' ? ' ✓✓' : ' ✓') : '';
   tm.textContent = fmtTime(m.sent_at) + tick;
 
   col.appendChild(bub);
@@ -881,6 +922,17 @@ function toast(msg, type, dur) {
   var t=document.getElementById('toast');
   t.textContent=msg; t.className='ib-toast show '+(type||'');
   clearTimeout(t._t); t._t=setTimeout(function(){ t.className='ib-toast'; },dur||2800);
+}
+
+// ── Image lightbox ─────────────────────────────────────
+function openLightbox(url) {
+  var lb = document.createElement('div');
+  lb.className = 'img-lightbox';
+  lb.onclick = function(){ document.body.removeChild(lb); };
+  var img = document.createElement('img');
+  img.src = url;
+  lb.appendChild(img);
+  document.body.appendChild(lb);
 }
 </script>
 </body>
