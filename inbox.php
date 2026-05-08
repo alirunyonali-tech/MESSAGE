@@ -63,7 +63,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 .ib-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12.5px;font-weight:500;cursor:pointer;transition:all .15s;text-decoration:none;white-space:nowrap}
 .ib-btn:hover{background:var(--primary);border-color:var(--primary);color:#fff}
 .ib-btn i{font-size:13px}
-#syncStatus{font-size:11.5px;color:var(--text3)}
+#syncStatus{font-size:11.5px;color:var(--text3);transition:color .3s}
 
 /* ── BODY ── */
 .ib-body{display:flex;flex:1;overflow:hidden}
@@ -205,7 +205,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 
   <div class="ib-top-right">
     <span id="syncStatus"></span>
-    <button class="ib-btn" id="syncBtn" onclick="doSync()"><i class="fa-solid fa-rotate"></i> Sync</button>
+    <button class="ib-btn" id="syncBtn" onclick="manualSync()"><i class="fa-solid fa-rotate"></i> Sync</button>
     <a href="/" class="ib-btn"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
   </div>
 </div>
@@ -266,14 +266,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 
 <script>
 // ── State ──────────────────────────────────────────────
-var PAGE       = null;
-var PAGES      = [];
-var convs      = [];
-var activeId   = null;
-var msgCache   = {};   // {convId: [msgs]} — instant switching
-var lastSeen   = {};   // {convId: iso} — for polling only new msgs
-var pollTmr    = null;
-var sending    = false;
+var PAGE      = null;
+var PAGES     = [];
+var convs     = [];
+var activeId  = null;
+var msgCache  = {};    // {convId: [msgs]} — instant switching
+var lastSeen  = {};    // {convId: iso} — poll only new msgs
+var pollTmr   = null;
+var sending   = false;
+var syncing   = false;
 
 // ── Boot ───────────────────────────────────────────────
 (function boot() {
@@ -284,13 +285,20 @@ var sending    = false;
     return;
   }
 
-  // Restore last used page
   var savedId = localStorage.getItem('inbox_page_id');
   PAGE = PAGES.find(function(p){ return p.id === savedId; }) || PAGES[0];
 
   buildPageDropdown();
   updatePageSelUI();
+
+  // Load conversations from DB immediately (instant if already synced)
   loadConvs();
+
+  // Auto-sync from Facebook in background right away — no manual click needed
+  setTimeout(autoSync, 1200);
+
+  // Keep refreshing every 30s
+  setInterval(autoSync, 30000);
 
   // Search with debounce
   var st;
@@ -299,9 +307,6 @@ var sending    = false;
     var v = this.value.trim();
     st = setTimeout(function(){ loadConvs(v); }, 250);
   });
-
-  // Background sync every 15s
-  setInterval(bgSync, 15000);
 })();
 
 // ── Page selector ──────────────────────────────────────
@@ -326,13 +331,12 @@ function updatePageSelUI() {
   document.getElementById('pageSelName').textContent = PAGE.name || PAGE.id;
 }
 
-function togglePageDrop(e) {
+function togglePageDrop() {
   var sel = document.getElementById('pageSel');
   var dd  = document.getElementById('pageDropdown');
   var open = dd.classList.toggle('open');
   sel.classList.toggle('open', open);
   if (open) {
-    // Close when clicking outside
     setTimeout(function(){
       document.addEventListener('click', closeDrop, { once: true });
     }, 10);
@@ -351,13 +355,13 @@ function selectPage(id, e) {
   closeDrop();
   buildPageDropdown();
   updatePageSelUI();
-  // Reset state
-  activeId  = null;
-  msgCache  = {};
-  lastSeen  = {};
+  activeId = null;
+  msgCache = {};
+  lastSeen = {};
   clearInterval(pollTmr);
   hideChatPanel();
   loadConvs();
+  setTimeout(autoSync, 400);
 }
 
 // ── Conversations ──────────────────────────────────────
@@ -366,7 +370,6 @@ function loadConvs(search) {
   var params = 'page_id=' + encodeURIComponent(PAGE.id);
   if (search) params += '&search=' + encodeURIComponent(search);
 
-  // Show skeleton while loading (only if list empty)
   if (!convs.length) showConvSkel();
 
   fetch('inbox_api.php?action=conversations&' + params, { credentials: 'same-origin' })
@@ -374,6 +377,8 @@ function loadConvs(search) {
     .then(function(d) {
       convs = d.conversations || [];
       renderConvList();
+      // Pre-load messages for all visible conversations in background
+      if (!search) preloadAllMsgs();
     }).catch(function(){ toast('Failed to load conversations', 'err'); });
 }
 
@@ -386,7 +391,7 @@ function showConvSkel() {
 function renderConvList() {
   var el = document.getElementById('convList');
   if (!convs.length) {
-    el.innerHTML = '<div class="no-convs">No conversations yet.<br>Click <strong>Sync</strong> to fetch from Facebook.</div>';
+    el.innerHTML = '<div class="no-convs">No conversations yet.<br>Auto-syncing from Facebook…</div>';
     return;
   }
   el.innerHTML = convs.map(function(c) {
@@ -406,37 +411,54 @@ function renderConvList() {
   }).join('');
 }
 
+// Pre-load messages for ALL visible conversations — so every click is instant
+function preloadAllMsgs() {
+  convs.forEach(function(c) {
+    if (msgCache[c.id]) return; // already cached
+    fetch('inbox_api.php?action=messages&conv_id=' + c.id, { credentials: 'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(d) {
+        var msgs = d.messages || [];
+        if (msgs.length) {
+          msgCache[c.id] = msgs;
+          lastSeen[c.id] = msgs[msgs.length-1].sent_at;
+          // If this is the active conv and we were showing skeleton, render now
+          if (activeId === c.id) renderMsgs(msgs);
+        }
+      }).catch(function(){});
+  });
+}
+
 // ── Open conversation — INSTANT from cache ─────────────
 function openConv(id) {
   if (activeId === id) return;
   clearInterval(pollTmr);
   activeId = id;
 
-  // Highlight immediately
   document.querySelectorAll('.conv-item').forEach(function(el){
     el.classList.toggle('active', el.dataset.id == id);
   });
 
-  // Mark read
   var conv = convs.find(function(c){ return c.id==id; });
-  if (conv) { conv.unread_count = 0; renderConvList(); }
-  fetch('inbox_api.php?action=mark_read&conv_id='+id, { credentials:'same-origin' });
+  if (conv && conv.unread_count > 0) {
+    conv.unread_count = 0;
+    renderConvList();
+    fetch('inbox_api.php?action=mark_read&conv_id='+id, { credentials:'same-origin' });
+  }
 
   showChatPanel(conv);
 
-  if (msgCache[id]) {
-    // INSTANT — render from cache
+  if (msgCache[id] && msgCache[id].length) {
+    // INSTANT — render from cache, then silently fetch only new ones
     renderMsgs(msgCache[id]);
-    // Then silently fetch only new ones in background
-    var since = lastSeen[id] || null;
-    fetchMsgs(id, since, true);
+    fetchMsgs(id, lastSeen[id]||null, true);
   } else {
-    // First time — show skeleton then load
+    // Not cached yet — show skeleton briefly while preload finishes
     showMsgSkel();
     fetchMsgs(id, null, false);
   }
 
-  // Poll for new messages every 8s
+  // Poll new messages for active conv every 8s
   pollTmr = setInterval(function(){
     if (activeId === id) fetchMsgs(id, lastSeen[id]||null, true);
   }, 8000);
@@ -449,12 +471,11 @@ function fetchMsgs(convId, since, append) {
   fetch(url, { credentials:'same-origin' })
     .then(function(r){ return r.json(); })
     .then(function(d) {
-      if (activeId !== convId) return; // user switched away
+      if (activeId !== convId) return;
       var msgs = d.messages || [];
       if (!msgs.length && append) return;
 
-      if (append && msgCache[convId]) {
-        // Merge new into cache — avoid duplicates by fb_message_id
+      if (append && msgCache[convId] && msgCache[convId].length) {
         var existing = new Set(msgCache[convId].map(function(m){ return m.fb_message_id; }));
         var newMsgs  = msgs.filter(function(m){ return !existing.has(m.fb_message_id); });
         if (!newMsgs.length) return;
@@ -466,8 +487,6 @@ function fetchMsgs(convId, since, append) {
       }
 
       if (msgs.length) lastSeen[convId] = msgs[msgs.length-1].sent_at;
-
-      // Update profile total
       document.getElementById('profTotal').textContent = (msgCache[convId]||[]).length + '+';
     }).catch(function(){});
 }
@@ -482,15 +501,14 @@ function showChatPanel(conv) {
   document.getElementById('profContent').style.display= 'block';
 
   if (!conv) return;
-  var av = avatarHtml(conv.customer_avatar, conv.customer_name, 'chat-head-av');
-  document.getElementById('chatHeadAv').innerHTML  = av;
+  document.getElementById('chatHeadAv').innerHTML     = avatarHtml(conv.customer_avatar, conv.customer_name);
   document.getElementById('chatHeadName').textContent = conv.customer_name || 'Unknown';
-  // Profile
-  document.getElementById('profAv').innerHTML   = avatarHtml(conv.customer_avatar, conv.customer_name, 'prof-av');
-  document.getElementById('profName').textContent= conv.customer_name || 'Unknown';
-  document.getElementById('profFirst').textContent = fmtDate(conv.created_at);
-  document.getElementById('profLast').textContent  = fmtDate(conv.last_message_at);
-  document.getElementById('profDir').textContent   = conv.last_direction === 'out' ? 'You replied last' : 'Customer replied last';
+  document.getElementById('profAv').innerHTML         = avatarHtml(conv.customer_avatar, conv.customer_name);
+  document.getElementById('profName').textContent     = conv.customer_name || 'Unknown';
+  document.getElementById('profFirst').textContent    = fmtDate(conv.created_at);
+  document.getElementById('profLast').textContent     = fmtDate(conv.last_message_at);
+  document.getElementById('profDir').textContent      = conv.last_direction === 'out' ? 'You replied last' : 'Customer replied last';
+  document.getElementById('profTotal').textContent    = msgCache[conv.id] ? msgCache[conv.id].length + '+' : '…';
 }
 
 function hideChatPanel() {
@@ -572,43 +590,59 @@ function buildBubble(m) {
   return row;
 }
 
-// ── Sync ───────────────────────────────────────────────
-function doSync() {
+// ── Auto-sync (background — no user action needed) ─────
+function autoSync() {
+  if (!PAGE || syncing) return;
+  syncing = true;
+  setSyncStatus('Syncing…', 'var(--text3)');
+
+  fetch('inbox_api.php?action=sync', {
+    method:'POST', credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ page_id: PAGE.id, page_token: PAGE.access_token })
+  }).then(function(r){ return r.json(); })
+    .then(function(d) {
+      if (d.error) { setSyncStatus('', ''); return; }
+      var n = d.synced || 0;
+      if (n > 0) {
+        setSyncStatus(n + ' synced', 'var(--green)');
+        // Reload conversation list and re-preload messages
+        var search = document.getElementById('searchInput').value.trim();
+        loadConvs(search || undefined);
+        // Refresh active conv messages
+        if (activeId) fetchMsgs(activeId, lastSeen[activeId]||null, true);
+        setTimeout(function(){ setSyncStatus('', ''); }, 4000);
+      } else {
+        setSyncStatus('', '');
+      }
+    })
+    .catch(function(){ setSyncStatus('', ''); })
+    .finally(function(){ syncing = false; });
+}
+
+// Manual sync triggered by Sync button
+function manualSync() {
   if (!PAGE) return;
   var btn = document.getElementById('syncBtn');
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Syncing…';
-  document.getElementById('syncStatus').textContent = '';
 
-  fetch('inbox_api.php?action=sync', {
-    method:'POST', credentials:'same-origin',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ page_id: PAGE.id, page_token: PAGE.access_token })
-  }).then(function(r){ return r.json(); })
-    .then(function(d) {
-      if (d.error) { toast(d.error, 'err'); return; }
-      document.getElementById('syncStatus').textContent = d.synced + ' synced';
-      loadConvs(document.getElementById('searchInput').value.trim());
-      toast('Synced ' + d.synced + ' conversations', 'ok');
-      if (activeId) fetchMsgs(activeId, null, false);
-    })
-    .catch(function(){ toast('Sync failed', 'err'); })
-    .finally(function(){
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Sync';
-    });
+  var prevSyncing = syncing;
+  syncing = false; // force run even if bg sync is in progress
+  autoSync();
+
+  // Re-enable button after sync
+  setTimeout(function(){
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Sync';
+    syncing = prevSyncing;
+  }, 6000);
 }
 
-function bgSync() {
-  if (!PAGE) return;
-  fetch('inbox_api.php?action=sync', {
-    method:'POST', credentials:'same-origin',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ page_id: PAGE.id, page_token: PAGE.access_token })
-  }).then(function(r){ return r.json(); })
-    .then(function(d) {
-      if ((d.synced||0) > 0) loadConvs(document.getElementById('searchInput').value.trim());
-    }).catch(function(){});
+function setSyncStatus(text, color) {
+  var el = document.getElementById('syncStatus');
+  el.textContent = text;
+  el.style.color = color || 'var(--text3)';
 }
 
 // ── Send ───────────────────────────────────────────────
@@ -633,8 +667,7 @@ function sendMsg() {
   sBtn.disabled = true;
   rTxt.disabled = true;
 
-  // Optimistic bubble
-  var fakeMsg = { direction:'out', message_text:text, sent_at: new Date().toISOString(), fb_message_id:'_'+Date.now() };
+  var fakeMsg = { direction:'out', message_text:text, sent_at: new Date().toISOString().replace('T',' ').slice(0,19), fb_message_id:'_'+Date.now() };
   if (!msgCache[activeId]) msgCache[activeId] = [];
   msgCache[activeId].push(fakeMsg);
   appendMsgs([fakeMsg]);
@@ -648,13 +681,6 @@ function sendMsg() {
   }).then(function(r){ return r.json(); })
     .then(function(d) {
       if (d.error) { toast(d.error, 'err'); return; }
-      // Update fake msg id in cache
-      var fake = msgCache[activeId];
-      if (fake) {
-        var fm = fake.find(function(m){ return m.fb_message_id==='_'+Date.now(); });
-        if (fm && d.message_id) fm.fb_message_id = d.message_id;
-      }
-      // Update conv preview
       var conv = convs.find(function(c){ return c.id==activeId; });
       if (conv) { conv.last_message=text; conv.last_direction='out'; renderConvList(); }
       if (d.sent_at) lastSeen[activeId] = d.sent_at;
