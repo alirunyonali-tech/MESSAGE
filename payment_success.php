@@ -92,43 +92,32 @@ if ($fbUserId === '' || $plan === '' || !isset(STRIPE_PLANS[$plan])) {
 }
 
 // Update user in DB
-$planData = STRIPE_PLANS[$plan];
-$msgLimit = (int)$planData['limit'];
-$db       = getDB();
+$planData  = STRIPE_PLANS[$plan];
+$dbPlan    = $planData['db_plan'] ?? 'basic'; // mapped ENUM value (free/basic/pro)
+$msgLimit  = (int)$planData['limit'];
+$interval  = strtolower((string)($planData['interval'] ?? 'month'));
+$expiresSql = $interval === 'year'
+    ? 'DATE_ADD(NOW(), INTERVAL 1 YEAR)'
+    : 'DATE_ADD(NOW(), INTERVAL 1 MONTH)';
+$db = getDB();
 
 try {
     $db->prepare(
         "UPDATE users
          SET plan = ?, messages_limit = ?, messages_used = 0,
              stripe_subscription_id = ?,
-             subscription_expires = DATE_ADD(NOW(), INTERVAL 1 MONTH)
+             subscription_expires = $expiresSql
          WHERE fb_user_id = ?"
     )->execute([
-        $plan,
+        $dbPlan,
         $msgLimit,
         $session['subscription'] ?? null,
         $fbUserId,
     ]);
-} catch (Exception $e) {
-    logger('warn', 'Update using new schema failed, trying fallback', ['error' => $e->getMessage()]);
-    try {
-        $db->prepare(
-            "UPDATE users
-             SET plan = ?, messages_limit = ?, messages_used = 0,
-                 stripe_subscription_id = ?,
-                 subscription_expires = DATE_ADD(NOW(), INTERVAL 1 MONTH)
-             WHERE fb_user_id = ?"
-        )->execute([
-            $plan,
-            $msgLimit,
-            $session['subscription'] ?? null,
-            $fbUserId,
-        ]);
-    } catch (Exception $e2) {
-        logger('critical', 'Database update failed completely', ['error' => $e2->getMessage()]);
-        header('Location: index.php?payment=error&reason=db_update_failed');
-        exit;
-    }
+} catch (Throwable $e) {
+    logger('critical', 'Database update failed in payment_success', ['error' => $e->getMessage()]);
+    header('Location: index.php?payment=error&reason=db_update_failed');
+    exit;
 }
 
 // Log it

@@ -99,7 +99,7 @@ try {
        ->execute([$fbUserId, "Activated: {$plan} ({$dbPlan}) | {$msgLimit} messages"]);
 
     echo json_encode(['success' => true, 'plan' => $planData['name']]);
-} catch (Exception $e) {
+} catch (Throwable $e) {
     logger('error', 'activate_subscription DB failed: ' . $e->getMessage());
     echo json_encode(['success' => false, 'error' => 'Database error. Please contact support.']);
 }

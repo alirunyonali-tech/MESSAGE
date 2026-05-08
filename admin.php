@@ -446,6 +446,7 @@ if ($action === 'export_users') {
 
 if ($action === 'bulk_update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     requireAuth();
+    requireCsrfToken();
     $planCol = userCol($db, 'plan', 'subscriptionStatus');
     $limitCol = userCol($db, 'messages_limit', 'messageLimit');
     $usedCol = userCol($db, 'messages_used', 'messagesUsed');
@@ -479,6 +480,7 @@ if ($action === 'bulk_update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if ($action === 'update_user' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     requireAuth();
+    requireCsrfToken();
     $planCol = userCol($db, 'plan', 'subscriptionStatus');
     $limitCol = userCol($db, 'messages_limit', 'messageLimit');
     $usedCol = userCol($db, 'messages_used', 'messagesUsed');
@@ -501,6 +503,7 @@ if ($action === 'update_user' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if ($action === 'reset_quota' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     requireAuth();
+    requireCsrfToken();
     $usedCol = userCol($db, 'messages_used', 'messagesUsed');
     $body=$json=json_decode(get_raw_input(),true)?:[];
     $fbId=validateFbId($body['fb_user_id']??'');
@@ -511,6 +514,7 @@ if ($action === 'reset_quota' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if ($action === 'update_settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     requireAuth();
+    requireCsrfToken();
     $body=json_decode(get_raw_input(),true)?:[];
     if (isset($body['free_limit'])) setSetting($db,'free_limit',(string)max(1,(int)$body['free_limit']));
     if (!empty($body['admin_password'])) {
