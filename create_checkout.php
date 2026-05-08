@@ -204,7 +204,7 @@ try {
         'client_reference_id'         => $fbUserId,
         'success_url'                 => $successUrl,
         'cancel_url'                  => $cancelUrl,
-        'allow_promotion_codes'       => true,
+        'allow_promotion_codes'       => 'true',
         'metadata'                    => ['fb_user_id' => $fbUserId, 'plan' => $plan],
         'customer_update'             => ['address' => 'auto', 'name' => 'auto'],
         'billing_address_collection'  => 'auto',
