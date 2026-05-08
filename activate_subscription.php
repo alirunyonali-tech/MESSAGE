@@ -78,6 +78,7 @@ if (!$fbUserId || !$plan || !isset(STRIPE_PLANS[$plan])) {
 // ── Update DB ─────────────────────────────────────
 $db       = getDB();
 $planData = STRIPE_PLANS[$plan];
+$dbPlan   = $planData['db_plan'] ?? 'basic'; // mapped ENUM value (free/basic/pro)
 $msgLimit = (int)$planData['limit'];
 $interval = strtolower((string)($planData['interval'] ?? 'month'));
 $expiresSql = $interval === 'year'
@@ -92,28 +93,15 @@ try {
              stripe_subscription_id = ?,
              subscription_expires = $expiresSql
          WHERE fb_user_id = ?"
-    )->execute([$plan, $msgLimit, $storedSubId, $fbUserId]);
+    )->execute([$dbPlan, $msgLimit, $storedSubId, $fbUserId]);
 
-    // Log the activation
     $db->prepare("INSERT INTO activity_log (fb_user_id, action, detail) VALUES (?, 'payment', ?)")
-       ->execute([$fbUserId, "Custom checkout activation: {$plan} | {$msgLimit} messages"]);
+       ->execute([$fbUserId, "Activated: {$plan} ({$dbPlan}) | {$msgLimit} messages"]);
 
-    echo json_encode(['success' => true, 'plan' => ucfirst($plan)]);
+    echo json_encode(['success' => true, 'plan' => $planData['name']]);
 } catch (Exception $e) {
-    // Fallback for old schema
-    try {
-        $db->prepare(
-            "UPDATE users
-             SET plan = ?, messages_limit = ?, messages_used = 0,
-                 stripe_subscription_id = ?,
-                 subscription_expires = $expiresSql
-             WHERE fb_user_id = ?"
-        )->execute([$plan, $msgLimit, $storedSubId, $fbUserId]);
-        echo json_encode(['success' => true, 'plan' => ucfirst($plan)]);
-    } catch (Exception $e2) {
-        logger('error', 'activate_subscription DB fallback failed: ' . $e2->getMessage());
-        echo json_encode(['success' => false, 'error' => 'Database error. Please contact support.']);
-    }
+    logger('error', 'activate_subscription DB failed: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'Database error. Please contact support.']);
 }
 
 // ── Helper: stripeGet ───────────────────────────

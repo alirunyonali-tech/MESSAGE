@@ -132,11 +132,12 @@ function processStripeEvent(PDO $db, array $event): void {
             if ($fbUserId !== '' && $plan !== '' && isset(STRIPE_PLANS[$plan])) {
                 activatePlan($db, $fbUserId, $plan, $subId, $email);
                 try {
+                    $dbPlan = STRIPE_PLANS[$plan]['db_plan'] ?? 'basic';
                     $db->prepare(
                         "INSERT IGNORE INTO payment_history
                          (fb_user_id, stripe_invoice_id, plan, amount_cents, status, billing_reason)
                          VALUES (?, ?, ?, ?, 'succeeded', 'subscription_create')"
-                    )->execute([$fbUserId, $invoiceId ?: $subId, $plan, $amountTotal]);
+                    )->execute([$fbUserId, $invoiceId ?: $subId, $dbPlan, $amountTotal]);
                 } catch (Throwable $e) {
                     logger('warn', 'Failed to insert payment_history on checkout', ['error' => $e->getMessage()]);
                 }
@@ -169,6 +170,7 @@ function processStripeEvent(PDO $db, array $event): void {
                             : 'DATE_ADD(NOW(), INTERVAL 1 MONTH)';
                         $amountPaid = (int)($invoice['amount_paid'] ?? 0);
                         $invoiceId = trim((string)($invoice['id'] ?? ''));
+                        $dbPlan = STRIPE_PLANS[$plan]['db_plan'] ?? 'basic';
 
                         $db->prepare(
                             "UPDATE users SET messages_used = 0, messages_limit = ?,
@@ -180,7 +182,7 @@ function processStripeEvent(PDO $db, array $event): void {
                             "INSERT INTO payment_history
                              (fb_user_id, stripe_invoice_id, plan, amount_cents, status, billing_reason)
                              VALUES (?, ?, ?, ?, 'succeeded', ?)"
-                        )->execute([$fbUserId, $invoiceId, $plan, $amountPaid, $billingReason]);
+                        )->execute([$fbUserId, $invoiceId, $dbPlan, $amountPaid, $billingReason]);
 
                         $action = $billingReason === 'subscription_create' ? 'subscription' : 'renewal';
                         logActivity($db, $fbUserId, $action, "Plan {$action}: {$plan} | {$newLimit} messages");
