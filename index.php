@@ -736,7 +736,6 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
     </button>
     <div class="dvw-iframe-wrap">
       <div class="dvw-play-btn"><i class="fa-solid fa-play" style="margin-left:3px"></i></div>
-      <div class="dvw-popout-cover"></div>
       <iframe
         id="dvwIframe"
         class="dvw-iframe"
@@ -1375,15 +1374,9 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
   transition:opacity .3s;
 }
 .dvw-loaded .dvw-play-btn{opacity:0;}
-.dvw-popout-cover{
-  position:absolute;top:0;right:0;
-  width:48px;height:40px;
-  background:#000;z-index:6;
-  border-top-right-radius:12px;
-}
 .dvw-iframe{
   position:absolute;top:0;left:0;
-  width:100%;height:100%;
+  width:calc(100% + 52px);height:100%;
   border:none;display:block;
 }
 .dvw-close-btn{
