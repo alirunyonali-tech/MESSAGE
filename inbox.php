@@ -103,7 +103,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 .conv-prev.unread{color:var(--text2);font-weight:500}
 .conv-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
 .conv-time{font-size:10.5px;color:var(--text3)}
-.conv-badge{background:var(--primary);color:#fff;font-size:9.5px;font-weight:700;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.conv-badge{background:var(--red);color:#fff;font-size:9.5px;font-weight:700;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.conv-item.unread .conv-name{color:#fff}
+.conv-item.unread{border-left:2px solid var(--red)}
 .no-convs{padding:32px 16px;text-align:center;color:var(--text3);font-size:13px;line-height:1.6}
 /* Messaging window dot */
 .win-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-left:auto}
@@ -455,7 +457,7 @@ function renderConvList() {
     // Messaging window dot
     var winCls = c.within_messaging_window ? 'open' : 'closed';
     var winDot = '<div class="win-dot '+winCls+'" title="'+(c.within_messaging_window?'Within 24h window':'Outside 24h window')+'"></div>';
-    return '<div class="conv-item'+act+'" data-id="'+c.id+'" onclick="openConv('+c.id+')">'+
+    return '<div class="conv-item'+act+unCls+'" data-id="'+c.id+'" onclick="openConv('+c.id+')">'+
       '<div class="conv-av">'+av+'</div>'+
       '<div class="conv-info"><div class="conv-name">'+esc(c.customer_name||'Unknown')+'</div>'+
       '<div class="conv-prev'+unCls+'">'+prev+'</div></div>'+
