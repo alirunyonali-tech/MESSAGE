@@ -188,6 +188,9 @@ try {
 
     // Hosted Stripe Checkout keeps frontend simple and production-safe.
     $baseUrl = SITE_URL ?: ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? '');
+    if ($baseUrl && !preg_match('#^https?://#i', $baseUrl)) {
+        $baseUrl = 'https://' . $baseUrl;
+    }
     $baseUrl = rtrim($baseUrl, '/');
 
     $successUrl = $baseUrl . '/index.php?payment=success&session_id={CHECKOUT_SESSION_ID}';
