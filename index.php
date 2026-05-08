@@ -431,86 +431,99 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <h2 class="section-h2">Simple, transparent pricing</h2>
       <p class="section-sub">Start free. Upgrade when you need more reach.</p>
 
-      <!-- Billing toggle -->
-      <div class="pricing-toggle-wrap">
-        <span class="toggle-label active" id="toggleLabelMonthly">Monthly</span>
-        <button class="pricing-toggle-btn" id="billingToggleBtn" aria-label="Toggle billing period">
-          <div class="pricing-toggle-track"></div>
-          <div class="pricing-toggle-thumb"></div>
-        </button>
-        <span class="toggle-label" id="toggleLabelAnnual">Annual</span>
-        <span class="annual-badge"><i class="fas fa-leaf" style="font-size:9px"></i> Save 20%</span>
-      </div>
+      <div class="pricing-grid pricing-grid--6">
 
-      <div class="pricing-grid">
+        <!-- Starter -->
         <div class="price-card">
-          <div class="price-name">Free Trial</div>
-          <div class="price-amount price-amount-monthly">$0<sub>/mo</sub></div>
-          <div class="price-amount price-amount-annual">$0<sub>/mo</sub></div>
-          <div class="price-billing price-billing-monthly">No card required</div>
-          <div class="price-billing price-billing-annual">No card required</div>
+          <div class="price-name">Starter</div>
+          <div class="price-amount">$10<sub>/mo</sub></div>
+          <div class="price-billing">Perfect for trying out the platform</div>
           <div class="price-sep"></div>
           <ul class="price-feats">
-            <li><i class="fas fa-check"></i> 2,000 messages (one-time)</li>
+            <li><i class="fas fa-check"></i> 34,000 messages/month</li>
+            <li><i class="fas fa-check"></i> 30-day validity</li>
             <li><i class="fas fa-check"></i> All Facebook Pages</li>
-            <li><i class="fas fa-check"></i> Real-time tracking</li>
-            <li><i class="fas fa-check"></i> ISP bypass</li>
-            <li class="dim"><i class="fas fa-xmark"></i> Label targeting</li>
-            <li class="dim"><i class="fas fa-xmark"></i> Auto All Pages</li>
+            <li><i class="fas fa-check"></i> Dedicated support</li>
           </ul>
-          <button class="price-btn price-btn--free" id="pricingFreeBtn" onclick="triggerConnect()">Start Free</button>
+          <button class="price-btn price-btn--basic" onclick="triggerConnect('starter')">Get Started</button>
         </div>
-        <div class="price-card price-card--featured">
-          <div class="price-popular">MOST POPULAR</div>
-          <div class="price-name">Basic</div>
-          <div class="price-amount price-amount-monthly">$25<sub>/mo</sub></div>
-          <div class="price-amount price-amount-annual">$20<sub>/mo</sub></div>
-          <div class="price-billing price-billing-monthly">For growing businesses</div>
-          <div class="price-billing price-billing-annual">$240/yr · Save $60 annually</div>
+
+        <!-- Bronze -->
+        <div class="price-card">
+          <div class="price-name">Bronze</div>
+          <div class="price-amount">$25<sub>/mo</sub></div>
+          <div class="price-billing">Perfect for small businesses</div>
           <div class="price-sep"></div>
           <ul class="price-feats">
-            <li><i class="fas fa-check"></i> 300,000 messages/month</li>
-            <li><i class="fas fa-check"></i> All Facebook Pages</li>
+            <li><i class="fas fa-check"></i> 340,000 messages/month</li>
+            <li><i class="fas fa-check"></i> 30-day validity</li>
             <li><i class="fas fa-check"></i> Label targeting</li>
-            <li><i class="fas fa-check"></i> Real-time tracking</li>
-            <li><i class="fas fa-check"></i> ISP bypass</li>
-            <li><i class="fas fa-check"></i> Cancel anytime</li>
+            <li><i class="fas fa-check"></i> Dedicated support</li>
           </ul>
-          <button class="price-btn price-btn--basic" id="pricingBasicBtn" onclick="triggerConnect('basic')">Get Basic — $25/mo</button>
+          <button class="price-btn price-btn--basic" onclick="triggerConnect('basic')">Get Started</button>
         </div>
+
+        <!-- Silver -->
         <div class="price-card">
-          <div class="price-name">Pro</div>
-          <div class="price-amount price-amount-monthly">$50<sub>/mo</sub></div>
-          <div class="price-amount price-amount-annual">$40<sub>/mo</sub></div>
-          <div class="price-billing price-billing-monthly">For agencies &amp; power users</div>
-          <div class="price-billing price-billing-annual">$480/yr · Save $120 annually</div>
+          <div class="price-name">Silver</div>
+          <div class="price-amount">$50<sub>/mo</sub></div>
+          <div class="price-billing">For growing businesses</div>
           <div class="price-sep"></div>
           <ul class="price-feats">
-            <li><i class="fas fa-check"></i> 650,000 messages/month</li>
+            <li><i class="fas fa-check"></i> 810,000 messages/month</li>
+            <li><i class="fas fa-check"></i> 30-day validity</li>
             <li><i class="fas fa-check"></i> Auto All Pages mode</li>
-            <li><i class="fas fa-check"></i> Priority support</li>
-            <li><i class="fas fa-check"></i> 60-day token refresh</li>
-            <li><i class="fas fa-check"></i> All Basic features</li>
-            <li><i class="fas fa-check"></i> Cancel anytime</li>
+            <li><i class="fas fa-check"></i> Dedicated support</li>
           </ul>
-          <button class="price-btn price-btn--pro" id="pricingProBtn" onclick="triggerConnect('pro')">Get Pro — $50/mo</button>
+          <button class="price-btn price-btn--pro" onclick="triggerConnect('pro')">Get Started</button>
         </div>
-        <div class="price-card">
-          <div class="price-name">Pro Unlimited</div>
-          <div class="price-amount price-amount-monthly">$300<sub>/yr</sub></div>
-          <div class="price-amount price-amount-annual">$300<sub>/yr</sub></div>
-          <div class="price-billing price-billing-monthly">Best value for high-volume senders</div>
-          <div class="price-billing price-billing-annual">One-time yearly payment · no monthly bills</div>
+
+        <!-- Gold — POPULAR -->
+        <div class="price-card price-card--featured price-card--gold">
+          <div class="price-popular">POPULAR</div>
+          <div class="price-name">Gold</div>
+          <div class="price-amount">$100<sub>/mo</sub></div>
+          <div class="price-billing">For high-volume needs</div>
           <div class="price-sep"></div>
           <ul class="price-feats">
-            <li><i class="fas fa-check"></i> Unlimited messages for 12 months</li>
-            <li><i class="fas fa-check"></i> Auto All Pages mode</li>
+            <li><i class="fas fa-check"></i> 2,025,000 messages/month</li>
+            <li><i class="fas fa-check"></i> 30-day validity</li>
             <li><i class="fas fa-check"></i> Priority support</li>
-            <li><i class="fas fa-check"></i> 60-day token refresh</li>
-            <li><i class="fas fa-check"></i> All Pro features</li>
+            <li><i class="fas fa-check"></i> All Silver features</li>
           </ul>
-          <button class="price-btn price-btn--pro" id="pricingProUnlimitedBtn" onclick="triggerConnect('pro_unlimited')">Get Pro Unlimited — $300/yr</button>
+          <button class="price-btn price-btn--gold" onclick="triggerConnect('gold')">Get Started</button>
         </div>
+
+        <!-- Sapphire -->
+        <div class="price-card">
+          <div class="price-name">Sapphire</div>
+          <div class="price-amount">$200<sub>/mo</sub></div>
+          <div class="price-billing">For large scale operations</div>
+          <div class="price-sep"></div>
+          <ul class="price-feats">
+            <li><i class="fas fa-check"></i> 4,725,000 messages/month</li>
+            <li><i class="fas fa-check"></i> 30-day validity</li>
+            <li><i class="fas fa-check"></i> Priority support</li>
+            <li><i class="fas fa-check"></i> All Gold features</li>
+          </ul>
+          <button class="price-btn price-btn--pro" onclick="triggerConnect('sapphire')">Get Started</button>
+        </div>
+
+        <!-- Platinum -->
+        <div class="price-card">
+          <div class="price-name">Platinum</div>
+          <div class="price-amount">$300<sub>/mo</sub></div>
+          <div class="price-billing">For enterprises with massive scale</div>
+          <div class="price-sep"></div>
+          <ul class="price-feats">
+            <li><i class="fas fa-check"></i> 8,100,000 messages/month</li>
+            <li><i class="fas fa-check"></i> 30-day validity</li>
+            <li><i class="fas fa-check"></i> Priority support</li>
+            <li><i class="fas fa-check"></i> All Sapphire features</li>
+          </ul>
+          <button class="price-btn price-btn--pro" onclick="triggerConnect('pro_unlimited')">Get Started</button>
+        </div>
+
       </div>
     </div>
   </div>

@@ -266,6 +266,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .billing-toggle button.active{background:var(--primary);color:#fff;box-shadow:0 2px 10px var(--primary-glow)}
 .billing-badge{background:linear-gradient(135deg,var(--green),#059669);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;margin-left:6px}
 .pricing-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;width:100%;max-width:1200px}
+.pricing-grid--6{grid-template-columns:repeat(3,1fr);max-width:1080px}
+.price-card--gold{background:linear-gradient(160deg,rgba(234,179,8,.1),rgba(161,98,7,.06));border-color:rgba(234,179,8,.4);box-shadow:0 8px 40px rgba(234,179,8,.2)}
+.price-card--gold::before{background:linear-gradient(90deg,transparent,#eab308,transparent);opacity:1}
+.price-card--gold .price-popular{color:#eab308;background:rgba(234,179,8,.12);border-color:rgba(234,179,8,.3)}
+.price-btn--gold{background:linear-gradient(135deg,#d97706,#eab308);color:#fff;border:none;font-weight:700}
+.price-btn--gold:hover{background:linear-gradient(135deg,#b45309,#ca8a04);transform:translateY(-1px)}
 .price-card{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
   padding:22px 20px;display:flex;flex-direction:column;gap:0;
