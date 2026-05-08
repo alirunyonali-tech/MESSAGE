@@ -117,6 +117,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 /* 24h window warning */
 .win-warning{padding:8px 18px;background:rgba(245,158,11,.08);border-bottom:1px solid rgba(245,158,11,.2);font-size:11.5px;color:#fbbf24;display:flex;align-items:center;gap:7px;flex-shrink:0}
 .win-warning i{font-size:12px}
+/* Load older messages */
+.load-older-btn{align-self:center;padding:5px 16px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--text2);font-size:11.5px;font-family:inherit;cursor:pointer;margin:6px 0 4px;transition:background .15s}
+.load-older-btn:hover{background:var(--surface3)}
 
 /* ── MIDDLE — Chat ── */
 .ib-chat{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);position:relative}
@@ -283,17 +286,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 
 <script>
 // ── State ──────────────────────────────────────────────
-var PAGE      = null;
-var PAGES     = [];
-var convs     = [];
-var activeId  = null;
-var msgCache  = {};    // {convId: [msgs]} — instant switching
-var lastSeen  = {};    // {convId: iso} — poll only new msgs
-var pollTmr   = null;
-var sending   = false;
-var syncing   = false;
-var hasMore   = false;
-var oldestId  = null;
+var PAGE          = null;
+var PAGES         = [];
+var convs         = [];
+var activeId      = null;
+var msgCache      = {};    // {convId: [msgs]} — instant switching
+var lastSeen      = {};    // {convId: iso} — poll only new msgs
+var oldestDbId    = {};    // {convId: int} — for "load older" cursor
+var hasMoreMsgs   = {};    // {convId: bool}
+var pollTmr       = null;
+var sending       = false;
+var syncing       = false;
+var hasMore       = false;
+var oldestId      = null;
 
 // ── Boot ───────────────────────────────────────────────
 (function boot() {
@@ -526,22 +531,79 @@ function fetchMsgs(convId, since, append) {
     .then(function(d) {
       if (activeId !== convId) return;
       var msgs = d.messages || [];
+
+      // Store has_more and oldest _db_id for "load older" cursor
+      hasMoreMsgs[convId] = !!d.has_more;
+      if (msgs.length && msgs[0]._db_id && !oldestDbId[convId]) {
+        oldestDbId[convId] = msgs[0]._db_id;
+      }
+
       if (!msgs.length && append) return;
 
       if (append && msgCache[convId] && msgCache[convId].length) {
-        var existing = new Set(msgCache[convId].map(function(m){ return m.fb_message_id; }));
-        var newMsgs  = msgs.filter(function(m){ return !existing.has(m.fb_message_id); });
+        // Dedup by id (fb_message_id in old format, id in new format)
+        var existing = new Set(msgCache[convId].map(function(m){ return m.id || m.fb_message_id; }));
+        var newMsgs  = msgs.filter(function(m){ return !existing.has(m.id || m.fb_message_id); });
         if (!newMsgs.length) return;
         msgCache[convId] = msgCache[convId].concat(newMsgs);
         appendMsgs(newMsgs);
       } else {
         msgCache[convId] = msgs;
         renderMsgs(msgs);
+        updateLoadOlderBtn(convId);
       }
 
       if (msgs.length) lastSeen[convId] = msgs[msgs.length-1].sent_at;
       document.getElementById('profTotal').textContent = (msgCache[convId]||[]).length + '+';
     }).catch(function(){});
+}
+
+function loadOlderMsgs() {
+  if (!activeId || !oldestDbId[activeId]) return;
+  var convId   = activeId;
+  var beforeId = oldestDbId[convId];
+  var url = 'inbox_api.php?action=messages&conv_id=' + convId + '&before_id=' + beforeId;
+  var btn = document.getElementById('loadOlderBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+
+  fetch(url, { credentials:'same-origin' })
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      if (activeId !== convId) return;
+      var msgs = d.messages || [];
+      hasMoreMsgs[convId] = !!d.has_more;
+      if (msgs.length) {
+        oldestDbId[convId] = msgs[0]._db_id || oldestDbId[convId];
+        msgCache[convId]   = msgs.concat(msgCache[convId] || []);
+        prependMsgs(msgs);
+        updateLoadOlderBtn(convId);
+      } else {
+        hasMoreMsgs[convId] = false;
+        updateLoadOlderBtn(convId);
+      }
+    }).catch(function(){
+      if (btn) { btn.disabled = false; btn.textContent = 'Load older messages'; }
+    });
+}
+
+function updateLoadOlderBtn(convId) {
+  var el = document.getElementById('chatMsgs');
+  var existing = document.getElementById('loadOlderBtn');
+  if (hasMoreMsgs[convId]) {
+    if (!existing) {
+      var btn = document.createElement('button');
+      btn.id = 'loadOlderBtn';
+      btn.className = 'load-older-btn';
+      btn.textContent = 'Load older messages';
+      btn.onclick = loadOlderMsgs;
+      el.insertBefore(btn, el.firstChild);
+    } else {
+      existing.disabled = false;
+      existing.textContent = 'Load older messages';
+    }
+  } else {
+    if (existing) existing.remove();
+  }
 }
 
 // ── Show/hide panels ────────────────────────────────────
@@ -593,6 +655,10 @@ function showMsgSkel() {
 function renderMsgs(msgs) {
   var el = document.getElementById('chatMsgs');
   el.innerHTML = '';
+  // Set oldest db_id cursor from first message
+  if (msgs.length && msgs[0]._db_id) {
+    oldestDbId[activeId] = msgs[0]._db_id;
+  }
   var lastDate = '';
   msgs.forEach(function(m){
     var d = (m.sent_at||'').slice(0,10);
@@ -609,6 +675,20 @@ function appendMsgs(msgs) {
   if (atBottom) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
 }
 
+function prependMsgs(msgs) {
+  var el = document.getElementById('chatMsgs');
+  var prevHeight = el.scrollHeight;
+  // Insert after the load-older button (if present)
+  var btn = document.getElementById('loadOlderBtn');
+  var ref = btn ? btn.nextSibling : el.firstChild;
+  msgs.forEach(function(m){
+    var bubble = buildBubble(m);
+    el.insertBefore(bubble, ref);
+  });
+  // Keep scroll position steady (don't jump to top)
+  el.scrollTop += el.scrollHeight - prevHeight;
+}
+
 function dateDivider(iso) {
   var d = document.createElement('div');
   d.className = 'msg-date';
@@ -618,13 +698,20 @@ function dateDivider(iso) {
 
 function buildBubble(m) {
   var conv = convs.find(function(c){ return c.id==activeId; }) || {};
-  var row  = document.createElement('div');
-  row.className = 'msg-row ' + m.direction;
+  // Normalise direction: support 'incoming'/'outgoing' (new) and 'in'/'out' (old)
+  var isOut = (m.direction === 'out' || m.direction === 'outgoing');
+  var dir   = isOut ? 'out' : 'in';
+  // Normalise text: new format uses 'text', old uses 'message_text'
+  var text  = (m.text !== undefined && m.text !== null) ? m.text : (m.message_text || '');
 
+  var row  = document.createElement('div');
+  row.className = 'msg-row ' + dir;
+
+  var picUrl = conv.customer_profile_pic || conv.customer_avatar || null;
   var avEl = document.createElement('div');
   avEl.className = 'msg-av';
-  avEl.innerHTML = m.direction === 'in'
-    ? (conv.customer_avatar ? '<img src="'+esc(conv.customer_avatar)+'" onerror="this.style.display=\'none\'">' : initials(conv.customer_name))
+  avEl.innerHTML = !isOut
+    ? (picUrl ? '<img src="'+esc(picUrl)+'" onerror="this.style.display=\'none\'">' : initials(conv.customer_name))
     : '<i class="fa-brands fa-facebook" style="font-size:11px"></i>';
 
   var col = document.createElement('div');
@@ -633,21 +720,23 @@ function buildBubble(m) {
   var bub = document.createElement('div');
   bub.className = 'msg-bubble';
   if (m.attachment_url) {
-    bub.innerHTML = (m.message_text ? esc(m.message_text)+'<br>' : '') +
+    bub.innerHTML = (text ? esc(text)+'<br>' : '') +
       '<span class="msg-attach"><a href="'+esc(m.attachment_url)+'" target="_blank" rel="noopener">📎 View attachment</a></span>';
   } else {
-    bub.textContent = m.message_text || '';
+    bub.textContent = text;
   }
 
   var tm = document.createElement('div');
   tm.className = 'msg-time';
-  tm.textContent = fmtTime(m.sent_at);
+  // delivery_status tick for sent outgoing messages
+  var tick = (isOut && m.delivery_status === 'sent') ? ' ✓' : '';
+  tm.textContent = fmtTime(m.sent_at) + tick;
 
   col.appendChild(bub);
   col.appendChild(tm);
 
-  if (m.direction === 'in') { row.appendChild(avEl); row.appendChild(col); }
-  else { row.appendChild(col); row.appendChild(avEl); }
+  if (!isOut) { row.appendChild(avEl); row.appendChild(col); }
+  else        { row.appendChild(col);  row.appendChild(avEl); }
   return row;
 }
 
@@ -729,7 +818,7 @@ function sendMsg() {
   sBtn.disabled = true;
   rTxt.disabled = true;
 
-  var fakeMsg = { direction:'out', message_text:text, sent_at: new Date().toISOString().replace('T',' ').slice(0,19), fb_message_id:'_'+Date.now() };
+  var fakeMsg = { id:'_'+Date.now(), direction:'outgoing', text:text, sender_type:'agent', message_type:'text', delivery_status:'sent', sent_at: new Date().toISOString(), source:'facebook' };
   if (!msgCache[activeId]) msgCache[activeId] = [];
   msgCache[activeId].push(fakeMsg);
   appendMsgs([fakeMsg]);

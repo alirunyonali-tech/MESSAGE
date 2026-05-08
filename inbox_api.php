@@ -304,9 +304,11 @@ function syncFromFacebook(string $fbUserId, array $body): void {
 }
 
 function getMessages(string $fbUserId): void {
-    $db     = getDB();
-    $convId = (int)($_GET['conv_id'] ?? 0);
-    $since  = $_GET['since'] ?? null; // ISO datetime for polling new msgs only
+    $db       = getDB();
+    $convId   = (int)($_GET['conv_id']   ?? 0);
+    $since    = $_GET['since']    ?? null; // ISO — poll only newer
+    $beforeId = (int)($_GET['before_id'] ?? 0); // DB id — load older
+    $limit    = 50;
 
     if (!$convId) { http_response_code(400); die(json_encode(['error' => 'conv_id required'])); }
 
@@ -315,14 +317,52 @@ function getMessages(string $fbUserId): void {
     if (!$stmt->fetch()) { http_response_code(403); die(json_encode(['error' => 'Forbidden'])); }
 
     if ($since) {
-        $stmt = $db->prepare("SELECT * FROM inbox_messages WHERE conversation_id=? AND sent_at > ? ORDER BY sent_at ASC LIMIT 50");
+        // Polling — fetch only messages newer than timestamp
+        $stmt = $db->prepare("SELECT * FROM inbox_messages WHERE conversation_id=? AND sent_at > ? ORDER BY sent_at ASC LIMIT $limit");
         $stmt->execute([$convId, $since]);
+        $rows    = $stmt->fetchAll();
+        $hasMore = false;
+    } elseif ($beforeId > 0) {
+        // Load older — fetch messages before given DB id, newest-first then reverse
+        $stmt = $db->prepare("SELECT * FROM inbox_messages WHERE conversation_id=? AND id < ? ORDER BY sent_at DESC LIMIT " . ($limit + 1));
+        $stmt->execute([$convId, $beforeId]);
+        $rows    = array_reverse($stmt->fetchAll());
+        $hasMore = count($rows) > $limit;
+        if ($hasMore) array_shift($rows);
     } else {
-        $stmt = $db->prepare("SELECT * FROM inbox_messages WHERE conversation_id=? ORDER BY sent_at ASC LIMIT 100");
+        // Initial load — latest 50, oldest-first
+        $stmt = $db->prepare("SELECT * FROM inbox_messages WHERE conversation_id=? ORDER BY sent_at DESC LIMIT " . ($limit + 1));
         $stmt->execute([$convId]);
+        $rows    = array_reverse($stmt->fetchAll());
+        $hasMore = count($rows) > $limit;
+        if ($hasMore) array_shift($rows);
     }
 
-    echo json_encode(['messages' => $stmt->fetchAll()]);
+    $messages = array_map(function($row) {
+        $dir = $row['direction'] === 'out' ? 'outgoing' : 'incoming';
+        return [
+            'id'                  => $row['fb_message_id'],
+            'text'                => $row['message_text'],
+            'direction'           => $dir,
+            'sender_type'         => $dir === 'outgoing' ? 'agent' : 'customer',
+            'message_type'        => $row['attachment_type'] ? 'attachment' : 'text',
+            'attachment_url'      => $row['attachment_url'],
+            'attachment_metadata' => new \stdClass(),
+            'delivery_status'     => 'sent',
+            'sent_at'             => $row['sent_at']    ? gmdate('c', strtotime($row['sent_at']))    : null,
+            'created_at'          => $row['created_at'] ? gmdate('c', strtotime($row['created_at'])) : null,
+            'sender_user'         => null,
+            'source'              => 'facebook',
+            '_db_id'              => (int)$row['id'], // internal cursor for pagination
+        ];
+    }, $rows);
+
+    echo json_encode([
+        'messages'    => $messages,
+        'has_more'    => $hasMore,
+        'next_cursor' => null,
+        'source'      => 'facebook',
+    ]);
 }
 
 function sendMessage(string $fbUserId, array $body): void {
