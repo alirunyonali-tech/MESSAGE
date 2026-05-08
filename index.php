@@ -3,7 +3,7 @@
 $_host = strtolower($_SERVER['HTTP_HOST'] ?? '');
 if ($_host === 'facebook-inbox-production-2a22.up.railway.app') {
     $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
-    header('Location: https://pageinteractorprosite.site' . $requestUri, true, 301);
+    header('Location: https://castmepro.com' . $requestUri, true, 301);
     exit;
 }
 
@@ -187,7 +187,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <div class="hero-social-proof">
         <div class="avatars">
           <img class="avatar hero-avatar avatar-1" data-hero-avatar="0" src="pics/p1.jpg" alt="Customer profile" loading="lazy" decoding="async">
-          <img class="avatar hero-avatar avatar-2" data-hero-avatar="1" src="pics/p2.png" alt="Customer profile" loading="lazy" decoding="async">
+          <img class="avatar hero-avatar avatar-2" data-hero-avatar="1" src="pics/p2.webp" alt="Customer profile" loading="lazy" decoding="async">
           <img class="avatar hero-avatar avatar-3" data-hero-avatar="2" src="pics/p3.jpeg" alt="Customer profile" loading="lazy" decoding="async">
           <img class="avatar hero-avatar avatar-4" data-hero-avatar="3" src="pics/p4.webp" alt="Customer profile" loading="lazy" decoding="async">
         </div>
