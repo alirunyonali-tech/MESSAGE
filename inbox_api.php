@@ -25,6 +25,7 @@ require_once __DIR__ . '/db_config.php';
             `last_message` TEXT,
             `last_direction` ENUM('in','out') NOT NULL DEFAULT 'in',
             `last_message_at` DATETIME NULL,
+            `last_user_message_at` DATETIME NULL,
             `unread_count` INT UNSIGNED NOT NULL DEFAULT 0,
             `is_done` TINYINT(1) NOT NULL DEFAULT 0,
             `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -33,6 +34,8 @@ require_once __DIR__ . '/db_config.php';
             INDEX `idx_user_page` (`fb_user_id`,`page_id`),
             INDEX `idx_last_msg` (`last_message_at`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        // Add last_user_message_at column to existing tables if missing
+        try { $db->exec("ALTER TABLE `inbox_conversations` ADD COLUMN `last_user_message_at` DATETIME NULL AFTER `last_message_at`"); } catch (Throwable $e) {}
         $db->exec("CREATE TABLE IF NOT EXISTS `inbox_messages` (
             `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             `conversation_id` INT UNSIGNED NOT NULL,
@@ -117,29 +120,74 @@ function fbPost(string $path, array $params, string $token): array {
 /* ── Action handlers ──────────────────────────────────── */
 
 function getConversationsList(string $fbUserId): void {
-    $db     = getDB();
-    $pageId = $_GET['page_id'] ?? '';
-    $search = trim($_GET['search'] ?? '');
+    $db       = getDB();
+    $pageId   = $_GET['page_id']   ?? '';
+    $search   = trim($_GET['search']    ?? '');
+    $beforeId = (int)($_GET['before_id'] ?? 0);
+    $limit    = 25;
 
     if (!$pageId) { http_response_code(400); die(json_encode(['error' => 'page_id required'])); }
 
-    if ($search !== '') {
-        $stmt = $db->prepare("
-            SELECT * FROM inbox_conversations
-            WHERE fb_user_id=? AND page_id=? AND customer_name LIKE ?
-            ORDER BY last_message_at DESC LIMIT 60
-        ");
-        $stmt->execute([$fbUserId, $pageId, '%' . $search . '%']);
-    } else {
-        $stmt = $db->prepare("
-            SELECT * FROM inbox_conversations
-            WHERE fb_user_id=? AND page_id=?
-            ORDER BY last_message_at DESC LIMIT 60
-        ");
-        $stmt->execute([$fbUserId, $pageId]);
-    }
+    $where  = "fb_user_id=? AND page_id=?";
+    $params = [$fbUserId, $pageId];
+    if ($search !== '') { $where .= " AND customer_name LIKE ?"; $params[] = '%' . $search . '%'; }
+    if ($beforeId > 0)  { $where .= " AND id < ?";               $params[] = $beforeId; }
 
-    echo json_encode(['conversations' => $stmt->fetchAll()]);
+    // Fetch one extra row to detect if there are more pages
+    $stmt = $db->prepare("SELECT * FROM inbox_conversations WHERE $where ORDER BY last_message_at DESC LIMIT " . ($limit + 1));
+    $stmt->execute($params);
+    $rows = $stmt->fetchAll();
+
+    $hasMore = count($rows) > $limit;
+    if ($hasMore) array_pop($rows);
+
+    // Total unread across all conversations for this page
+    $uStmt = $db->prepare("SELECT COALESCE(SUM(unread_count),0) FROM inbox_conversations WHERE fb_user_id=? AND page_id=?");
+    $uStmt->execute([$fbUserId, $pageId]);
+    $totalUnread = (int)$uStmt->fetchColumn();
+
+    $now = time();
+    $conversations = array_map(function($row) use ($now) {
+        $lastUserAt   = $row['last_user_message_at'] ?? null;
+        $withinWindow = $lastUserAt && (strtotime($lastUserAt) > ($now - 86400));
+        $lastDir      = $row['last_direction'] === 'out' ? 'outgoing' : 'incoming';
+
+        return [
+            'id'                      => (int)$row['id'],
+            'customer_name'           => $row['customer_name'],
+            'customer_profile_pic'    => $row['customer_avatar'] ?: null,
+            'psid'                    => $row['customer_psid'],
+            'status'                  => $row['is_done'] ? 'done' : 'open',
+            'unread_count'            => (int)$row['unread_count'],
+            'last_message_at'         => $row['last_message_at']      ? gmdate('c', strtotime($row['last_message_at'])) : null,
+            'last_user_message_at'    => $lastUserAt                  ? gmdate('c', strtotime($lastUserAt))              : null,
+            'within_messaging_window' => $withinWindow,
+            'can_reply'               => true,
+            'facebook_page'           => [
+                'page_id'     => $row['page_id'],
+                'name'        => '',
+                'picture_url' => null,
+            ],
+            'assigned_user' => null,
+            'labels'        => [],
+            'last_message'  => [
+                'text'         => $row['last_message'],
+                'direction'    => $lastDir,
+                'sender_type'  => $lastDir === 'outgoing' ? 'agent' : 'customer',
+                'message_type' => 'text',
+                'sent_at'      => $row['last_message_at'] ? gmdate('c', strtotime($row['last_message_at'])) : null,
+            ],
+        ];
+    }, $rows);
+
+    $oldestId = $rows ? (int)end($rows)['id'] : null;
+
+    echo json_encode([
+        'conversations' => $conversations,
+        'total_unread'  => $totalUnread,
+        'has_more'      => $hasMore,
+        'oldest_id'     => $oldestId,
+    ]);
 }
 
 function syncFromFacebook(string $fbUserId, array $body): void {
@@ -165,16 +213,17 @@ function syncFromFacebook(string $fbUserId, array $body): void {
     $upsertConv = $db->prepare("
         INSERT INTO inbox_conversations
             (fb_user_id, page_id, customer_psid, customer_name, customer_avatar,
-             last_message, last_direction, last_message_at, unread_count)
-        VALUES (?,?,?,?,?,?,?,?,?)
+             last_message, last_direction, last_message_at, last_user_message_at, unread_count)
+        VALUES (?,?,?,?,?,?,?,?,?,?)
         ON DUPLICATE KEY UPDATE
-            customer_name    = VALUES(customer_name),
-            customer_avatar  = VALUES(customer_avatar),
-            last_message     = VALUES(last_message),
-            last_direction   = VALUES(last_direction),
-            last_message_at  = VALUES(last_message_at),
-            unread_count     = VALUES(unread_count),
-            updated_at       = NOW()
+            customer_name         = VALUES(customer_name),
+            customer_avatar       = VALUES(customer_avatar),
+            last_message          = VALUES(last_message),
+            last_direction        = VALUES(last_direction),
+            last_message_at       = VALUES(last_message_at),
+            last_user_message_at  = COALESCE(VALUES(last_user_message_at), last_user_message_at),
+            unread_count          = VALUES(unread_count),
+            updated_at            = NOW()
     ");
 
     $insertMsg = $db->prepare("
@@ -213,8 +262,19 @@ function syncFromFacebook(string $fbUserId, array $body): void {
         $lastAt    = date('Y-m-d H:i:s', strtotime($last['created_time']));
         $unread    = (int)($conv['unread_count'] ?? 0);
 
+        // Track last time the customer (not page) sent a message — for 24h window
+        $lastUserMsgAt = null;
+        foreach ($messages as $msg) {
+            if ($msg['from']['id'] !== $pageId) {
+                $ts = strtotime($msg['created_time']);
+                if (!$lastUserMsgAt || $ts > strtotime($lastUserMsgAt)) {
+                    $lastUserMsgAt = date('Y-m-d H:i:s', $ts);
+                }
+            }
+        }
+
         $upsertConv->execute([$fbUserId, $pageId, $customerPsid, $customerName,
-                              $customerAvatar, $lastText, $lastDir, $lastAt, $unread]);
+                              $customerAvatar, $lastText, $lastDir, $lastAt, $lastUserMsgAt, $unread]);
 
         $getConvId->execute([$pageId, $customerPsid]);
         $convDbId = $getConvId->fetchColumn();

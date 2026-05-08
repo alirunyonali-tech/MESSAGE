@@ -105,6 +105,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 .conv-time{font-size:10.5px;color:var(--text3)}
 .conv-badge{background:var(--primary);color:#fff;font-size:9.5px;font-weight:700;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
 .no-convs{padding:32px 16px;text-align:center;color:var(--text3);font-size:13px;line-height:1.6}
+/* Messaging window dot */
+.win-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-left:auto}
+.win-dot.open{background:var(--green)}
+.win-dot.closed{background:#f59e0b}
+/* Load more */
+.load-more-btn{display:block;width:calc(100% - 28px);margin:10px 14px;padding:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-size:12px;font-family:inherit;cursor:pointer;transition:background .15s}
+.load-more-btn:hover{background:var(--surface3)}
+/* Unread badge in topbar */
+.ib-unread-badge{background:var(--red);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;margin-left:4px}
+/* 24h window warning */
+.win-warning{padding:8px 18px;background:rgba(245,158,11,.08);border-bottom:1px solid rgba(245,158,11,.2);font-size:11.5px;color:#fbbf24;display:flex;align-items:center;gap:7px;flex-shrink:0}
+.win-warning i{font-size:12px}
 
 /* ── MIDDLE — Chat ── */
 .ib-chat{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);position:relative}
@@ -205,6 +217,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 
   <div class="ib-top-right">
     <span id="syncStatus"></span>
+    <span id="totalUnreadBadge" class="ib-unread-badge" style="display:none"></span>
     <button class="ib-btn" id="syncBtn" onclick="manualSync()"><i class="fa-solid fa-rotate"></i> Sync</button>
     <a href="/" class="ib-btn"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
   </div>
@@ -231,6 +244,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
     <div id="chatHead" class="chat-head" style="display:none">
       <div class="chat-head-av" id="chatHeadAv"></div>
       <div><div class="chat-head-name" id="chatHeadName"></div><div class="chat-head-sub">Messenger</div></div>
+    </div>
+    <div id="winWarning" class="win-warning" style="display:none">
+      <i class="fa-solid fa-clock"></i>
+      <span>Outside 24-hour messaging window. Only message tags can be used to reply.</span>
     </div>
     <div id="chatMsgs" class="chat-msgs" style="display:none"></div>
     <div id="chatReply" class="chat-reply" style="display:none">
@@ -275,6 +292,8 @@ var lastSeen  = {};    // {convId: iso} — poll only new msgs
 var pollTmr   = null;
 var sending   = false;
 var syncing   = false;
+var hasMore   = false;
+var oldestId  = null;
 
 // ── Boot ───────────────────────────────────────────────
 (function boot() {
@@ -358,6 +377,8 @@ function selectPage(id, e) {
   activeId = null;
   msgCache = {};
   lastSeen = {};
+  hasMore  = false;
+  oldestId = null;
   clearInterval(pollTmr);
   hideChatPanel();
   loadConvs();
@@ -365,21 +386,40 @@ function selectPage(id, e) {
 }
 
 // ── Conversations ──────────────────────────────────────
-function loadConvs(search) {
+function loadConvs(search, append) {
   if (!PAGE) return;
   var params = 'page_id=' + encodeURIComponent(PAGE.id);
-  if (search) params += '&search=' + encodeURIComponent(search);
+  if (search)  params += '&search='    + encodeURIComponent(search);
+  if (append && oldestId) params += '&before_id=' + oldestId;
 
-  if (!convs.length) showConvSkel();
+  if (!append && !convs.length) showConvSkel();
 
   fetch('inbox_api.php?action=conversations&' + params, { credentials: 'same-origin' })
     .then(function(r){ return r.json(); })
     .then(function(d) {
-      convs = d.conversations || [];
+      if (append) {
+        convs = convs.concat(d.conversations || []);
+      } else {
+        convs = d.conversations || [];
+      }
+      hasMore  = !!d.has_more;
+      oldestId = d.oldest_id || null;
+      // Update total unread badge
+      var tu = d.total_unread || 0;
+      var badge = document.getElementById('totalUnreadBadge');
+      badge.textContent = tu > 99 ? '99+' : tu;
+      badge.style.display = tu > 0 ? 'inline-flex' : 'none';
+      // Update page title
+      document.title = tu > 0 ? '(' + tu + ') Inbox — FBCast Pro' : 'Inbox — FBCast Pro';
+
       renderConvList();
-      // Pre-load messages for all visible conversations in background
       if (!search) preloadAllMsgs();
     }).catch(function(){ toast('Failed to load conversations', 'err'); });
+}
+
+function loadMore() {
+  var search = document.getElementById('searchInput').value.trim();
+  loadConvs(search || undefined, true);
 }
 
 function showConvSkel() {
@@ -394,21 +434,34 @@ function renderConvList() {
     el.innerHTML = '<div class="no-convs">No conversations yet.<br>Auto-syncing from Facebook…</div>';
     return;
   }
-  el.innerHTML = convs.map(function(c) {
+  var html = convs.map(function(c) {
     var init = initials(c.customer_name);
-    var av   = c.customer_avatar ? '<img src="'+esc(c.customer_avatar)+'" onerror="this.style.display=\'none\'">' : init;
-    var prev = esc(c.last_message||'');
-    if (c.last_direction==='out') prev = '↗ ' + prev;
-    var badge = c.unread_count > 0 ? '<span class="conv-badge">'+c.unread_count+'</span>' : '';
-    var act   = c.id == activeId ? ' active' : '';
-    var unCls = c.unread_count > 0 ? ' unread' : '';
+    // support both old format (customer_avatar) and new format (customer_profile_pic)
+    var picUrl = c.customer_profile_pic || c.customer_avatar || null;
+    var av     = picUrl ? '<img src="'+esc(picUrl)+'" onerror="this.style.display=\'none\'">' : init;
+    // last message preview — support both old and new format
+    var lmText = (c.last_message && c.last_message.text) ? c.last_message.text : (c.last_message||'');
+    var lmDir  = (c.last_message && c.last_message.direction) ? c.last_message.direction : c.last_direction;
+    var prev   = esc(lmText);
+    if (lmDir === 'out' || lmDir === 'outgoing') prev = '↗ ' + prev;
+    var badge  = c.unread_count > 0 ? '<span class="conv-badge">'+c.unread_count+'</span>' : '';
+    var act    = c.id == activeId ? ' active' : '';
+    var unCls  = c.unread_count > 0 ? ' unread' : '';
+    // Messaging window dot
+    var winCls = c.within_messaging_window ? 'open' : 'closed';
+    var winDot = '<div class="win-dot '+winCls+'" title="'+(c.within_messaging_window?'Within 24h window':'Outside 24h window')+'"></div>';
     return '<div class="conv-item'+act+'" data-id="'+c.id+'" onclick="openConv('+c.id+')">'+
       '<div class="conv-av">'+av+'</div>'+
       '<div class="conv-info"><div class="conv-name">'+esc(c.customer_name||'Unknown')+'</div>'+
       '<div class="conv-prev'+unCls+'">'+prev+'</div></div>'+
-      '<div class="conv-meta"><span class="conv-time">'+relTime(c.last_message_at)+'</span>'+badge+'</div>'+
+      '<div class="conv-meta"><span class="conv-time">'+relTime(c.last_message_at)+'</span>'+badge+winDot+'</div>'+
     '</div>';
   }).join('');
+
+  if (hasMore) {
+    html += '<button class="load-more-btn" onclick="loadMore()">Load more conversations…</button>';
+  }
+  el.innerHTML = html;
 }
 
 // Pre-load messages for ALL visible conversations — so every click is instant
@@ -501,14 +554,21 @@ function showChatPanel(conv) {
   document.getElementById('profContent').style.display= 'block';
 
   if (!conv) return;
-  document.getElementById('chatHeadAv').innerHTML     = avatarHtml(conv.customer_avatar, conv.customer_name);
+  var picUrl = conv.customer_profile_pic || conv.customer_avatar || null;
+  document.getElementById('chatHeadAv').innerHTML     = avatarHtml(picUrl, conv.customer_name);
   document.getElementById('chatHeadName').textContent = conv.customer_name || 'Unknown';
-  document.getElementById('profAv').innerHTML         = avatarHtml(conv.customer_avatar, conv.customer_name);
+  document.getElementById('profAv').innerHTML         = avatarHtml(picUrl, conv.customer_name);
   document.getElementById('profName').textContent     = conv.customer_name || 'Unknown';
   document.getElementById('profFirst').textContent    = fmtDate(conv.created_at);
   document.getElementById('profLast').textContent     = fmtDate(conv.last_message_at);
-  document.getElementById('profDir').textContent      = conv.last_direction === 'out' ? 'You replied last' : 'Customer replied last';
-  document.getElementById('profTotal').textContent    = msgCache[conv.id] ? msgCache[conv.id].length + '+' : '…';
+  // Direction from new or old format
+  var lastDir = (conv.last_message && conv.last_message.direction) ? conv.last_message.direction : conv.last_direction;
+  document.getElementById('profDir').textContent = (lastDir === 'out' || lastDir === 'outgoing') ? 'You replied last' : 'Customer replied last';
+  document.getElementById('profTotal').textContent = msgCache[conv.id] ? msgCache[conv.id].length + '+' : '…';
+
+  // 24h messaging window warning
+  var warn = document.getElementById('winWarning');
+  warn.style.display = (conv.within_messaging_window === false) ? 'flex' : 'none';
 }
 
 function hideChatPanel() {
@@ -518,6 +578,7 @@ function hideChatPanel() {
   document.getElementById('chatReply').style.display   = 'none';
   document.getElementById('profEmpty').style.display   = 'flex';
   document.getElementById('profContent').style.display = 'none';
+  document.getElementById('winWarning').style.display  = 'none';
 }
 
 // ── Render messages ────────────────────────────────────
@@ -606,8 +667,9 @@ function autoSync() {
       var n = d.synced || 0;
       if (n > 0) {
         setSyncStatus(n + ' synced', 'var(--green)');
-        // Reload conversation list and re-preload messages
+        // Reload conversation list from start (reset pagination)
         var search = document.getElementById('searchInput').value.trim();
+        oldestId = null;
         loadConvs(search || undefined);
         // Refresh active conv messages
         if (activeId) fetchMsgs(activeId, lastSeen[activeId]||null, true);
