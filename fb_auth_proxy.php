@@ -2,6 +2,8 @@
 require_once __DIR__ . '/config/load-env.php';
 
 $allowedOrigins = [
+    'https://castmepro.com',
+    'https://www.castmepro.com',
     'https://pageinteractorprosite.site',
     'https://www.pageinteractorprosite.site',
     'https://facebook-inbox-production-2a22.up.railway.app',
