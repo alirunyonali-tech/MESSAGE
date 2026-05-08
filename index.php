@@ -1236,55 +1236,110 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       </div>
     </div>
     <div class="modal-plans">
-      <div class="modal-plan modal-plan--basic">
-        <div class="modal-plan-label modal-plan-label--basic">Basic</div>
-        <div class="modal-plan-price">$25<sub>/month</sub></div>
-        <div class="modal-plan-period">Up to 300,000 messages/month</div>
+
+      <!-- Starter -->
+      <div class="modal-plan modal-plan--starter">
+        <div class="modal-plan-label modal-plan-label--starter">Starter</div>
+        <div class="modal-plan-price">$5<sub>/mo</sub></div>
+        <div class="modal-plan-period">30,000 messages/month</div>
         <ul class="modal-plan-feats">
           <li><i class="fas fa-check"></i> All Facebook Pages</li>
-          <li><i class="fas fa-check"></i> Label targeting</li>
           <li><i class="fas fa-check"></i> Real-time tracking</li>
-          <li><i class="fas fa-check"></i> ISP bypass built-in</li>
+          <li><i class="fas fa-check"></i> Dedicated support</li>
           <li><i class="fas fa-check"></i> Cancel anytime</li>
         </ul>
-        <button class="modal-cta modal-cta--basic" id="upgradeBasicBtn" onclick="if(typeof showPaymentPopup==='function')showPaymentPopup('basic');else alert('Loading...')">
-          <i class="fas fa-bolt"></i> Start Basic
+        <button class="modal-cta modal-cta--starter" onclick="if(typeof showPaymentPopup==='function')showPaymentPopup('starter');else alert('Loading...')">
+          <i class="fas fa-bolt"></i> Start Starter
         </button>
         <div class="modal-plan-note">Monthly billing · cancel anytime</div>
       </div>
-      <div class="modal-plan modal-plan--featured">
-        <div class="price-popular"><i class="fas fa-star" style="font-size:8px;margin-right:3px;"></i> MOST POPULAR</div>
-        <div class="modal-plan-label modal-plan-label--pro">Pro</div>
-        <div class="modal-plan-price">$50<sub>/month</sub></div>
-        <div class="modal-plan-period">Up to 650,000 messages/month</div>
+
+      <!-- Bronze -->
+      <div class="modal-plan modal-plan--bronze">
+        <div class="modal-plan-label modal-plan-label--bronze">Bronze</div>
+        <div class="modal-plan-price">$15<sub>/mo</sub></div>
+        <div class="modal-plan-period">300,000 messages/month</div>
         <ul class="modal-plan-feats">
-          <li><i class="fas fa-check"></i> Everything in Basic</li>
+          <li><i class="fas fa-check"></i> All Facebook Pages</li>
+          <li><i class="fas fa-check"></i> Label targeting</li>
+          <li><i class="fas fa-check"></i> Dedicated support</li>
+          <li><i class="fas fa-check"></i> Cancel anytime</li>
+        </ul>
+        <button class="modal-cta modal-cta--bronze" onclick="if(typeof showPaymentPopup==='function')showPaymentPopup('basic');else alert('Loading...')">
+          <i class="fas fa-bolt"></i> Start Bronze
+        </button>
+        <div class="modal-plan-note">Monthly billing · cancel anytime</div>
+      </div>
+
+      <!-- Silver -->
+      <div class="modal-plan modal-plan--silver">
+        <div class="modal-plan-label modal-plan-label--silver">Silver</div>
+        <div class="modal-plan-price">$30<sub>/mo</sub></div>
+        <div class="modal-plan-period">650,000 messages/month</div>
+        <ul class="modal-plan-feats">
           <li><i class="fas fa-check"></i> Auto All Pages mode</li>
+          <li><i class="fas fa-check"></i> Label targeting</li>
+          <li><i class="fas fa-check"></i> Dedicated support</li>
+          <li><i class="fas fa-check"></i> Cancel anytime</li>
+        </ul>
+        <button class="modal-cta modal-cta--silver" onclick="if(typeof showPaymentPopup==='function')showPaymentPopup('pro');else alert('Loading...')">
+          <i class="fas fa-rocket"></i> Start Silver
+        </button>
+        <div class="modal-plan-note">Monthly billing · cancel anytime</div>
+      </div>
+
+      <!-- Gold — POPULAR -->
+      <div class="modal-plan modal-plan--gold modal-plan--featured">
+        <div class="price-popular"><i class="fas fa-star" style="font-size:8px;margin-right:3px;"></i> MOST POPULAR</div>
+        <div class="modal-plan-label modal-plan-label--gold">Gold</div>
+        <div class="modal-plan-price modal-plan-price--gold">$60<sub>/mo</sub></div>
+        <div class="modal-plan-period">1,750,000 messages/month</div>
+        <ul class="modal-plan-feats">
+          <li><i class="fas fa-check"></i> All Silver features</li>
           <li><i class="fas fa-check"></i> Priority support</li>
           <li><i class="fas fa-check"></i> 60-day token refresh</li>
           <li><i class="fas fa-check"></i> Cancel anytime</li>
         </ul>
-        <button class="modal-cta modal-cta--pro" id="upgradeProBtn" onclick="if(typeof showPaymentPopup==='function')showPaymentPopup('pro');else alert('Loading...')">
-          <i class="fas fa-rocket"></i> Start Pro
+        <button class="modal-cta modal-cta--gold" onclick="if(typeof showPaymentPopup==='function')showPaymentPopup('gold');else alert('Loading...')">
+          <i class="fas fa-crown"></i> Start Gold
         </button>
         <div class="modal-plan-note">Monthly billing · cancel anytime</div>
       </div>
-      <div class="modal-plan modal-plan--unlimited">
-        <div class="modal-plan-label modal-plan-label--unlimited">Pro Unlimited</div>
-        <div class="modal-plan-price modal-plan-price--yearly">$300<sub>/year</sub></div>
-        <div class="modal-plan-period">Unlimited messages for 12 months</div>
+
+      <!-- Sapphire -->
+      <div class="modal-plan modal-plan--sapphire">
+        <div class="modal-plan-label modal-plan-label--sapphire">Sapphire</div>
+        <div class="modal-plan-price">$100<sub>/mo</sub></div>
+        <div class="modal-plan-period">4,000,000 messages/month</div>
         <ul class="modal-plan-feats">
-          <li><i class="fas fa-check"></i> Unlimited messages</li>
-          <li><i class="fas fa-check"></i> Everything in Pro</li>
-          <li><i class="fas fa-check"></i> White-label option</li>
+          <li><i class="fas fa-check"></i> All Gold features</li>
+          <li><i class="fas fa-check"></i> Priority support</li>
           <li><i class="fas fa-check"></i> Custom integrations</li>
-          <li><i class="fas fa-check"></i> Dedicated account manager</li>
+          <li><i class="fas fa-check"></i> Cancel anytime</li>
         </ul>
-        <button class="modal-cta modal-cta--unlimited" id="upgradeUnlimitedBtn" onclick="if(typeof showPaymentPopup==='function')showPaymentPopup('pro_unlimited');else alert('Loading...')">
-          <i class="fas fa-infinity"></i> Start Unlimited
+        <button class="modal-cta modal-cta--sapphire" onclick="if(typeof showPaymentPopup==='function')showPaymentPopup('sapphire');else alert('Loading...')">
+          <i class="fas fa-gem"></i> Start Sapphire
         </button>
-        <div class="modal-plan-note">Yearly billing · best per-message rate</div>
+        <div class="modal-plan-note">Monthly billing · cancel anytime</div>
       </div>
+
+      <!-- Platinum -->
+      <div class="modal-plan modal-plan--platinum">
+        <div class="modal-plan-label modal-plan-label--platinum">Platinum</div>
+        <div class="modal-plan-price">$150<sub>/mo</sub></div>
+        <div class="modal-plan-period">7,000,000 messages/month</div>
+        <ul class="modal-plan-feats">
+          <li><i class="fas fa-check"></i> All Sapphire features</li>
+          <li><i class="fas fa-check"></i> Dedicated account manager</li>
+          <li><i class="fas fa-check"></i> White-label option</li>
+          <li><i class="fas fa-check"></i> Cancel anytime</li>
+        </ul>
+        <button class="modal-cta modal-cta--platinum" onclick="if(typeof showPaymentPopup==='function')showPaymentPopup('pro_unlimited');else alert('Loading...')">
+          <i class="fas fa-infinity"></i> Start Platinum
+        </button>
+        <div class="modal-plan-note">Monthly billing · cancel anytime</div>
+      </div>
+
     </div>
     <div class="modal-dismiss">
       <button type="button" id="modalDismiss">Continue with limited access</button>
