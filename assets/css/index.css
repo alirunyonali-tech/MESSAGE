@@ -1284,13 +1284,13 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .modal-sub{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.6}
 .modal-close{position:absolute;top:16px;right:16px;background:var(--surface);border:1px solid var(--border2);color:var(--text2);cursor:pointer;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .2s}
 .modal-close:hover{background:var(--surface2);color:var(--text)}
-.modal-plans{display:grid;grid-template-columns:repeat(6,1fr);gap:0;margin-bottom:0}
+.modal-plans{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:0;padding:0 20px 20px}
 .modal-plan{
-  background:var(--surface);border-right:1px solid var(--border);
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;
   padding:24px 18px;cursor:default;transition:all .2s;
   display:flex;flex-direction:column;position:relative;min-height:360px;
 }
-.modal-plan:last-child{border-right:none}
 .modal-plan:hover{background:rgba(255,255,255,.025)}
 /* Tier accent tops */
 .modal-plan--starter{border-top:3px solid #3b82f6}
