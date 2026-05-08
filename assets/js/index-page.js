@@ -943,6 +943,46 @@ document.addEventListener('DOMContentLoaded',async()=>{
   document.getElementById('messageText')?.addEventListener('input', persistComposerDraft);
   document.getElementById('delayMs')?.addEventListener('change', persistComposerDraft);
 
+  // Quick Templates — click to insert into textarea
+  document.querySelectorAll('.tpl-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      const txt = item.getAttribute('data-tpl');
+      const ta = document.getElementById('messageText');
+      if (ta && txt) {
+        ta.value = txt;
+        ta.focus();
+        updateCharBar(txt.length);
+        if (typeof persistComposerDraft === 'function') persistComposerDraft();
+        if (typeof window.showToast === 'function') window.showToast('Template inserted', 'success');
+      }
+    });
+  });
+
+  // Retry Failed — reset failed recipients to pending and restart
+  document.getElementById('btnRetryFailed')?.addEventListener('click', function() {
+    if (typeof window.allRecipients === 'undefined') return;
+    window.allRecipients.forEach(function(r) { if (r.status === 'failed') r.status = 'pending'; });
+    if (typeof window.renderRecipients === 'function') window.renderRecipients();
+    if (typeof window.updateStats === 'function') window.updateStats();
+    if (typeof window.showToast === 'function') window.showToast('Failed messages reset to pending. Click Start Broadcast to retry.', 'info');
+  });
+
+  // Export CSV
+  document.getElementById('btnExportCSV')?.addEventListener('click', function() {
+    const recs = window.allRecipients || [];
+    if (!recs.length) return;
+    const rows = [['PSID','Status','Error']].concat(recs.map(function(r) {
+      return [r.id, r.status || 'pending', (r.error || '').replace(/,/g,' ')];
+    }));
+    const csv = rows.map(function(r) { return r.join(','); }).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'fbcast-results-' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+    if (typeof window.showToast === 'function') window.showToast('CSV exported successfully', 'success');
+  });
+
   updateQuotaUI();
 
   // Auto-restore session after page refresh

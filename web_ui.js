@@ -375,6 +375,15 @@ function updateStats() {
   if (pb) pb.style.width = pct(ratio);
   if (pp) pp.textContent = pct(ratio);
   if (rc) rc.textContent = getFilteredRecipients().length;
+  // sync mini stats in col 3
+  const ms = $('miniStatTotal'), mss = $('miniStatSent'), msf = $('miniStatFailed');
+  if (ms) ms.textContent = total;
+  if (mss) mss.textContent = sent;
+  if (msf) msf.textContent = failed;
+  // enable retry/export when there's data
+  const retryBtn = $('btnRetryFailed'), exportBtn = $('btnExportCSV');
+  if (retryBtn) retryBtn.disabled = failed === 0;
+  if (exportBtn) exportBtn.disabled = (sent + failed) === 0;
 }
 
 function updateRecipientRow(item) {

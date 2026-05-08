@@ -941,23 +941,26 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         <div class="compose-hdr">
           <h3><i class="fa-solid fa-sliders compose-hdr-icon"></i> Settings</h3>
         </div>
-        <label class="field-label">Delay between messages</label>
+        <label class="field-label"><i class="fa-solid fa-clock"></i> Delay Between Messages</label>
         <div class="delay-presets" id="delayPresets" role="group" aria-label="Delay between messages">
           <button type="button" class="delay-preset" data-delay="3000">
+            <i class="fa-solid fa-shield-halved"></i>
             <span class="delay-name">Slow</span>
             <span class="delay-value">3000 ms</span>
           </button>
           <button type="button" class="delay-preset active" data-delay="1200">
+            <i class="fa-solid fa-gauge"></i>
             <span class="delay-name">Normal</span>
             <span class="delay-value">1200 ms</span>
           </button>
           <button type="button" class="delay-preset" data-delay="500">
+            <i class="fa-solid fa-bolt"></i>
             <span class="delay-name">Fast</span>
             <span class="delay-value">500 ms</span>
           </button>
         </div>
         <input id="delayMs" type="hidden" value="1200">
-        <div class="field-hint">Slow: safer · Normal: recommended · Fast: aggressive</div>
+        <div class="field-hint"><i class="fa-solid fa-circle-info" style="color:var(--primary-light);margin-right:4px"></i>Slow: safer · Normal: recommended · Fast: aggressive</div>
       </div>
 
       <!-- Broadcast -->
@@ -972,12 +975,35 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
 
         <!-- Manual Mode -->
         <div id="manualControls">
+          <!-- Mini session stats -->
+          <div class="bcast-mini-stats">
+            <div class="bcast-mini-stat bms-total">
+              <div class="bcast-mini-stat-val" id="miniStatTotal">0</div>
+              <div class="bcast-mini-stat-lbl">Total</div>
+            </div>
+            <div class="bcast-mini-stat bms-sent">
+              <div class="bcast-mini-stat-val" id="miniStatSent">0</div>
+              <div class="bcast-mini-stat-lbl">Sent</div>
+            </div>
+            <div class="bcast-mini-stat bms-failed">
+              <div class="bcast-mini-stat-val" id="miniStatFailed">0</div>
+              <div class="bcast-mini-stat-lbl">Failed</div>
+            </div>
+          </div>
           <div id="sendHint">Select a page, write message, then start broadcast</div>
           <div class="action-btns">
             <button id="btnStart"  class="act-btn"><i class="fa-solid fa-play"></i> Start Broadcast</button>
             <button id="btnPause"  class="act-btn"><i class="fa-solid fa-pause"></i> Pause</button>
             <button id="btnResume" class="act-btn"><i class="fa-solid fa-rotate-right"></i> Resume</button>
             <button id="btnStop"   class="act-btn"><i class="fa-solid fa-stop"></i> Stop</button>
+          </div>
+          <div class="extra-actions">
+            <button type="button" class="btn-extra btn-retry" id="btnRetryFailed" disabled title="Retry all failed messages">
+              <i class="fa-solid fa-rotate-right"></i> Retry Failed
+            </button>
+            <button type="button" class="btn-extra" id="btnExportCSV" disabled title="Export results as CSV">
+              <i class="fa-solid fa-file-arrow-down"></i> Export CSV
+            </button>
           </div>
         </div>
 
@@ -996,6 +1022,47 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
             <button id="btnAutoPause"  class="act-btn" disabled><i class="fa-solid fa-pause"></i> Pause</button>
             <button id="btnAutoResume" class="act-btn" disabled><i class="fa-solid fa-rotate-right"></i> Resume</button>
             <button id="btnAutoStop"   class="act-btn" disabled><i class="fa-solid fa-stop"></i> Stop</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Templates -->
+      <div class="compose-section">
+        <div class="compose-hdr">
+          <h3><i class="fa-solid fa-wand-magic-sparkles compose-hdr-icon"></i> Quick Templates</h3>
+        </div>
+        <div class="quick-tpls">
+          <div class="tpl-item" data-tpl="Hi! Your order has been shipped and will arrive in 2-3 days. Thank you for shopping with us! 🚚">
+            <div class="tpl-icon tpl-icon--order"><i class="fa-solid fa-box"></i></div>
+            <div class="tpl-body">
+              <div class="tpl-name">Order Update</div>
+              <div class="tpl-preview">Your order has been shipped and will arrive…</div>
+            </div>
+            <i class="fa-solid fa-chevron-right tpl-arrow"></i>
+          </div>
+          <div class="tpl-item" data-tpl="🎉 Flash Sale! Get 30% OFF everything today only. Limited time offer — shop now before it ends!">
+            <div class="tpl-icon tpl-icon--sale"><i class="fa-solid fa-tags"></i></div>
+            <div class="tpl-body">
+              <div class="tpl-name">Flash Sale</div>
+              <div class="tpl-preview">🎉 Get 30% OFF everything today only…</div>
+            </div>
+            <i class="fa-solid fa-chevron-right tpl-arrow"></i>
+          </div>
+          <div class="tpl-item" data-tpl="Reminder: Your appointment is confirmed for tomorrow. Please reply YES to confirm or NO to reschedule. 📅">
+            <div class="tpl-icon tpl-icon--reminder"><i class="fa-solid fa-calendar-check"></i></div>
+            <div class="tpl-body">
+              <div class="tpl-name">Appointment Reminder</div>
+              <div class="tpl-preview">Your appointment is confirmed for tomorrow…</div>
+            </div>
+            <i class="fa-solid fa-chevron-right tpl-arrow"></i>
+          </div>
+          <div class="tpl-item" data-tpl="Hi! Thank you for being a valued customer. We appreciate your support and look forward to serving you again! 🙏">
+            <div class="tpl-icon tpl-icon--greet"><i class="fa-solid fa-heart"></i></div>
+            <div class="tpl-body">
+              <div class="tpl-name">Thank You</div>
+              <div class="tpl-preview">Thank you for being a valued customer…</div>
+            </div>
+            <i class="fa-solid fa-chevron-right tpl-arrow"></i>
           </div>
         </div>
       </div>
