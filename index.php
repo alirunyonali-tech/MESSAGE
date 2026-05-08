@@ -1360,7 +1360,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
   to  {opacity:1;transform:translateY(0)    scale(1)}
 }
 .dvw-iframe-wrap{
-  position:relative;width:100%;padding-top:56.25%;
+  position:relative;width:100%;padding-top:calc(56.25% + 40px);
   background:#000;
   border-radius:12px;overflow:hidden;
 }
