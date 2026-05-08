@@ -803,12 +803,6 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       </div>
 
       <div class="topbar-status">
-        <!-- Inbox Button -->
-        <a href="/inbox.php" class="topbar-inbox-btn" title="Messenger Inbox" id="inboxBtn">
-          <i class="fa-brands fa-facebook-messenger"></i>
-          <span>Inbox</span>
-        </a>
-
         <!-- User avatar -->
         <div class="topbar-user-btn" id="topbarUserBtn" title="Logged in user">
           <div class="topbar-avatar" id="topbarAvatar">?</div>

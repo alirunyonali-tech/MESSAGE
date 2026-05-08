@@ -544,9 +544,6 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* TOPBAR USER SECTION */
 .topbar-status{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.topbar-inbox-btn{display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text);text-decoration:none;font-size:13px;font-weight:500;transition:all .2s;flex-shrink:0}
-.topbar-inbox-btn:hover{background:var(--primary);border-color:var(--primary);color:#fff}
-.topbar-inbox-btn i{font-size:14px}
 .topbar-user-btn{display:flex;align-items:center;gap:8px;padding:4px 10px 4px 4px;border-radius:24px;border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:all .2s;flex-shrink:0}
 .topbar-user-btn:hover{border-color:rgba(8,102,255,.25);background:var(--surface2)}
 .topbar-avatar{
