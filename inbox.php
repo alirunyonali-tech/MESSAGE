@@ -847,24 +847,33 @@ function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 function initials(n){ return (n||'?').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase()||'?'; }
 function avatarHtml(url, name){ return url ? '<img src="'+esc(url)+'" onerror="this.style.display=\'none\'">' : initials(name); }
 
+function parseIso(iso) {
+  if (!iso) return null;
+  var s = String(iso);
+  // MySQL "2026-05-08 15:16:27" → needs T and Z
+  if (s.indexOf('T') === -1) return new Date(s.replace(' ', 'T') + 'Z');
+  // Already has timezone (+00:00 or Z) — use as-is
+  return new Date(s);
+}
 function relTime(iso) {
-  if (!iso) return '';
-  var d = new Date(iso.replace(' ','T')+'Z'), diff=(Date.now()-d)/1000;
-  if (diff<60) return 'now';
-  if (diff<3600) return Math.floor(diff/60)+'m';
-  if (diff<86400) return Math.floor(diff/3600)+'h';
-  if (diff<604800) return Math.floor(diff/86400)+'d';
-  return d.toLocaleDateString('en',{month:'short',day:'numeric'});
+  var d = parseIso(iso);
+  if (!d || isNaN(d)) return '';
+  var diff = (Date.now() - d) / 1000;
+  if (diff < 60)     return 'now';
+  if (diff < 3600)   return Math.floor(diff / 60) + 'm';
+  if (diff < 86400)  return Math.floor(diff / 3600) + 'h';
+  if (diff < 604800) return Math.floor(diff / 86400) + 'd';
+  return d.toLocaleDateString('en', {month:'short', day:'numeric'});
 }
 function fmtDate(iso) {
-  if (!iso) return '—';
-  var d = new Date(iso.replace(' ','T')+'Z');
-  return d.toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'});
+  var d = parseIso(iso);
+  if (!d || isNaN(d)) return '—';
+  return d.toLocaleDateString('en', {month:'short', day:'numeric', year:'numeric'});
 }
 function fmtTime(iso) {
-  if (!iso) return '';
-  var d = new Date(iso.replace(' ','T')+'Z');
-  return d.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit',hour12:true});
+  var d = parseIso(iso);
+  if (!d || isNaN(d)) return '';
+  return d.toLocaleTimeString('en', {hour:'2-digit', minute:'2-digit', hour12:true});
 }
 function toast(msg, type, dur) {
   var t=document.getElementById('toast');

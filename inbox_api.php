@@ -222,7 +222,7 @@ function syncFromFacebook(string $fbUserId, array $body): void {
             last_direction        = VALUES(last_direction),
             last_message_at       = VALUES(last_message_at),
             last_user_message_at  = COALESCE(VALUES(last_user_message_at), last_user_message_at),
-            unread_count          = VALUES(unread_count),
+            unread_count          = IF(VALUES(last_message_at) > last_message_at, VALUES(unread_count), unread_count),
             updated_at            = NOW()
     ");
 
