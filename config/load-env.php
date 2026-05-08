@@ -152,32 +152,59 @@ define('STRIPE_SECRET_KEY',      env_value('STRIPE_SECRET_KEY', ''));
 define('STRIPE_PUBLISHABLE_KEY', env_value('STRIPE_PUBLISHABLE_KEY', ''));
 define('STRIPE_WEBHOOK_SECRET',  env_value('STRIPE_WEBHOOK_SECRET', ''));
 define('STRIPE_PLANS', [
+    'starter' => [
+        'price_id'  => env_value('STRIPE_STARTER_PRICE_ID', ''),
+        'amount'    => 500,   // $5.00
+        'currency'  => 'usd',
+        'interval'  => 'month',
+        'limit'     => 30000,
+        'name'      => 'Starter',
+        'db_plan'   => 'basic'
+    ],
     'basic' => [
         'price_id'  => env_value('STRIPE_BASIC_PRICE_ID', ''),
-        'amount'    => 2500,  // $25.00
+        'amount'    => 1500,  // $15.00
         'currency'  => 'usd',
         'interval'  => 'month',
         'limit'     => 300000,
-        'name'      => 'Basic',
+        'name'      => 'Bronze',
         'db_plan'   => 'basic'
     ],
     'pro' => [
         'price_id'  => env_value('STRIPE_PRO_PRICE_ID', ''),
-        'amount'    => 5000,  // $50.00
+        'amount'    => 3000,  // $30.00
         'currency'  => 'usd',
         'interval'  => 'month',
         'limit'     => 650000,
-        'name'      => 'Pro',
+        'name'      => 'Silver',
+        'db_plan'   => 'pro'
+    ],
+    'gold' => [
+        'price_id'  => env_value('STRIPE_GOLD_PRICE_ID', ''),
+        'amount'    => 6000,  // $60.00
+        'currency'  => 'usd',
+        'interval'  => 'month',
+        'limit'     => 1750000,
+        'name'      => 'Gold',
+        'db_plan'   => 'pro'
+    ],
+    'sapphire' => [
+        'price_id'  => env_value('STRIPE_SAPPHIRE_PRICE_ID', ''),
+        'amount'    => 10000, // $100.00
+        'currency'  => 'usd',
+        'interval'  => 'month',
+        'limit'     => 4000000,
+        'name'      => 'Sapphire',
         'db_plan'   => 'pro'
     ],
     'pro_unlimited' => [
         'price_id'  => env_value('STRIPE_PRO_UNLIMITED_PRICE_ID', ''),
-        'amount'    => 30000, // $300.00/year
+        'amount'    => 15000, // $150.00
         'currency'  => 'usd',
-        'interval'  => 'year',
-        'limit'     => 999999999,
-        'name'      => 'Pro Unlimited',
-        'db_plan'   => 'pro'  // stored as 'pro' in DB (same ENUM)
+        'interval'  => 'month',
+        'limit'     => 7000000,
+        'name'      => 'Platinum',
+        'db_plan'   => 'pro'
     ]
 ]);
 
