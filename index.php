@@ -19,7 +19,7 @@ header('Cross-Origin-Resource-Policy: same-site');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(self)');
 header('Strict-Transport-Security: max-age=31536000; includeSubDomains; preload');
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://connect.facebook.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: https:; connect-src 'self' https://api.stripe.com https://graph.facebook.com https://www.facebook.com https://connect.facebook.net; frame-src https://js.stripe.com https://www.facebook.com https://www.youtube.com https://www.youtube-nocookie.com https://staticxx.facebook.com; object-src 'none'; base-uri 'self'");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://connect.facebook.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: https:; connect-src 'self' https://api.stripe.com https://graph.facebook.com https://www.facebook.com https://connect.facebook.net; frame-src https://js.stripe.com https://www.facebook.com https://drive.google.com https://staticxx.facebook.com; object-src 'none'; base-uri 'self'");
 
 // Disable caching for page (user auth-sensitive)
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0, private');
@@ -729,7 +729,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
     </div>
   </footer>
 
-  <!-- ── YouTube Mini Player ── -->
+  <!-- ── Drive Video Player ── -->
   <div id="demoVideoWidget" class="dvw">
     <button class="dvw-close-btn" id="dvwClose" title="Close">
       <i class="fa-solid fa-xmark"></i>
@@ -739,8 +739,8 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <iframe
         id="dvwIframe"
         class="dvw-iframe"
-        data-src="https://www.youtube.com/embed/9uUzrwtNL_k?start=69&autoplay=1&mute=1&rel=0&modestbranding=1&enablejsapi=1"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        data-src="https://drive.google.com/file/d/1c3EwdXunmR1u7HMTU0n2FYCoDOJiGAfi/preview"
+        allow="autoplay"
         allowfullscreen
         frameborder="0"
       ></iframe>
@@ -1361,7 +1361,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
 }
 .dvw-iframe-wrap{
   position:relative;width:100%;padding-top:56.25%;
-  background:#000 url('https://img.youtube.com/vi/9uUzrwtNL_k/maxresdefault.jpg') center/cover no-repeat;
+  background:#000;
   border-radius:12px;overflow:hidden;
 }
 .dvw-play-btn{
