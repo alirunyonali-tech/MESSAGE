@@ -117,6 +117,43 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS `inbox_conversations` (
+          `id`               INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+          `fb_user_id`       VARCHAR(50)  NOT NULL,
+          `page_id`          VARCHAR(50)  NOT NULL,
+          `customer_psid`    VARCHAR(50)  NOT NULL,
+          `customer_name`    VARCHAR(255) NOT NULL DEFAULT '',
+          `customer_avatar`  VARCHAR(500) NOT NULL DEFAULT '',
+          `last_message`     TEXT,
+          `last_direction`   ENUM('in','out') NOT NULL DEFAULT 'in',
+          `last_message_at`  DATETIME NULL,
+          `unread_count`     INT UNSIGNED NOT NULL DEFAULT 0,
+          `is_done`          TINYINT(1)   NOT NULL DEFAULT 0,
+          `created_at`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `updated_at`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          UNIQUE KEY `uk_page_customer` (`page_id`, `customer_psid`),
+          INDEX `idx_user_page`   (`fb_user_id`, `page_id`),
+          INDEX `idx_last_msg`    (`last_message_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
+
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS `inbox_messages` (
+          `id`               BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+          `conversation_id`  INT UNSIGNED NOT NULL,
+          `fb_message_id`    VARCHAR(100) NOT NULL UNIQUE,
+          `direction`        ENUM('in','out') NOT NULL DEFAULT 'in',
+          `message_text`     TEXT,
+          `attachment_url`   VARCHAR(1000) DEFAULT NULL,
+          `attachment_type`  VARCHAR(50)   DEFAULT NULL,
+          `sent_at`          DATETIME NOT NULL,
+          `created_at`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          INDEX `idx_conv`  (`conversation_id`),
+          INDEX `idx_sent`  (`sent_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
+
     echo '<!DOCTYPE html><html><head><meta charset="UTF-8">
     <style>body{font-family:monospace;background:#070b14;color:#e4e6eb;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}
     .box{background:#0d1220;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:48px;max-width:520px;text-align:center;}
