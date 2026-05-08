@@ -1268,7 +1268,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
           <li><i class="fas fa-check"></i> Custom integrations</li>
           <li><i class="fas fa-check"></i> Dedicated account manager</li>
         </ul>
-        <button class="modal-cta modal-cta--unlimited" id="upgradeUnlimitedBtn" onclick="if(typeof showPaymentPopup==='function')showPaymentPopup('unlimited');else alert('Loading...')">
+        <button class="modal-cta modal-cta--unlimited" id="upgradeUnlimitedBtn" onclick="if(typeof showPaymentPopup==='function')showPaymentPopup('pro_unlimited');else alert('Loading...')">
           <i class="fas fa-infinity"></i> Start Unlimited
         </button>
         <div class="modal-plan-note">Yearly billing · best per-message rate</div>
