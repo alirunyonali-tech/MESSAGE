@@ -596,6 +596,95 @@ if ($action === 'delete_user' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     jsonOut(['success'=>true]);
 }
 
+if ($action === 'sync_stripe' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireAuth();
+    $fixed = [];
+    $skipped = [];
+    $errors = [];
+
+    // Fetch last 50 completed checkout sessions from Stripe
+    $ch = curl_init('https://api.stripe.com/v1/checkout/sessions?limit=50&status=complete');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_USERPWD        => STRIPE_SECRET_KEY . ':',
+        CURLOPT_TIMEOUT        => 20,
+        CURLOPT_SSL_VERIFYPEER => true,
+    ]);
+    $res = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200 || !$res) {
+        jsonOut(['success' => false, 'error' => 'Could not fetch sessions from Stripe (HTTP ' . $httpCode . ')'], 500);
+    }
+
+    $stripeData = json_decode($res, true);
+    if (!$stripeData || empty($stripeData['data'])) {
+        jsonOut(['success' => false, 'error' => 'No sessions returned from Stripe'], 404);
+    }
+
+    foreach ($stripeData['data'] as $session) {
+        $fbUserId = trim((string)($session['metadata']['fb_user_id'] ?? ''));
+        $plan     = trim((string)($session['metadata']['plan']        ?? ''));
+        $subId    = trim((string)($session['subscription']            ?? ''));
+        $email    = trim((string)($session['customer_details']['email'] ?? $session['customer_email'] ?? ''));
+
+        if ($fbUserId === '' || $plan === '' || !isset(STRIPE_PLANS[$plan])) {
+            $skipped[] = ['session_id' => $session['id'], 'reason' => 'missing metadata', 'fb_user_id' => $fbUserId, 'plan' => $plan];
+            continue;
+        }
+
+        // Check if user exists and what plan they currently have
+        $stmt = $db->prepare("SELECT plan, messages_limit FROM users WHERE fb_user_id = ?");
+        $stmt->execute([$fbUserId]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user) {
+            $skipped[] = ['session_id' => $session['id'], 'reason' => 'user not in DB', 'fb_user_id' => $fbUserId];
+            continue;
+        }
+
+        $planData   = STRIPE_PLANS[$plan];
+        $dbPlan     = $planData['db_plan'] ?? 'basic';
+        $msgLimit   = (int)$planData['limit'];
+        $interval   = strtolower((string)($planData['interval'] ?? 'month'));
+        $expiresSql = $interval === 'year' ? 'DATE_ADD(NOW(), INTERVAL 1 YEAR)' : 'DATE_ADD(NOW(), INTERVAL 1 MONTH)';
+
+        // Only fix if plan is still 'free' (not already activated)
+        if ($user['plan'] !== 'free') {
+            $skipped[] = ['session_id' => $session['id'], 'fb_user_id' => $fbUserId, 'reason' => 'already on plan: ' . $user['plan']];
+            continue;
+        }
+
+        try {
+            if ($email !== '') {
+                $upd = $db->prepare("UPDATE users SET plan=?, messages_limit=?, messages_used=0, stripe_subscription_id=?, subscription_expires=$expiresSql, email=? WHERE fb_user_id=?");
+                $upd->execute([$dbPlan, $msgLimit, $subId ?: null, $email, $fbUserId]);
+            } else {
+                $upd = $db->prepare("UPDATE users SET plan=?, messages_limit=?, messages_used=0, stripe_subscription_id=?, subscription_expires=$expiresSql WHERE fb_user_id=?");
+                $upd->execute([$dbPlan, $msgLimit, $subId ?: null, $fbUserId]);
+            }
+            $affected = $upd->rowCount();
+
+            // Reset webhook event so it can be reprocessed if needed
+            $sessionId = $session['id'] ?? '';
+            if ($sessionId) {
+                $db->prepare("UPDATE webhook_events SET status='processed' WHERE event_id LIKE ? LIMIT 1")
+                   ->execute(['%' . $sessionId . '%']);
+            }
+
+            $db->prepare("INSERT INTO activity_log (fb_user_id, action, detail) VALUES (?, 'subscription', ?)")
+               ->execute([$fbUserId, "Stripe Sync: activated {$plan} ({$dbPlan}) | {$msgLimit} messages"]);
+
+            $fixed[] = ['fb_user_id' => $fbUserId, 'plan' => $plan, 'db_plan' => $dbPlan, 'rows' => $affected];
+        } catch (Throwable $e) {
+            $errors[] = ['fb_user_id' => $fbUserId, 'error' => $e->getMessage()];
+        }
+    }
+
+    jsonOut(['success' => true, 'fixed' => $fixed, 'skipped' => $skipped, 'errors' => $errors]);
+}
+
 $isLoggedIn=!empty($_SESSION['fbcast_admin']);
 $freeLimit=(int)getSetting($db,'free_limit','2000');
 $announcementEnabled = getSetting($db, 'announcement_enabled', '0') === '1';
@@ -978,9 +1067,11 @@ document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==
         <div class="sec-hdr">
           <h2><i class="fa-solid fa-users" style="color:#60a5fa"></i> Recent Users</h2>
           <div class="sec-hdr-right">
+            <button class="btn btn-sm" id="syncStripeBtn" style="background:#7c3aed;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600" onclick="syncStripe()"><i class="fa-brands fa-stripe-s"></i> Sync Stripe</button>
             <button class="btn btn-ghost btn-sm" onclick="loadDashboard()"><i class="fa-solid fa-rotate-right"></i></button>
           </div>
         </div>
+        <div id="syncStripeResult" style="display:none;margin-bottom:12px;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:500"></div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Name</th><th>Plan</th><th>Used</th><th>Remaining</th><th>Last Login</th><th>Actions</th></tr></thead>
@@ -1282,6 +1373,42 @@ function exportCSV() {
 }
 
 /* ─── DASHBOARD ─── */
+async function syncStripe() {
+  const btn = document.getElementById('syncStripeBtn');
+  const res = document.getElementById('syncStripeResult');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Syncing…';
+  res.style.display = 'none';
+  try {
+    const data = await api('sync_stripe', 'POST', {});
+    if (data.success) {
+      const fixed = data.fixed || [];
+      const errors = data.errors || [];
+      if (fixed.length > 0) {
+        res.style.background = '#14532d';
+        res.style.color = '#4ade80';
+        res.innerHTML = '<i class="fa-solid fa-check-circle"></i> ' + fixed.length + ' subscription(s) activated: ' + fixed.map(f => f.fb_user_id + ' → ' + f.plan).join(', ');
+        loadDashboard();
+      } else if (errors.length > 0) {
+        res.style.background = '#450a0a';
+        res.style.color = '#f87171';
+        res.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Errors: ' + errors.map(e => e.fb_user_id + ': ' + e.error).join('; ');
+      } else {
+        res.style.background = '#1e3a5f';
+        res.style.color = '#93c5fd';
+        res.innerHTML = '<i class="fa-solid fa-info-circle"></i> No pending activations found — all users already on correct plan.';
+      }
+      res.style.display = 'block';
+    } else {
+      showToast(data.error || 'Sync failed', 'error');
+    }
+  } catch(e) {
+    showToast('Sync request failed: ' + e.message, 'error');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fa-brands fa-stripe-s"></i> Sync Stripe';
+}
+
 async function loadDashboard() {
   const m = v => `$${(Number(v)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
   const set = (id, v) => { const e=document.getElementById(id); if(!e) return; e.textContent=v; e.classList.remove('skeleton'); e.style.height=''; e.style.width=''; };
