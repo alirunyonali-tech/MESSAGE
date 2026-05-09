@@ -956,9 +956,9 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
           </div>
         </div>
 
-        <div class="compose-notice">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-          <div>Promotional messages may violate Facebook policies. <strong>Send at your own risk.</strong></div>
+        <div class="compose-notice compose-notice--tip">
+          <i class="fa-solid fa-bolt"></i>
+          <div>Keep messages <strong>short & personal</strong> for higher open rates and better reach.</div>
         </div>
       </div>
 

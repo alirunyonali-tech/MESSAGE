@@ -1031,6 +1031,9 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .compose-notice{display:flex;gap:8px;margin-top:8px;padding:8px 11px;background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.12);border-radius:var(--radius);font-size:11px;color:var(--text2);line-height:1.55;flex-shrink:0}
 .compose-notice i{color:var(--amber);font-size:12px;flex-shrink:0;margin-top:1px}
 .compose-notice strong{color:#D97706}
+.compose-notice--tip{background:rgba(8,102,255,.07);border-color:rgba(8,102,255,.18)}
+.compose-notice--tip i{color:var(--primary-light)}
+.compose-notice--tip strong{color:var(--primary-light)}
 
 .field-label{font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;display:flex;align-items:center;gap:7px}
 .field-label i{color:var(--primary-light);font-size:11px}
