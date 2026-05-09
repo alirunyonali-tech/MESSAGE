@@ -1594,9 +1594,17 @@ function renderRecordDetails(recordKey, stats, moneyFmt) {
     : `Transactions on ${fmtDateDay(key)}`;
   setText('tx-table-title', title);
   setTxHead(['USER','EMAIL / FB ID','PLAN','AMOUNT','TYPE','DATE']);
+  
+  // Debug: check data structure
+  console.log('Record Key:', recordKey);
+  console.log('Stats Cache:', stats);
+  console.log('Paid Events:', stats.paid_events);
+
   const rows = (stats.paid_events||[])
     .filter(ev => {
-      const d = String(ev.created_at||'').slice(0,10);
+      // Normalize date to YYYY-MM-DD
+      const rawDate = String(ev.created_at||'');
+      const d = rawDate.includes(' ') ? rawDate.split(' ')[0] : rawDate.slice(0,10);
       return d >= start && d <= end;
     })
     .sort((a,b) => String(a.created_at||'') < String(b.created_at||'') ? 1 : -1);
