@@ -695,7 +695,7 @@ if ($action === 'sync_stripe' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Log payment in activity and payment_history
             $db->prepare("INSERT INTO activity_log (fb_user_id, action, detail) VALUES (?, 'subscription', ?)")
-               ->execute([$matchedFbId, "Stripe Sync: {$plan} ({$dbPlan}) | {$msgLimit} msgs | session {$sessId}"]);
+               ->execute([$matchedFbId, "Stripe Sync: {$plan} | {$msgLimit} msgs | session {$sessId}"]);
 
             try {
                 $db->prepare(
@@ -723,25 +723,14 @@ if ($action === 'sync_stripe' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if ($action === 'fix_payment_amount' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     requireAuth();
-    $body      = json_decode(get_raw_input(), true) ?: [];
-    $fbUserId  = trim($body['fb_user_id'] ?? '');
-    $correctCents = (int)($body['correct_cents'] ?? 0);
-    if (!$fbUserId || $correctCents <= 0) jsonOut(['error' => 'Missing params'], 400);
-    // Try by fb_user_id first, then by wrong amount as fallback
+    // Fix activity_log detail — remove '(basic)' so analytics stops assigning $15
     $stmt = $db->prepare(
-        "UPDATE payment_history SET amount_cents = ?
-         WHERE fb_user_id = ? ORDER BY created_at DESC LIMIT 1"
+        "UPDATE activity_log SET detail = REPLACE(detail, '(basic)', '(starter)')
+         WHERE action = 'subscription'
+         AND detail LIKE '%Stripe Sync: starter (basic)%'
+         AND created_at >= NOW() - INTERVAL 7 DAY"
     );
-    $stmt->execute([$correctCents, $fbUserId]);
-    if ($stmt->rowCount() === 0) {
-        // Fallback: fix the most recent record with the wrong amount (1500 = $15)
-        $stmt = $db->prepare(
-            "UPDATE payment_history SET amount_cents = ?
-             WHERE amount_cents = 1500 AND created_at >= NOW() - INTERVAL 7 DAY
-             ORDER BY created_at DESC LIMIT 1"
-        );
-        $stmt->execute([$correctCents]);
-    }
+    $stmt->execute();
     jsonOut(['success' => true, 'rows' => $stmt->rowCount()]);
 }
 
