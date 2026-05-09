@@ -1471,7 +1471,7 @@ async function loadDashboard() {
   if (!users.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text2)">No users yet.</td></tr>'; return; }
   tbody.innerHTML = users.map(u => `<tr>
     <td class="td-name" title="${esc(u.fb_name)}">${esc(u.fb_name)||'<em style="color:var(--text2)">Unknown</em>'}</td>
-    <td><span class="badge b-${u.plan||'free'}">${u.plan||'free'}</span></td>
+    <td><span class="badge b-${planClass(u.plan,u.messages_limit)}">${planLabel(u.plan,u.messages_limit)}</span></td>
     <td style="font-family:'JetBrains Mono',monospace;font-size:11px">${(u.messages_used||0).toLocaleString()}</td>
     <td><div class="quota-bar-wrap"><div class="quota-bar"><div class="quota-fill${getPct(u)>=90?' danger':getPct(u)>=70?' warn':''}" style="width:${getPct(u)}%"></div></div><div class="quota-txt">${(u.remaining||0).toLocaleString()} left</div></div></td>
     <td style="color:var(--text2);font-size:11px">${fmtDate(u.last_login)}</td>
@@ -1480,6 +1480,26 @@ async function loadDashboard() {
 }
 
 function getPct(u) { return u.messages_limit>0 ? Math.round((u.messages_used/u.messages_limit)*100) : 0; }
+function planLabel(plan, limit) {
+  limit = parseInt(limit) || 0;
+  if (plan === 'free')  return 'FREE';
+  if (plan === 'basic') {
+    if (limit <= 30000)  return 'STARTER';
+    return 'BASIC';
+  }
+  if (plan === 'pro') {
+    if (limit >= 7000000) return 'PLATINUM';
+    if (limit >= 4000000) return 'SAPPHIRE';
+    if (limit >= 1750000) return 'GOLD';
+    return 'PRO';
+  }
+  return (plan || 'free').toUpperCase();
+}
+function planClass(plan, limit) {
+  const lbl = planLabel(plan, limit).toLowerCase();
+  const map = {free:'free', starter:'basic', basic:'basic', pro:'pro', gold:'pro', sapphire:'pro', platinum:'pro'};
+  return map[lbl] || plan || 'free';
+}
 
 /* ─── STATS CACHE ─── */
 async function getStats() {
@@ -1833,7 +1853,7 @@ async function loadUsers(page=1) {
       <td class="cb-cell"><input type="checkbox" class="user-cb" value="${esc(u.fb_user_id)}" onchange="onCbChange()"></td>
       <td class="td-name" title="${esc(u.fb_name)}">${esc(u.fb_name)||'<em style="color:var(--text2)">Unknown</em>'}</td>
       <td class="td-mono" title="${esc(u.fb_user_id)}">${esc(u.fb_user_id)}</td>
-      <td><span class="badge b-${u.plan||'free'}">${u.plan||'free'}</span></td>
+      <td><span class="badge b-${planClass(u.plan,u.messages_limit)}">${planLabel(u.plan,u.messages_limit)}</span></td>
       <td style="font-family:'JetBrains Mono',monospace;font-size:11px">${(u.messages_used||0).toLocaleString()} / ${(u.messages_limit||0).toLocaleString()}</td>
       <td><div class="quota-bar-wrap"><div class="quota-bar"><div class="quota-fill${barCls}" style="width:${pct}%"></div></div><div class="quota-txt">${(u.remaining||0).toLocaleString()} left</div></div></td>
       <td style="color:var(--text2);font-size:11px">${fmtDate(u.first_login)}</td>
