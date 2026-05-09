@@ -630,6 +630,12 @@ if ($action === 'sync_stripe' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         jsonOut(['success' => false, 'error' => 'No completed sessions found in Stripe (last 30 days)'], 404);
     }
 
+    // Proactively cleanup existing duplicates before processing
+    try {
+        $db->exec("DELETE a1 FROM activity_log a1 INNER JOIN activity_log a2 WHERE a1.id > a2.id AND a1.fb_user_id = a2.fb_user_id AND a1.action = a2.action AND a1.detail = a2.detail");
+        $db->exec("DELETE p1 FROM payment_history p1 INNER JOIN payment_history p2 WHERE p1.id > p2.id AND p1.stripe_invoice_id = p2.stripe_invoice_id AND p1.stripe_invoice_id != ''");
+    } catch (Throwable $e) {}
+
     // Sort sessions newest-first so most recent payment wins
     $sessions = $stripeData['data'];
     usort($sessions, fn($a, $b) => (int)($b['created'] ?? 0) - (int)($a['created'] ?? 0));
@@ -710,16 +716,30 @@ if ($action === 'sync_stripe' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 $upd->execute([$dbPlan, $msgLimit, $messagesUsedValue, $subId ?: null, $custId ?: null, $matchedFbId]);
             }
 
-            // Log payment in activity and payment_history
-            $db->prepare("INSERT INTO activity_log (fb_user_id, action, detail) VALUES (?, 'subscription', ?)")
-               ->execute([$matchedFbId, "Stripe Sync: {$plan} | {$msgLimit} msgs | session {$sessId}"]);
+            // Prevent duplicate logs: Check if this session was already logged in activity_log
+            $checkAct = $db->prepare("SELECT id FROM activity_log WHERE fb_user_id = ? AND action = 'subscription' AND detail LIKE ? LIMIT 1");
+            $checkAct->execute([$matchedFbId, "%session {$sessId}%"]);
+            $alreadyLogged = $checkAct->fetch();
 
-            try {
-                $db->prepare(
-                    "INSERT IGNORE INTO payment_history (fb_user_id, stripe_invoice_id, plan, amount_cents, status, billing_reason)
-                     VALUES (?, ?, ?, ?, 'succeeded', 'subscription_create')"
-                )->execute([$matchedFbId, $sessId, $dbPlan, $amountTotal]);
-            } catch (Throwable $ignored) {}
+            if (!$alreadyLogged) {
+                // Log payment in activity and payment_history
+                $db->prepare("INSERT INTO activity_log (fb_user_id, action, detail) VALUES (?, 'subscription', ?)")
+                   ->execute([$matchedFbId, "Stripe Sync: {$plan} | {$msgLimit} msgs | session {$sessId}"]);
+            }
+
+            // Check if already in payment_history
+            $checkPay = $db->prepare("SELECT id FROM payment_history WHERE stripe_invoice_id = ? LIMIT 1");
+            $checkPay->execute([$sessId]);
+            $alreadyInPay = $checkPay->fetch();
+
+            if (!$alreadyInPay) {
+                try {
+                    $db->prepare(
+                        "INSERT IGNORE INTO payment_history (fb_user_id, stripe_invoice_id, plan, amount_cents, status, billing_reason)
+                         VALUES (?, ?, ?, ?, 'succeeded', 'subscription_create')"
+                    )->execute([$matchedFbId, $sessId, $dbPlan, $amountTotal]);
+                } catch (Throwable $ignored) {}
+            }
 
             $processedUsers[$fbUserId] = true;
             $fixed[] = [
