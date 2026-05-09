@@ -120,10 +120,15 @@ try {
     exit;
 }
 
-// Log it
+// Log it ONLY if not already logged (prevent refresh duplicates)
 try {
-    $db->prepare("INSERT INTO activity_log (fb_user_id, action, detail) VALUES (?, 'payment', ?)")
-       ->execute([$fbUserId, "Checkout success: {$plan} | {$msgLimit} messages"]);
+    $sessId = $session['id'] ?? '';
+    $check = $db->prepare("SELECT id FROM activity_log WHERE fb_user_id = ? AND action = 'payment' AND detail LIKE ? LIMIT 1");
+    $check->execute([$fbUserId, "%{$sessId}%"]);
+    if (!$check->fetch()) {
+        $db->prepare("INSERT INTO activity_log (fb_user_id, action, detail) VALUES (?, 'payment', ?)")
+           ->execute([$fbUserId, "Checkout success: {$plan} | {$msgLimit} messages | session: {$sessId}"]);
+    }
 } catch (Exception $e) {}
 
 // Redirect back to app with success flag

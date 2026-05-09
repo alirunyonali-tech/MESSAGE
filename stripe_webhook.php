@@ -409,7 +409,15 @@ function activatePlan(PDO $db, string $fbUserId, string $plan, string $subId, st
     }
 
     $planTypeLabel = $interval === 'year' ? 'yearly' : 'monthly';
-    logActivity($db, $fbUserId, 'subscription', "Activated: {$plan} ({$planTypeLabel}) | {$planData['limit']} messages");
+    $logDetail = "Activated: {$plan} ({$planTypeLabel}) | {$planData['limit']} messages";
+    
+    // Check if we already logged this via payment_success.php or previous webhook
+    // We look for the subscription ID in the detail column
+    $check = $db->prepare("SELECT id FROM activity_log WHERE fb_user_id = ? AND action = 'subscription' AND detail LIKE ? LIMIT 1");
+    $check->execute([$fbUserId, "%{$storedSubId}%"]);
+    if (!$check->fetch()) {
+        logActivity($db, $fbUserId, 'subscription', $logDetail . " | sub: {$storedSubId}");
+    }
 }
 
 function downgradeToFree(PDO $db, string $fbUserId): void {

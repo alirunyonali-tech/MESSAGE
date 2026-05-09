@@ -1595,34 +1595,37 @@ function renderRecordDetails(recordKey, stats, moneyFmt) {
   setText('tx-table-title', title);
   setTxHead(['USER','EMAIL / FB ID','PLAN','AMOUNT','TYPE','DATE']);
   
-  // Debug: check data structure
-  console.log('Record Key:', recordKey);
-  console.log('Stats Cache:', stats);
-  console.log('Paid Events:', stats.paid_events);
-
   const rows = (stats.paid_events||[])
     .filter(ev => {
-      // Normalize date to YYYY-MM-DD
-      const rawDate = String(ev.created_at||'');
-      const d = rawDate.includes(' ') ? rawDate.split(' ')[0] : rawDate.slice(0,10);
+      if (!ev.created_at) return false;
+      // Extract YYYY-MM-DD from any string format (YYYY-MM-DD HH:MM:SS or ISO)
+      const match = String(ev.created_at).match(/^(\d{4}-\d{2}-\d{2})/);
+      if (!match) return false;
+      const d = match[1];
       return d >= start && d <= end;
     })
     .sort((a,b) => String(a.created_at||'') < String(b.created_at||'') ? 1 : -1);
+  
   const tbody = document.getElementById('txBody');
-  const backRow = `<tr><td colspan="6" style="padding:12px 16px;background:#eef2ff">
-    <button class="btn btn-ghost btn-sm" onclick="backToRecords()">← Back To Records</button>
+  const backRow = `<tr><td colspan="6" style="padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border)">
+    <button class="btn btn-ghost btn-sm" onclick="backToRecords()"><i class="fa-solid fa-arrow-left"></i> Back To Records</button>
   </td></tr>`;
+  
   if (!rows.length) {
-    tbody.innerHTML = `${backRow}<tr><td colspan="6" style="text-align:center;padding:40px;color:#64748b">No transactions found for this date.</td></tr>`;
+    tbody.innerHTML = `${backRow}<tr><td colspan="6" style="text-align:center;padding:60px;color:var(--text2)">
+      <i class="fa-solid fa-folder-open" style="font-size:24px;display:block;margin-bottom:10px;opacity:0.5"></i>
+      No transactions found for this period in recent history.
+    </td></tr>`;
     return;
   }
+  
   tbody.innerHTML = backRow + rows.map(ev => `<tr>
-    <td class="td-name" style="color:#0f172a" title="${esc(ev.fb_user_id)}">${esc(ev.fb_name||ev.fb_user_id)}</td>
-    <td class="td-mono">${ev.email ? `<a href="mailto:${esc(ev.email)}" style="color:#2563eb">${esc(ev.email)}</a>` : `<span style="color:#64748b">${esc(ev.fb_user_id)}</span>`}</td>
-    <td><span class="badge b-${ev.plan||'basic'}">${ev.plan||'—'}</span></td>
+    <td class="td-name" style="color:var(--text)" title="${esc(ev.fb_user_id)}">${esc(ev.fb_name||ev.fb_user_id)}</td>
+    <td class="td-mono">${ev.email ? `<a href="mailto:${esc(ev.email)}" style="color:var(--blue)">${esc(ev.email)}</a>` : `<span style="color:var(--text3)">${esc(ev.fb_user_id)}</span>`}</td>
+    <td><span class="badge b-${planClass(ev.plan, 0)}">${planLabel(ev.plan, 0)}</span></td>
     <td class="tx-amount">${moneyFmt(ev.amount||0)}</td>
-    <td style="text-transform:capitalize;color:#475569">${esc(ev.action||'payment')}</td>
-    <td style="color:#64748b;font-size:11px">${fmtDate(ev.created_at)}</td>
+    <td style="text-transform:capitalize;color:var(--text2)">${esc(ev.action||'payment')}</td>
+    <td style="color:var(--text3);font-size:11px">${fmtDate(ev.created_at)}</td>
   </tr>`).join('');
 }
 
