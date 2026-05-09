@@ -703,6 +703,21 @@ document.addEventListener('DOMContentLoaded', () => {
           showStatus('All messages processed.', 'success');
           uiTrackEvent('broadcast_complete', { mode: 'manual', pageId });
           if(window.updateQuotaUI) window.updateQuotaUI();
+          
+          // Save to history
+          if (typeof window.addCampaignToHistory === 'function') {
+            const pages = JSON.parse(localStorage.getItem('fb_pages') || '[]');
+            const page = pages.find(p => p.id === pageId);
+            const sent = allRecipients.filter(r => r.status === 'sent').length;
+            const failed = allRecipients.filter(r => r.status === 'failed').length;
+            window.addCampaignToHistory({
+              pageId,
+              pageName: page ? page.name : 'Unknown Page',
+              message: text || '(Image only)',
+              sent,
+              failed
+            });
+          }
         }
       });
     } catch (e) {

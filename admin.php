@@ -433,6 +433,23 @@ if ($action === 'export_users') {
     } catch (Exception $e) { http_response_code(500); echo 'Export failed'; exit; }
 }
 
+if ($action === 'export_activity') {
+    requireAuth();
+    try {
+        if (ob_get_length()) ob_clean();
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="fbcast_activity_' . date('Y-m-d') . '.csv"');
+        $rows = $db->query("SELECT fb_user_id, action, detail, created_at FROM activity_log ORDER BY created_at DESC LIMIT 5000")->fetchAll(PDO::FETCH_ASSOC);
+        $out = fopen('php://output','w');
+        fputcsv($out,['FB User ID','Action','Detail','Date']);
+        foreach ($rows as $r) {
+            fputcsv($out,[$r['fb_user_id'],$r['action'],$r['detail'],$r['created_at']]);
+        }
+        fclose($out);
+        exit;
+    } catch (Exception $e) { http_response_code(500); echo 'Export failed'; exit; }
+}
+
 if ($action === 'bulk_update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     requireAuth();
     requireCsrfToken();
@@ -1229,6 +1246,7 @@ document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==
         <div class="sec-hdr">
           <h2><i class="fa-solid fa-clock-rotate-left" style="color:#60a5fa"></i> Activity Log</h2>
           <div class="sec-hdr-right">
+            <button class="btn btn-ghost" onclick="exportActivityCSV()"><i class="fa-solid fa-file-arrow-down"></i> Export CSV</button>
             <button class="btn btn-ghost btn-sm" onclick="loadActivity(1,currentActFilter)"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
           </div>
         </div>
@@ -1419,6 +1437,9 @@ function manualRefresh() {
 }
 function exportCSV() {
   window.open('admin.php?action=export_users','_blank');
+}
+function exportActivityCSV() {
+  window.open('admin.php?action=export_activity','_blank');
 }
 
 /* ─── DASHBOARD ─── */

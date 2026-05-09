@@ -317,11 +317,12 @@ async function fetchConversations(pageId, onProgress) {
   const psidMap   = {};
   const psids     = [];
   const labelMap  = {};
+  const nameMap   = {};
   let   totalCount = 0;
 
   // First page via path-based proxy call
   let data = await fbGet(`${page.id}/conversations`, page.access_token, {
-    fields: 'id,participants,tags,can_reply',
+    fields: 'id,participants{id,name},tags,can_reply',
     limit:  '200',
     summary: 'true',
   });
@@ -347,6 +348,7 @@ async function fetchConversations(pageId, onProgress) {
       for (const p of (convo.participants?.data || [])) {
         if (!p?.id || p.id === page.id) continue;
         psidMap[p.id] = convo.id;
+        if (p.name) nameMap[p.id] = p.name;
         if (labels.length) {
           if (!labelMap[p.id]) labelMap[p.id] = [];
           labels.forEach(l => { if (!labelMap[p.id].includes(l)) labelMap[p.id].push(l); });
@@ -370,8 +372,11 @@ async function fetchConversations(pageId, onProgress) {
   }
 
   localStorage.setItem(STORAGE_KEYS.THREAD_MAP, JSON.stringify(psidMap));
+  if (Object.keys(nameMap).length) {
+    localStorage.setItem('fbcast_names', JSON.stringify(nameMap));
+  }
 
-  return { page, convos: allConvos, psids: [...new Set(psids)], labelMap };
+  return { page, convos: allConvos, psids: [...new Set(psids)], labelMap, nameMap };
 }
 
 // ── Quota update helper ────────────────────────────────
@@ -444,6 +449,12 @@ async function enqueueAndSendUtility({ pageId, messageText, imageUrl, recipientI
   const queue = recipientIds.map(id => ({ id, status: 'pending', error: '' }));
   localStorage.setItem(STORAGE_KEYS.QUEUE, JSON.stringify(queue));
 
+  // Load names for personalization
+  let nameMap = {};
+  try {
+    nameMap = JSON.parse(localStorage.getItem('fbcast_names') || '{}');
+  } catch (e) {}
+
   runtime.isSending    = true;
   runtime.paused       = false;
   runtime.currentIndex = 0;
@@ -466,12 +477,20 @@ async function enqueueAndSendUtility({ pageId, messageText, imageUrl, recipientI
     }
 
     const item = queue[i];
+    
+    // Personalize message
+    let personalizedMessage = messageText;
+    if (messageText && messageText.includes('{{name}}')) {
+      const name = nameMap[item.id] || 'there';
+      personalizedMessage = messageText.replace(/\{\{name\}\}/g, name);
+    }
+
     try {
       // ── Send text message (if any) ────────────────────
-      if (messageText) {
+      if (personalizedMessage) {
         await fbPost(`${page.id}/messages`, page.access_token, {
           recipient:      { id: item.id },
-          message:        { text: messageText },
+          message:        { text: personalizedMessage },
           messaging_type: 'UTILITY'
         });
         const qResult = await _updateQuota(fbUserId, 1);

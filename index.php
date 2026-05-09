@@ -823,6 +823,9 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
             <span class="quota-total-num" id="quotaTotal">2,000</span>
           </div>
         </div>
+        <div class="quota-progress-mini" style="position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.1);border-radius:0 0 8px 8px;overflow:hidden">
+          <div id="quotaProgressFill" style="height:100%;background:var(--blue);width:100%;transition:width 0.4s ease"></div>
+        </div>
         <button onclick="if(typeof openUpgradeModal==='function')openUpgradeModal(this);else document.getElementById('upgradeModal').style.display='flex'" class="btn-upgrade">
           <i class="fa-solid fa-crown" style="font-size:10px;"></i> Upgrade
         </button>
@@ -907,6 +910,11 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         <textarea id="messageText" rows="7" placeholder="Write your broadcast message here…"></textarea>
         <div id="charCount">0 / 2000</div>
         <div class="char-count-bar"><div class="char-count-fill" id="charCountFill"></div></div>
+        <div class="textarea-actions" style="margin-top:8px;display:flex;justify-content:flex-end">
+          <button type="button" id="btnSaveTemplate" class="btn-extra" title="Save as Custom Template" style="font-size:12px;padding:6px 12px">
+            <i class="fa-solid fa-floppy-disk"></i> Save as Template
+          </button>
+        </div>
 
         <!-- IMAGE ATTACHMENT -->
         <div class="img-attach-wrap">
@@ -956,6 +964,10 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
           </div>
         </div>
 
+        <div class="compose-notice compose-notice--tip">
+          <i class="fa-solid fa-bolt"></i>
+          <div>Use <code>{{name}}</code> to personalize your message with the recipient's name!</div>
+        </div>
         <div class="compose-notice compose-notice--tip">
           <i class="fa-solid fa-bolt"></i>
           <div>Keep messages <strong>short & personal</strong> for higher open rates and better reach.</div>
@@ -1062,6 +1074,11 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         <div class="compose-hdr">
           <h3><i class="fa-solid fa-wand-magic-sparkles compose-hdr-icon"></i> Quick Templates</h3>
         </div>
+        
+        <div id="customTemplates" class="quick-tpls" style="margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:12px;display:none">
+          <!-- Custom templates will be injected here -->
+        </div>
+
         <div class="quick-tpls">
           <div class="tpl-item" data-tpl="Hi! Your order has been shipped and will arrive in 2-3 days. Thank you for shopping with us! 🚚">
             <div class="tpl-icon tpl-icon--order"><i class="fa-solid fa-box"></i></div>
@@ -1194,6 +1211,16 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
             <div class="ops-row-left"><span class="ops-dot ops-dot-amber"></span><span class="ops-row-label">Execution Mode</span></div>
             <span class="ops-badge ops-badge-amber">Queue</span>
           </div>
+        </div>
+      </div>
+
+      <!-- Campaign History -->
+      <div class="panel-section" id="campaignHistorySection" style="display:none">
+        <div class="panel-hdr">
+          <span><i class="fa-solid fa-history"></i> Recent Campaigns</span>
+        </div>
+        <div id="campaignHistoryList" class="history-list" style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+          <!-- History items injected here -->
         </div>
       </div>
 

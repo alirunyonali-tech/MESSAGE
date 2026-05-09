@@ -14,6 +14,8 @@ const ANALYTICS_QUEUE_KEY = 'fbcast_analytics_queue';
 const SESSION_ID_KEY = 'fbcast_session_id';
 const MODAL_IDS = ['upgradeModal', 'privacyModal', 'termsModal'];
 const TRACK_SYNC_MIN_INTERVAL_MS = 30000;
+const CUSTOM_TEMPLATES_KEY = 'fbcast_custom_templates';
+const CAMPAIGN_HISTORY_KEY = 'fbcast_campaign_history';
 
 let _trackUserInFlight = null;
 let _lastTrackUserSyncAt = 0;
@@ -794,6 +796,16 @@ function updateQuotaUI(){
   valEl.textContent=rem.toLocaleString();
   setTimeout(()=>{valEl.style.transition='color 0.3s';valEl.style.color='';},50);
   if(totEl)totEl.textContent=q.messageLimit.toLocaleString();
+
+  const progressFill = document.getElementById('quotaProgressFill');
+  if (progressFill) {
+    const progressPct = q.messageLimit > 0 ? (rem / q.messageLimit) * 100 : 0;
+    progressFill.style.width = progressPct + '%';
+    if (progressPct < 15) progressFill.style.background = '#ef4444';
+    else if (progressPct < 30) progressFill.style.background = '#f59e0b';
+    else progressFill.style.background = 'var(--blue)';
+  }
+
   if(badgeEl){
     const plan=(q.subscriptionStatus||'free').toLowerCase();
     const isPro=plan==='pro';
@@ -944,19 +956,139 @@ document.addEventListener('DOMContentLoaded',async()=>{
   document.getElementById('delayMs')?.addEventListener('change', persistComposerDraft);
 
   // Quick Templates — click to insert into textarea
-  document.querySelectorAll('.tpl-item').forEach(function(item) {
-    item.addEventListener('click', function() {
+  function setupTemplateClick(item) {
+    item.addEventListener('click', function(e) {
+      if (e.target.closest('.tpl-delete')) return; // ignore delete clicks
+
       const txt = item.getAttribute('data-tpl');
       const ta = document.getElementById('messageText');
       if (ta && txt) {
         ta.value = txt;
         ta.focus();
-        updateCharBar(txt.length);
+        if (typeof window.updateCharBar === 'function') window.updateCharBar(txt.length);
         if (typeof persistComposerDraft === 'function') persistComposerDraft();
         if (typeof window.showToast === 'function') window.showToast('Template inserted', 'success');
       }
     });
+  }
+
+  document.querySelectorAll('.tpl-item').forEach(setupTemplateClick);
+
+  // Custom Templates Logic
+  const customTplContainer = document.getElementById('customTemplates');
+  const btnSaveTemplate = document.getElementById('btnSaveTemplate');
+
+  function loadCustomTemplates() {
+    if (!customTplContainer) return;
+    const raw = localStorage.getItem(CUSTOM_TEMPLATES_KEY);
+    const tpls = raw ? JSON.parse(raw) : [];
+    
+    if (tpls.length === 0) {
+      customTplContainer.style.display = 'none';
+      return;
+    }
+
+    customTplContainer.style.display = 'grid';
+    customTplContainer.innerHTML = '';
+    
+    tpls.forEach((tpl, idx) => {
+      const item = document.createElement('div');
+      item.className = 'tpl-item';
+      item.setAttribute('data-tpl', tpl);
+      item.innerHTML = `
+        <div class="tpl-icon" style="background:var(--purple);color:#fff"><i class="fa-solid fa-star"></i></div>
+        <div class="tpl-body">
+          <div class="tpl-name">Custom Template ${idx + 1}</div>
+          <div class="tpl-preview">${tpl.slice(0, 45)}${tpl.length > 45 ? '…' : ''}</div>
+        </div>
+        <button class="tpl-delete" data-idx="${idx}" title="Delete template" style="background:none;border:none;color:var(--text3);padding:8px;cursor:pointer;margin-left:auto"><i class="fa-solid fa-trash-can"></i></button>
+      `;
+      setupTemplateClick(item);
+      
+      const delBtn = item.querySelector('.tpl-delete');
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (confirm('Delete this template?')) {
+          tpls.splice(idx, 1);
+          localStorage.setItem(CUSTOM_TEMPLATES_KEY, JSON.stringify(tpls));
+          loadCustomTemplates();
+          if (typeof window.showToast === 'function') window.showToast('Template deleted', 'info');
+        }
+      });
+
+      customTplContainer.appendChild(item);
+    });
+  }
+
+  loadCustomTemplates();
+
+  btnSaveTemplate?.addEventListener('click', () => {
+    const ta = document.getElementById('messageText');
+    const txt = (ta?.value || '').trim();
+    if (!txt) {
+      if (typeof window.showToast === 'function') window.showToast('Write a message first!', 'warning');
+      return;
+    }
+    
+    const raw = localStorage.getItem(CUSTOM_TEMPLATES_KEY);
+    const tpls = raw ? JSON.parse(raw) : [];
+    
+    if (tpls.includes(txt)) {
+      if (typeof window.showToast === 'function') window.showToast('Template already exists!', 'info');
+      return;
+    }
+
+    tpls.unshift(txt); // Add to beginning
+    if (tpls.length > 10) tpls.pop(); // limit to 10
+    
+    localStorage.setItem(CUSTOM_TEMPLATES_KEY, JSON.stringify(tpls));
+    loadCustomTemplates();
+    if (typeof window.showToast === 'function') window.showToast('Template saved!', 'success');
   });
+
+  // Campaign History Logic
+  function loadCampaignHistory() {
+    const section = document.getElementById('campaignHistorySection');
+    const list = document.getElementById('campaignHistoryList');
+    if (!section || !list) return;
+
+    const raw = localStorage.getItem(CAMPAIGN_HISTORY_KEY);
+    const history = raw ? JSON.parse(raw) : [];
+
+    if (history.length === 0) {
+      section.style.display = 'none';
+      return;
+    }
+
+    section.style.display = 'block';
+    list.innerHTML = history.map((item, idx) => `
+      <div class="history-item" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <strong style="color:var(--text)">${item.pageName || 'Unknown Page'}</strong>
+          <span style="color:var(--text2)">${new Date(item.timestamp).toLocaleDateString()}</span>
+        </div>
+        <div style="color:var(--text2);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.message}</div>
+        <div style="display:flex;gap:12px">
+          <span style="color:var(--green)"><i class="fa-solid fa-circle-check"></i> ${item.sent}</span>
+          <span style="color:var(--red)"><i class="fa-solid fa-circle-xmark"></i> ${item.failed}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  window.addCampaignToHistory = function(campaign) {
+    const raw = localStorage.getItem(CAMPAIGN_HISTORY_KEY);
+    const history = raw ? JSON.parse(raw) : [];
+    history.unshift({
+      ...campaign,
+      timestamp: Date.now()
+    });
+    if (history.length > 5) history.pop();
+    localStorage.setItem(CAMPAIGN_HISTORY_KEY, JSON.stringify(history));
+    loadCampaignHistory();
+  };
+
+  loadCampaignHistory();
 
   // Retry Failed — reset failed recipients to pending and restart
   document.getElementById('btnRetryFailed')?.addEventListener('click', function() {
