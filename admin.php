@@ -643,19 +643,19 @@ if ($action === 'sync_stripe' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = null;
         $matchedFbId = $fbUserId;
 
-        $stmt = $db->prepare("SELECT fb_user_id, plan, messages_limit FROM users WHERE fb_user_id = ?");
+        $stmt = $db->prepare("SELECT fb_user_id, plan, messages_limit, messages_used, stripe_subscription_id FROM users WHERE fb_user_id = ?");
         $stmt->execute([$fbUserId]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$user && $custId !== '') {
-            $stmt2 = $db->prepare("SELECT fb_user_id, plan, messages_limit FROM users WHERE stripe_customer_id = ?");
+            $stmt2 = $db->prepare("SELECT fb_user_id, plan, messages_limit, messages_used, stripe_subscription_id FROM users WHERE stripe_customer_id = ?");
             $stmt2->execute([$custId]);
             $user = $stmt2->fetch(PDO::FETCH_ASSOC);
             if ($user) $matchedFbId = $user['fb_user_id'];
         }
 
         if (!$user && $email !== '') {
-            $stmt3 = $db->prepare("SELECT fb_user_id, plan, messages_limit FROM users WHERE email = ?");
+            $stmt3 = $db->prepare("SELECT fb_user_id, plan, messages_limit, messages_used, stripe_subscription_id FROM users WHERE email = ?");
             $stmt3->execute([$email]);
             $user = $stmt3->fetch(PDO::FETCH_ASSOC);
             if ($user) $matchedFbId = $user['fb_user_id'];
@@ -673,13 +673,24 @@ if ($action === 'sync_stripe' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $expiresSql = $interval === 'year' ? 'DATE_ADD(NOW(), INTERVAL 1 YEAR)' : 'DATE_ADD(NOW(), INTERVAL 1 MONTH)';
 
         try {
+            // Check if we should reset usage. 
+            // If the user already has this exact subscription ID and the same plan, 
+            // then this is just a re-sync of current state, NOT a new month/renewal.
+            $shouldReset = true;
+            if (($user['stripe_subscription_id'] ?? '') === $subId && $user['plan'] === $dbPlan && $subId !== '') {
+                $shouldReset = false;
+            }
+
+            $messagesUsedValue = $shouldReset ? 0 : (int)$user['messages_used'];
+            $expiresValueSql   = $shouldReset ? $expiresSql : "subscription_expires";
+
             // Always apply — this is an admin sync, most recent session wins
             if ($email !== '') {
-                $upd = $db->prepare("UPDATE users SET plan=?, messages_limit=?, messages_used=0, stripe_subscription_id=?, stripe_customer_id=COALESCE(NULLIF(?,''), stripe_customer_id), subscription_expires=$expiresSql, email=? WHERE fb_user_id=?");
-                $upd->execute([$dbPlan, $msgLimit, $subId ?: null, $custId ?: null, $email, $matchedFbId]);
+                $upd = $db->prepare("UPDATE users SET plan=?, messages_limit=?, messages_used=?, stripe_subscription_id=?, stripe_customer_id=COALESCE(NULLIF(?,''), stripe_customer_id), subscription_expires=$expiresValueSql, email=? WHERE fb_user_id=?");
+                $upd->execute([$dbPlan, $msgLimit, $messagesUsedValue, $subId ?: null, $custId ?: null, $email, $matchedFbId]);
             } else {
-                $upd = $db->prepare("UPDATE users SET plan=?, messages_limit=?, messages_used=0, stripe_subscription_id=?, stripe_customer_id=COALESCE(NULLIF(?,''), stripe_customer_id), subscription_expires=$expiresSql WHERE fb_user_id=?");
-                $upd->execute([$dbPlan, $msgLimit, $subId ?: null, $custId ?: null, $matchedFbId]);
+                $upd = $db->prepare("UPDATE users SET plan=?, messages_limit=?, messages_used=?, stripe_subscription_id=?, stripe_customer_id=COALESCE(NULLIF(?,''), stripe_customer_id), subscription_expires=$expiresValueSql WHERE fb_user_id=?");
+                $upd->execute([$dbPlan, $msgLimit, $messagesUsedValue, $subId ?: null, $custId ?: null, $matchedFbId]);
             }
 
             // Log payment in activity and payment_history
