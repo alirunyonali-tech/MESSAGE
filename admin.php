@@ -237,11 +237,11 @@ if ($action === 'stats') {
         $platinumCents   = (int)(STRIPE_PLANS['pro_unlimited']['amount'] ?? 15000);
         $detailLc        = "LOWER(COALESCE(detail,''))";
         $isStarter   = "($detailLc LIKE '%starter%')";
-        $isBasic     = "($detailLc LIKE '%basic%' AND $detailLc NOT LIKE '%starter%')";
+        $isBasic     = "($detailLc LIKE '%bronze%' OR ($detailLc LIKE '%basic%' AND $detailLc NOT LIKE '%starter%' AND $detailLc NOT LIKE '%pro%' AND $detailLc NOT LIKE '%gold%' AND $detailLc NOT LIKE '%sapphire%' AND $detailLc NOT LIKE '%platinum%'))";
         $isGold      = "($detailLc LIKE '%gold%')";
         $isSapphire  = "($detailLc LIKE '%sapphire%')";
         $isPlatinum  = "($detailLc LIKE '%pro_unlimited%' OR $detailLc LIKE '%platinum%')";
-        $isPro       = "($detailLc LIKE '%pro%' AND $detailLc NOT LIKE '%pro_unlimited%' AND $detailLc NOT LIKE '%platinum%')";
+        $isPro       = "($detailLc LIKE '%silver%' OR ($detailLc LIKE '%pro%' AND $detailLc NOT LIKE '%pro_unlimited%' AND $detailLc NOT LIKE '%platinum%' AND $detailLc NOT LIKE '%gold%' AND $detailLc NOT LIKE '%sapphire%'))";
         $paidAction  = "action IN ('payment','renewal','subscription')";
         $isPaidPlan  = "($isStarter OR $isBasic OR $isPro OR $isGold OR $isSapphire OR $isPlatinum)";
         $validPaid   = "($paidAction AND $isPaidPlan AND $detailLc NOT LIKE '%cancelled%')";
