@@ -598,49 +598,82 @@ if ($action === 'delete_user' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if ($action === 'sync_stripe' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     requireAuth();
-    $fixed = [];
+    $fixed   = [];
     $skipped = [];
-    $errors = [];
+    $errors  = [];
 
-    // Fetch last 50 completed checkout sessions from Stripe
-    $ch = curl_init('https://api.stripe.com/v1/checkout/sessions?limit=50&status=complete');
+    // Fetch last 50 completed checkout sessions from Stripe (last 30 days)
+    $since = time() - (30 * 24 * 3600);
+    $ch = curl_init('https://api.stripe.com/v1/checkout/sessions?limit=50&status=complete&created[gte]=' . $since);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_USERPWD        => STRIPE_SECRET_KEY . ':',
         CURLOPT_TIMEOUT        => 20,
         CURLOPT_SSL_VERIFYPEER => true,
     ]);
-    $res = curl_exec($ch);
+    $res      = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
     if ($httpCode !== 200 || !$res) {
-        jsonOut(['success' => false, 'error' => 'Could not fetch sessions from Stripe (HTTP ' . $httpCode . ')'], 500);
+        jsonOut(['success' => false, 'error' => 'Stripe API error (HTTP ' . $httpCode . ')'], 500);
     }
 
     $stripeData = json_decode($res, true);
     if (!$stripeData || empty($stripeData['data'])) {
-        jsonOut(['success' => false, 'error' => 'No sessions returned from Stripe'], 404);
+        jsonOut(['success' => false, 'error' => 'No completed sessions found in Stripe (last 30 days)'], 404);
     }
 
-    foreach ($stripeData['data'] as $session) {
+    // Sort sessions newest-first so most recent payment wins
+    $sessions = $stripeData['data'];
+    usort($sessions, fn($a, $b) => (int)($b['created'] ?? 0) - (int)($a['created'] ?? 0));
+
+    $processedUsers = []; // track so we only apply newest session per user
+
+    foreach ($sessions as $session) {
         $fbUserId = trim((string)($session['metadata']['fb_user_id'] ?? ''));
         $plan     = trim((string)($session['metadata']['plan']        ?? ''));
         $subId    = trim((string)($session['subscription']            ?? ''));
         $email    = trim((string)($session['customer_details']['email'] ?? $session['customer_email'] ?? ''));
+        $custId   = trim((string)($session['customer'] ?? ''));
+        $sessId   = $session['id'] ?? '';
+        $amountTotal = (int)($session['amount_total'] ?? 0);
 
-        if ($fbUserId === '' || $plan === '' || !isset(STRIPE_PLANS[$plan])) {
-            $skipped[] = ['session_id' => $session['id'], 'reason' => 'missing metadata', 'fb_user_id' => $fbUserId, 'plan' => $plan];
+        // Skip if already handled this user in this sync run
+        if (isset($processedUsers[$fbUserId])) {
             continue;
         }
 
-        // Check if user exists and what plan they currently have
-        $stmt = $db->prepare("SELECT plan, messages_limit FROM users WHERE fb_user_id = ?");
+        // Validate plan
+        if ($fbUserId === '' || $plan === '' || !isset(STRIPE_PLANS[$plan])) {
+            $skipped[] = ['session_id' => $sessId, 'reason' => 'missing/invalid metadata', 'fb_user_id' => $fbUserId, 'plan' => $plan];
+            continue;
+        }
+
+        // Find user in DB — try fb_user_id first, then stripe customer_id, then email
+        $user = null;
+        $matchedFbId = $fbUserId;
+
+        $stmt = $db->prepare("SELECT fb_user_id, plan, messages_limit FROM users WHERE fb_user_id = ?");
         $stmt->execute([$fbUserId]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+        if (!$user && $custId !== '') {
+            $stmt2 = $db->prepare("SELECT fb_user_id, plan, messages_limit FROM users WHERE stripe_customer_id = ?");
+            $stmt2->execute([$custId]);
+            $user = $stmt2->fetch(PDO::FETCH_ASSOC);
+            if ($user) $matchedFbId = $user['fb_user_id'];
+        }
+
+        if (!$user && $email !== '') {
+            $stmt3 = $db->prepare("SELECT fb_user_id, plan, messages_limit FROM users WHERE email = ?");
+            $stmt3->execute([$email]);
+            $user = $stmt3->fetch(PDO::FETCH_ASSOC);
+            if ($user) $matchedFbId = $user['fb_user_id'];
+        }
+
         if (!$user) {
-            $skipped[] = ['session_id' => $session['id'], 'reason' => 'user not in DB', 'fb_user_id' => $fbUserId];
+            $skipped[] = ['session_id' => $sessId, 'reason' => 'user not found in DB', 'fb_user_id' => $fbUserId, 'email' => $email];
             continue;
         }
 
@@ -650,35 +683,38 @@ if ($action === 'sync_stripe' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $interval   = strtolower((string)($planData['interval'] ?? 'month'));
         $expiresSql = $interval === 'year' ? 'DATE_ADD(NOW(), INTERVAL 1 YEAR)' : 'DATE_ADD(NOW(), INTERVAL 1 MONTH)';
 
-        // Only fix if plan is still 'free' (not already activated)
-        if ($user['plan'] !== 'free') {
-            $skipped[] = ['session_id' => $session['id'], 'fb_user_id' => $fbUserId, 'reason' => 'already on plan: ' . $user['plan']];
-            continue;
-        }
-
         try {
+            // Always apply — this is an admin sync, most recent session wins
             if ($email !== '') {
-                $upd = $db->prepare("UPDATE users SET plan=?, messages_limit=?, messages_used=0, stripe_subscription_id=?, subscription_expires=$expiresSql, email=? WHERE fb_user_id=?");
-                $upd->execute([$dbPlan, $msgLimit, $subId ?: null, $email, $fbUserId]);
+                $upd = $db->prepare("UPDATE users SET plan=?, messages_limit=?, messages_used=0, stripe_subscription_id=?, stripe_customer_id=COALESCE(NULLIF(?,''), stripe_customer_id), subscription_expires=$expiresSql, email=? WHERE fb_user_id=?");
+                $upd->execute([$dbPlan, $msgLimit, $subId ?: null, $custId ?: null, $email, $matchedFbId]);
             } else {
-                $upd = $db->prepare("UPDATE users SET plan=?, messages_limit=?, messages_used=0, stripe_subscription_id=?, subscription_expires=$expiresSql WHERE fb_user_id=?");
-                $upd->execute([$dbPlan, $msgLimit, $subId ?: null, $fbUserId]);
-            }
-            $affected = $upd->rowCount();
-
-            // Reset webhook event so it can be reprocessed if needed
-            $sessionId = $session['id'] ?? '';
-            if ($sessionId) {
-                $db->prepare("UPDATE webhook_events SET status='processed' WHERE event_id LIKE ? LIMIT 1")
-                   ->execute(['%' . $sessionId . '%']);
+                $upd = $db->prepare("UPDATE users SET plan=?, messages_limit=?, messages_used=0, stripe_subscription_id=?, stripe_customer_id=COALESCE(NULLIF(?,''), stripe_customer_id), subscription_expires=$expiresSql WHERE fb_user_id=?");
+                $upd->execute([$dbPlan, $msgLimit, $subId ?: null, $custId ?: null, $matchedFbId]);
             }
 
+            // Log payment in activity and payment_history
             $db->prepare("INSERT INTO activity_log (fb_user_id, action, detail) VALUES (?, 'subscription', ?)")
-               ->execute([$fbUserId, "Stripe Sync: activated {$plan} ({$dbPlan}) | {$msgLimit} messages"]);
+               ->execute([$matchedFbId, "Stripe Sync: {$plan} ({$dbPlan}) | {$msgLimit} msgs | session {$sessId}"]);
 
-            $fixed[] = ['fb_user_id' => $fbUserId, 'plan' => $plan, 'db_plan' => $dbPlan, 'rows' => $affected];
+            try {
+                $db->prepare(
+                    "INSERT IGNORE INTO payment_history (fb_user_id, stripe_invoice_id, plan, amount_cents, status, billing_reason)
+                     VALUES (?, ?, ?, ?, 'succeeded', 'subscription_create')"
+                )->execute([$matchedFbId, $sessId, $dbPlan, $amountTotal]);
+            } catch (Throwable $ignored) {}
+
+            $processedUsers[$fbUserId] = true;
+            $fixed[] = [
+                'fb_user_id'   => $matchedFbId,
+                'plan'         => $plan,
+                'db_plan'      => $dbPlan,
+                'messages'     => number_format($msgLimit),
+                'session_id'   => $sessId,
+                'was_on_plan'  => $user['plan'],
+            ];
         } catch (Throwable $e) {
-            $errors[] = ['fb_user_id' => $fbUserId, 'error' => $e->getMessage()];
+            $errors[] = ['fb_user_id' => $matchedFbId, 'error' => $e->getMessage()];
         }
     }
 
@@ -1384,19 +1420,21 @@ async function syncStripe() {
     if (data.success) {
       const fixed = data.fixed || [];
       const errors = data.errors || [];
+      const skipped = data.skipped || [];
       if (fixed.length > 0) {
         res.style.background = '#14532d';
         res.style.color = '#4ade80';
-        res.innerHTML = '<i class="fa-solid fa-check-circle"></i> ' + fixed.length + ' subscription(s) activated: ' + fixed.map(f => f.fb_user_id + ' → ' + f.plan).join(', ');
+        res.innerHTML = '<i class="fa-solid fa-check-circle"></i> ' + fixed.length + ' subscription(s) activated: ' + fixed.map(f => f.fb_user_id + ' → ' + f.plan + ' (' + f.messages + ' msgs)').join(' | ');
         loadDashboard();
       } else if (errors.length > 0) {
         res.style.background = '#450a0a';
         res.style.color = '#f87171';
         res.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Errors: ' + errors.map(e => e.fb_user_id + ': ' + e.error).join('; ');
       } else {
+        const skipReasons = skipped.map(s => (s.fb_user_id||'?') + ': ' + s.reason).join(' | ');
         res.style.background = '#1e3a5f';
         res.style.color = '#93c5fd';
-        res.innerHTML = '<i class="fa-solid fa-info-circle"></i> No pending activations found — all users already on correct plan.';
+        res.innerHTML = '<i class="fa-solid fa-info-circle"></i> No sessions activated. Skipped: ' + (skipReasons || 'none found in last 30 days');
       }
       res.style.display = 'block';
     } else {
