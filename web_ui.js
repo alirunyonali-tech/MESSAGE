@@ -523,11 +523,16 @@ function initImagePanel() {
 
   // File input
   fileInput?.addEventListener('change', () => { 
-    if (fileInput.files[0]) {
-      handleFile(fileInput.files[0]); 
+    const file = fileInput.files[0];
+    if (file) {
+      // Clear value immediately so the same file can be selected again if needed,
+      // and to prevent any double-triggering issues.
+      fileInput.value = '';
+      handleFile(file); 
     }
   });
-  dropZone?.addEventListener('click', () => fileInput?.click());
+  // Note: No click listener on dropZone because it's a <label for="imgFileInput">
+  // which already handles the click automatically.
   dropZone?.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
   dropZone?.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
   dropZone?.addEventListener('drop', e => {
@@ -562,9 +567,6 @@ function initImagePanel() {
       });
       const data = await res.json();
       
-      // Clear the file input immediately after reading it to allow re-selecting the same file
-      if (fileInput) fileInput.value = '';
-
       if (data.success && data.url) {
         showPreview(data.url, file.name);
         if (window.showToast) window.showToast('Image uploaded successfully.', 'success');
