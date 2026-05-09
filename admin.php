@@ -235,6 +235,7 @@ if ($action === 'stats') {
         $goldCents       = (int)(STRIPE_PLANS['gold']['amount']          ?? 6000);
         $sapphireCents   = (int)(STRIPE_PLANS['sapphire']['amount']      ?? 10000);
         $platinumCents   = (int)(STRIPE_PLANS['pro_unlimited']['amount'] ?? 15000);
+
         $detailLc        = "LOWER(COALESCE(detail,''))";
         $isStarter   = "($detailLc LIKE '%starter%')";
         $isBasic     = "($detailLc LIKE '%bronze%' OR ($detailLc LIKE '%basic%' AND $detailLc NOT LIKE '%starter%' AND $detailLc NOT LIKE '%pro%' AND $detailLc NOT LIKE '%gold%' AND $detailLc NOT LIKE '%sapphire%' AND $detailLc NOT LIKE '%platinum%'))";
@@ -245,7 +246,31 @@ if ($action === 'stats') {
         $paidAction  = "action IN ('payment','renewal','subscription')";
         $isPaidPlan  = "($isStarter OR $isBasic OR $isPro OR $isGold OR $isSapphire OR $isPlatinum)";
         $validPaid   = "($paidAction AND $isPaidPlan AND $detailLc NOT LIKE '%cancelled%')";
-        $revCase     = "CASE WHEN $isPlatinum THEN $platinumCents WHEN $isSapphire THEN $sapphireCents WHEN $isGold THEN $goldCents WHEN $isPro THEN $proCents WHEN $isBasic THEN $basicCents WHEN $isStarter THEN $starterCents ELSE 0 END";
+
+        // SQL case to extract actual amount from payment_history if available, fallback to fixed mapping
+        $revCase = "CASE 
+            WHEN $validPaid THEN (
+                SELECT amount_cents FROM payment_history 
+                WHERE payment_history.stripe_invoice_id = activity_log.detail 
+                OR activity_log.detail LIKE CONCAT('%', payment_history.stripe_invoice_id, '%')
+                LIMIT 1
+            )
+            ELSE 0 
+        END";
+
+        // If the above subquery returns NULL, use the name-based fallback
+        $revCaseFallback = "CASE 
+            WHEN $isPlatinum THEN $platinumCents 
+            WHEN $isSapphire THEN $sapphireCents 
+            WHEN $isGold THEN $goldCents 
+            WHEN $isPro THEN $proCents 
+            WHEN $isBasic THEN $basicCents 
+            WHEN $isStarter THEN $starterCents 
+            ELSE 0 
+        END";
+
+        $finalRevCase = "COALESCE($revCase, $revCaseFallback)";
+
         $planCase    = "CASE WHEN $isPlatinum THEN 'pro_unlimited' WHEN $isSapphire THEN 'sapphire' WHEN $isGold THEN 'gold' WHEN $isPro THEN 'pro' WHEN $isBasic THEN 'basic' WHEN $isStarter THEN 'starter' ELSE 'unknown' END";
 
         try {
@@ -253,9 +278,9 @@ if ($action === 'stats') {
               SUM(CASE WHEN action='login' THEN 1 ELSE 0 END) AS total_logins,
               SUM(CASE WHEN action='login' AND DATE(created_at)=CURDATE() THEN 1 ELSE 0 END) AS today_logins,
               SUM(CASE WHEN action='login' AND YEAR(created_at)=YEAR(CURDATE()) AND MONTH(created_at)=MONTH(CURDATE()) THEN 1 ELSE 0 END) AS month_logins,
-              SUM(CASE WHEN $validPaid THEN $revCase ELSE 0 END) AS total_revenue_cents,
-              SUM(CASE WHEN $validPaid AND DATE(created_at)=CURDATE() THEN $revCase ELSE 0 END) AS today_revenue_cents,
-              SUM(CASE WHEN $validPaid AND YEAR(created_at)=YEAR(CURDATE()) AND MONTH(created_at)=MONTH(CURDATE()) THEN $revCase ELSE 0 END) AS month_revenue_cents,
+              SUM(CASE WHEN $validPaid THEN $finalRevCase ELSE 0 END) AS total_revenue_cents,
+              SUM(CASE WHEN $validPaid AND DATE(created_at)=CURDATE() THEN $finalRevCase ELSE 0 END) AS today_revenue_cents,
+              SUM(CASE WHEN $validPaid AND YEAR(created_at)=YEAR(CURDATE()) AND MONTH(created_at)=MONTH(CURDATE()) THEN $finalRevCase ELSE 0 END) AS month_revenue_cents,
               SUM(CASE WHEN $validPaid THEN 1 ELSE 0 END) AS total_transactions,
               SUM(CASE WHEN $validPaid AND DATE(created_at)=CURDATE() THEN 1 ELSE 0 END) AS today_transactions,
               SUM(CASE WHEN $validPaid AND YEAR(created_at)=YEAR(CURDATE()) AND MONTH(created_at)=MONTH(CURDATE()) THEN 1 ELSE 0 END) AS month_transactions,
@@ -276,7 +301,7 @@ if ($action === 'stats') {
         } catch (Exception $e) {}
 
         try {
-            $rows = $db->query("SELECT DATE(created_at) AS day, SUM($revCase) AS revenue_cents,
+            $rows = $db->query("SELECT DATE(created_at) AS day, SUM($finalRevCase) AS revenue_cents,
               SUM(CASE WHEN $isPaidPlan THEN 1 ELSE 0 END) AS transactions,
               SUM(CASE WHEN $isBasic THEN 1 ELSE 0 END) AS basic_tx,
               SUM(CASE WHEN $isPro THEN 1 ELSE 0 END) AS pro_tx
@@ -293,7 +318,7 @@ if ($action === 'stats') {
         try {
             $w7 = $db->query("SELECT
               SUM(CASE WHEN action='login' THEN 1 ELSE 0 END) AS logins,
-              SUM(CASE WHEN $validPaid THEN $revCase ELSE 0 END) AS revenue_cents,
+              SUM(CASE WHEN $validPaid THEN $finalRevCase ELSE 0 END) AS revenue_cents,
               SUM(CASE WHEN $validPaid THEN 1 ELSE 0 END) AS transactions,
               SUM(CASE WHEN $validPaid AND $isBasic THEN 1 ELSE 0 END) AS basic_tx,
               SUM(CASE WHEN $validPaid AND $isPro THEN 1 ELSE 0 END) AS pro_tx
@@ -306,7 +331,7 @@ if ($action === 'stats') {
         $weeklyRevenue = [];
         try {
             $wrows = $db->query("SELECT YEARWEEK(created_at,1) AS yw, MIN(DATE(created_at)) AS week_start,
-              SUM($revCase) AS revenue_cents,
+              SUM($finalRevCase) AS revenue_cents,
               SUM(CASE WHEN $isPaidPlan THEN 1 ELSE 0 END) AS transactions
               FROM activity_log WHERE $paidAction AND $detailLc NOT LIKE '%cancelled%'
               AND created_at >= DATE_SUB(CURDATE(), INTERVAL 12 WEEK)
@@ -320,7 +345,7 @@ if ($action === 'stats') {
         $monthlyRevenue = [];
         try {
             $mrows = $db->query("SELECT DATE_FORMAT(created_at,'%Y-%m') AS month,
-              SUM($revCase) AS revenue_cents,
+              SUM($finalRevCase) AS revenue_cents,
               SUM(CASE WHEN $isPaidPlan THEN 1 ELSE 0 END) AS transactions
               FROM activity_log WHERE $paidAction AND $detailLc NOT LIKE '%cancelled%'
               AND created_at >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
@@ -337,7 +362,7 @@ if ($action === 'stats') {
               COALESCE(u.email,'') AS email,
               al.action,
               $planCase AS plan,
-              $revCase AS amount_cents
+              $finalRevCase AS amount_cents
             FROM activity_log al LEFT JOIN users u ON u.fb_user_id=al.fb_user_id
             WHERE al.action IN ('payment','renewal','subscription')
               AND $isPaidPlan
