@@ -1485,19 +1485,19 @@ function planLabel(plan, limit) {
   if (plan === 'free')  return 'FREE';
   if (plan === 'basic') {
     if (limit <= 30000)  return 'STARTER';
-    return 'BASIC';
+    return 'BRONZE';
   }
   if (plan === 'pro') {
     if (limit >= 7000000) return 'PLATINUM';
     if (limit >= 4000000) return 'SAPPHIRE';
     if (limit >= 1750000) return 'GOLD';
-    return 'PRO';
+    return 'SILVER';
   }
   return (plan || 'free').toUpperCase();
 }
 function planClass(plan, limit) {
   const lbl = planLabel(plan, limit).toLowerCase();
-  const map = {free:'free', starter:'basic', basic:'basic', pro:'pro', gold:'pro', sapphire:'pro', platinum:'pro'};
+  const map = {free:'free', starter:'basic', bronze:'basic', silver:'pro', gold:'pro', sapphire:'pro', platinum:'pro'};
   return map[lbl] || plan || 'free';
 }
 
