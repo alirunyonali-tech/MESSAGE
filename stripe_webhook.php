@@ -129,29 +129,60 @@ function processStripeEvent(PDO $db, array $event): void {
             $amountTotal = (int)($session['amount_total'] ?? 0);
             $invoiceId = trim((string)($session['invoice'] ?? ''));
 
-            if ($fbUserId !== '' && $plan !== '' && isset(STRIPE_PLANS[$plan])) {
-                activatePlan($db, $fbUserId, $plan, $subId, $email);
-                try {
-                    $dbPlan = STRIPE_PLANS[$plan]['db_plan'] ?? 'basic';
-                    $db->prepare(
-                        "INSERT IGNORE INTO payment_history
-                         (fb_user_id, stripe_invoice_id, plan, amount_cents, status, billing_reason)
-                         VALUES (?, ?, ?, ?, 'succeeded', 'subscription_create')"
-                    )->execute([$fbUserId, $invoiceId ?: $subId, $dbPlan, $amountTotal]);
-                } catch (Throwable $e) {
-                    logger('warn', 'Failed to insert payment_history on checkout', ['error' => $e->getMessage()]);
-                }
-            } else {
-                logger('error', 'checkout.session.completed: skipped activation — missing or invalid metadata', [
+            if ($fbUserId === '' || $plan === '' || !isset(STRIPE_PLANS[$plan])) {
+                logger('error', 'checkout.session.completed: missing/invalid metadata — cannot activate', [
                     'fb_user_id'   => $fbUserId,
                     'plan'         => $plan,
                     'plan_valid'   => isset(STRIPE_PLANS[$plan]),
-                    'sub_id'       => $subId,
-                    'email'        => $email,
                     'session_id'   => $session['id'] ?? '',
                     'customer_id'  => $session['customer'] ?? '',
                     'amount_total' => $amountTotal,
                 ]);
+                break;
+            }
+
+            // Try to resolve fb_user_id — fallback to stripe_customer_id or email if not found
+            $resolvedFbId = $fbUserId;
+            $custId = trim((string)($session['customer'] ?? ''));
+            $check = $db->prepare("SELECT fb_user_id FROM users WHERE fb_user_id = ?");
+            $check->execute([$fbUserId]);
+            if (!$check->fetch()) {
+                // Not found by fb_user_id — try stripe customer_id
+                if ($custId !== '') {
+                    $c2 = $db->prepare("SELECT fb_user_id FROM users WHERE stripe_customer_id = ?");
+                    $c2->execute([$custId]);
+                    $row = $c2->fetch(PDO::FETCH_ASSOC);
+                    if ($row) $resolvedFbId = $row['fb_user_id'];
+                }
+                // Try email as last resort
+                if ($resolvedFbId === $fbUserId && $email !== '') {
+                    $c3 = $db->prepare("SELECT fb_user_id FROM users WHERE email = ?");
+                    $c3->execute([$email]);
+                    $row = $c3->fetch(PDO::FETCH_ASSOC);
+                    if ($row) $resolvedFbId = $row['fb_user_id'];
+                }
+                if ($resolvedFbId === $fbUserId) {
+                    // Still not found — throw so Stripe retries the webhook
+                    logger('error', 'checkout.session.completed: user not found by any method', [
+                        'fb_user_id' => $fbUserId, 'customer_id' => $custId, 'email' => $email,
+                    ]);
+                    throw new Exception("User not found for fb_user_id={$fbUserId}");
+                }
+                logger('info', 'checkout.session.completed: resolved user via fallback', [
+                    'original_fb_user_id' => $fbUserId, 'resolved_fb_user_id' => $resolvedFbId,
+                ]);
+            }
+
+            activatePlan($db, $resolvedFbId, $plan, $subId, $email);
+            try {
+                $dbPlan = STRIPE_PLANS[$plan]['db_plan'] ?? 'basic';
+                $db->prepare(
+                    "INSERT IGNORE INTO payment_history
+                     (fb_user_id, stripe_invoice_id, plan, amount_cents, status, billing_reason)
+                     VALUES (?, ?, ?, ?, 'succeeded', 'subscription_create')"
+                )->execute([$resolvedFbId, $invoiceId ?: $subId, $dbPlan, $amountTotal]);
+            } catch (Throwable $e) {
+                logger('warn', 'Failed to insert payment_history on checkout', ['error' => $e->getMessage()]);
             }
             break;
 
@@ -374,7 +405,7 @@ function activatePlan(PDO $db, string $fbUserId, string $plan, string $subId, st
             'db_plan'    => $dbPlan,
             'sub_id'     => $storedSubId,
         ]);
-        return;
+        throw new Exception("activatePlan: no user found for fb_user_id={$fbUserId}");
     }
 
     $planTypeLabel = $interval === 'year' ? 'yearly' : 'monthly';
