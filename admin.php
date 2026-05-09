@@ -229,15 +229,24 @@ if ($action === 'stats') {
         $monthBasicTx=$monthProTx=$todayBasicTx=$todayProTx=$totalBasicTx=$totalProTx=0;
         $dailyRevenue = []; $paidEvents = [];
 
-        $basicCents = (int)(STRIPE_PLANS['basic']['amount'] ?? 0);
-        $proCents   = (int)(STRIPE_PLANS['pro']['amount'] ?? 0);
-        $detailLc   = "LOWER(COALESCE(detail,''))";
-        $isBasic    = "($detailLc LIKE '%basic%')";
-        $isPro      = "($detailLc LIKE '%pro%')";
-        $paidAction = "action IN ('payment','renewal','subscription')";
-        $isPaidPlan = "($isBasic OR $isPro)";
-        $validPaid  = "($paidAction AND $isPaidPlan AND $detailLc NOT LIKE '%cancelled%')";
-        $revCase    = "CASE WHEN $isPro THEN $proCents WHEN $isBasic THEN $basicCents ELSE 0 END";
+        $starterCents    = (int)(STRIPE_PLANS['starter']['amount']       ?? 500);
+        $basicCents      = (int)(STRIPE_PLANS['basic']['amount']         ?? 1500);
+        $proCents        = (int)(STRIPE_PLANS['pro']['amount']           ?? 3000);
+        $goldCents       = (int)(STRIPE_PLANS['gold']['amount']          ?? 6000);
+        $sapphireCents   = (int)(STRIPE_PLANS['sapphire']['amount']      ?? 10000);
+        $platinumCents   = (int)(STRIPE_PLANS['pro_unlimited']['amount'] ?? 15000);
+        $detailLc        = "LOWER(COALESCE(detail,''))";
+        $isStarter   = "($detailLc LIKE '%starter%')";
+        $isBasic     = "($detailLc LIKE '%basic%' AND $detailLc NOT LIKE '%starter%')";
+        $isGold      = "($detailLc LIKE '%gold%')";
+        $isSapphire  = "($detailLc LIKE '%sapphire%')";
+        $isPlatinum  = "($detailLc LIKE '%pro_unlimited%' OR $detailLc LIKE '%platinum%')";
+        $isPro       = "($detailLc LIKE '%pro%' AND $detailLc NOT LIKE '%pro_unlimited%' AND $detailLc NOT LIKE '%platinum%')";
+        $paidAction  = "action IN ('payment','renewal','subscription')";
+        $isPaidPlan  = "($isStarter OR $isBasic OR $isPro OR $isGold OR $isSapphire OR $isPlatinum)";
+        $validPaid   = "($paidAction AND $isPaidPlan AND $detailLc NOT LIKE '%cancelled%')";
+        $revCase     = "CASE WHEN $isPlatinum THEN $platinumCents WHEN $isSapphire THEN $sapphireCents WHEN $isGold THEN $goldCents WHEN $isPro THEN $proCents WHEN $isBasic THEN $basicCents WHEN $isStarter THEN $starterCents ELSE 0 END";
+        $planCase    = "CASE WHEN $isPlatinum THEN 'pro_unlimited' WHEN $isSapphire THEN 'sapphire' WHEN $isGold THEN 'gold' WHEN $isPro THEN 'pro' WHEN $isBasic THEN 'basic' WHEN $isStarter THEN 'starter' ELSE 'unknown' END";
 
         try {
             $sql = "SELECT
@@ -327,38 +336,18 @@ if ($action === 'stats') {
               COALESCE(NULLIF(u.fb_name,''),al.fb_user_id) AS fb_name,
               COALESCE(u.email,'') AS email,
               al.action,
-              CASE WHEN LOWER(COALESCE(al.detail,'')) LIKE '%pro%' THEN 'pro'
-                   WHEN LOWER(COALESCE(al.detail,'')) LIKE '%basic%' THEN 'basic' ELSE 'unknown' END AS plan,
-              CASE WHEN LOWER(COALESCE(al.detail,'')) LIKE '%pro%' THEN $proCents
-                   WHEN LOWER(COALESCE(al.detail,'')) LIKE '%basic%' THEN $basicCents ELSE 0 END AS amount_cents
+              $planCase AS plan,
+              $revCase AS amount_cents
             FROM activity_log al LEFT JOIN users u ON u.fb_user_id=al.fb_user_id
             WHERE al.action IN ('payment','renewal','subscription')
-              AND (LOWER(COALESCE(al.detail,'')) LIKE '%basic%' OR LOWER(COALESCE(al.detail,'')) LIKE '%pro%')
-              AND LOWER(COALESCE(al.detail,'')) NOT LIKE '%cancelled%'
+              AND $isPaidPlan
+              AND $detailLc NOT LIKE '%cancelled%'
               AND al.created_at >= DATE_SUB(CURDATE(), INTERVAL 120 DAY)
             ORDER BY al.created_at DESC LIMIT 500")->fetchAll(PDO::FETCH_ASSOC) ?: [];
             foreach ($evRows as $r) {
                 $paidEvents[] = ['created_at'=>$r['created_at'],'fb_user_id'=>$r['fb_user_id'],'fb_name'=>$r['fb_name'],'email'=>$r['email']??'','action'=>$r['action'],'plan'=>$r['plan'],'amount'=>round((int)($r['amount_cents']??0)/100,2)];
             }
-        } catch (Exception $e) {
-            try {
-                $evRows = $db->query("SELECT al.created_at, al.fb_user_id,
-                  COALESCE(NULLIF(u.fb_name,''),al.fb_user_id) AS fb_name, '' AS email, al.action,
-                  CASE WHEN LOWER(COALESCE(al.detail,'')) LIKE '%pro%' THEN 'pro'
-                       WHEN LOWER(COALESCE(al.detail,'')) LIKE '%basic%' THEN 'basic' ELSE 'unknown' END AS plan,
-                  CASE WHEN LOWER(COALESCE(al.detail,'')) LIKE '%pro%' THEN $proCents
-                       WHEN LOWER(COALESCE(al.detail,'')) LIKE '%basic%' THEN $basicCents ELSE 0 END AS amount_cents
-                FROM activity_log al LEFT JOIN users u ON u.fb_user_id=al.fb_user_id
-                WHERE al.action IN ('payment','renewal','subscription')
-                  AND (LOWER(COALESCE(al.detail,'')) LIKE '%basic%' OR LOWER(COALESCE(al.detail,'')) LIKE '%pro%')
-                  AND LOWER(COALESCE(al.detail,'')) NOT LIKE '%cancelled%'
-                  AND al.created_at >= DATE_SUB(CURDATE(), INTERVAL 120 DAY)
-                ORDER BY al.created_at DESC LIMIT 500")->fetchAll(PDO::FETCH_ASSOC) ?: [];
-                foreach ($evRows as $r) {
-                    $paidEvents[] = ['created_at'=>$r['created_at'],'fb_user_id'=>$r['fb_user_id'],'fb_name'=>$r['fb_name'],'email'=>'','action'=>$r['action'],'plan'=>$r['plan'],'amount'=>round((int)($r['amount_cents']??0)/100,2)];
-                }
-            } catch(Exception $e2) {}
-        }
+        } catch (Exception $e) {}
 
         jsonOut([
             'total_users'=>$totalUsers,'free_users'=>$freeUsers,'paid_users'=>$paidUsers,
