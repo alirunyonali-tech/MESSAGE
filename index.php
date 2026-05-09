@@ -431,11 +431,19 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <h2 class="section-h2">Simple, transparent pricing</h2>
       <p class="section-sub">Start free. Upgrade when you need more reach.</p>
 
+      <div class="promo-banner">
+        <span class="promo-fire">🔥</span>
+        <span class="promo-banner-text"><strong>Sign-Up Special:</strong> 50% OFF all plans — This month only!</span>
+        <span class="promo-countdown">Limited time offer</span>
+      </div>
+
       <div class="pricing-grid pricing-grid--6">
 
         <!-- Starter -->
         <div class="price-card">
           <div class="price-name">Starter</div>
+          <div class="price-discount-badge">50% OFF</div>
+          <div class="price-original"><s>$10</s>/mo</div>
           <div class="price-amount">$5<sub>/mo</sub></div>
           <div class="price-billing">Perfect for trying out the platform</div>
           <div class="price-sep"></div>
@@ -451,6 +459,8 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         <!-- Bronze -->
         <div class="price-card">
           <div class="price-name">Bronze</div>
+          <div class="price-discount-badge">50% OFF</div>
+          <div class="price-original"><s>$30</s>/mo</div>
           <div class="price-amount">$15<sub>/mo</sub></div>
           <div class="price-billing">Perfect for small businesses</div>
           <div class="price-sep"></div>
@@ -466,6 +476,8 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         <!-- Silver -->
         <div class="price-card">
           <div class="price-name">Silver</div>
+          <div class="price-discount-badge">50% OFF</div>
+          <div class="price-original"><s>$60</s>/mo</div>
           <div class="price-amount">$30<sub>/mo</sub></div>
           <div class="price-billing">For growing businesses</div>
           <div class="price-sep"></div>
@@ -482,6 +494,8 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         <div class="price-card price-card--featured price-card--gold">
           <div class="price-popular">POPULAR</div>
           <div class="price-name">Gold</div>
+          <div class="price-discount-badge price-discount-badge--gold">50% OFF</div>
+          <div class="price-original price-original--gold"><s>$120</s>/mo</div>
           <div class="price-amount">$60<sub>/mo</sub></div>
           <div class="price-billing">For high-volume needs</div>
           <div class="price-sep"></div>
@@ -497,6 +511,8 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         <!-- Sapphire -->
         <div class="price-card">
           <div class="price-name">Sapphire</div>
+          <div class="price-discount-badge">50% OFF</div>
+          <div class="price-original"><s>$200</s>/mo</div>
           <div class="price-amount">$100<sub>/mo</sub></div>
           <div class="price-billing">For large scale operations</div>
           <div class="price-sep"></div>
@@ -512,6 +528,8 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         <!-- Platinum -->
         <div class="price-card">
           <div class="price-name">Platinum</div>
+          <div class="price-discount-badge">50% OFF</div>
+          <div class="price-original"><s>$300</s>/mo</div>
           <div class="price-amount">$150<sub>/mo</sub></div>
           <div class="price-billing">For enterprises with massive scale</div>
           <div class="price-sep"></div>
