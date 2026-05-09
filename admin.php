@@ -729,7 +729,7 @@ if ($action === 'fix_payment_amount' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$fbUserId || $correctCents <= 0) jsonOut(['error' => 'Missing params'], 400);
     $stmt = $db->prepare(
         "UPDATE payment_history SET amount_cents = ?
-         WHERE fb_user_id = ? AND DATE(created_at) = CURDATE()
+         WHERE fb_user_id = ?
          ORDER BY created_at DESC LIMIT 1"
     );
     $stmt->execute([$correctCents, $fbUserId]);
