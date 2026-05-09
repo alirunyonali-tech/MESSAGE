@@ -349,6 +349,12 @@ if ($action === 'stats') {
             }
         } catch (Exception $e) {}
 
+        // All users plans for distribution chart
+        $allUsersPlans = [];
+        try {
+            $allUsersPlans = $db->query("SELECT plan, messages_limit FROM users")->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch(Exception $e) {}
+
         jsonOut([
             'total_users'=>$totalUsers,'free_users'=>$freeUsers,'paid_users'=>$paidUsers,
             'total_sent'=>$totalSent,'today_logins'=>(int)$todayLogins,'month_logins'=>(int)$monthLogins,
@@ -366,6 +372,7 @@ if ($action === 'stats') {
             'plan_breakdown_total'=>['basic'=>(int)$totalBasicTx,'pro'=>(int)$totalProTx],
             'daily_revenue'=>$dailyRevenue,'weekly_revenue'=>$weeklyRevenue,'monthly_revenue'=>$monthlyRevenue,
             'paid_events'=>$paidEvents,
+            'all_users_plans'=>$allUsersPlans,
             'server_today'=>date('Y-m-d'),'server_month'=>date('Y-m'),
         ]);
     } catch (Exception $e) {
@@ -609,6 +616,23 @@ if ($action === 'delete_user' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'fix_payment_amount') {
         jsonOut(['error' => 'Action disabled'], 403);
     }
+
+if ($action === 'system_health') {
+    requireAuth();
+    $db = getDB();
+    $health = [
+        'php_version' => PHP_VERSION,
+        'server_time' => date('Y-m-d H:i:s'),
+        'db_status' => 'Connected',
+        'stripe_configured' => !empty(STRIPE_SECRET_KEY) && strpos(STRIPE_SECRET_KEY, 'sk_') === 0,
+        'fb_configured' => !empty(FB_APP_ID) && !empty(FB_APP_SECRET),
+        'env' => APP_ENV,
+        'total_users' => (int)$db->query("SELECT COUNT(*) FROM users")->fetchColumn(),
+        'total_activity' => (int)$db->query("SELECT COUNT(*) FROM activity_log")->fetchColumn(),
+        'last_backup' => 'N/A'
+    ];
+    jsonOut(['success' => true, 'health' => $health]);
+}
 
 $isLoggedIn=!empty($_SESSION['fbcast_admin']);
 $freeLimit=(int)getSetting($db,'free_limit','2000');
@@ -1180,10 +1204,12 @@ document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==
           <div class="settings-card">
             <h3><i class="fa-solid fa-server" style="color:#4ade80"></i> System Status</h3>
             <p>Current server configuration and environment info.</p>
-            <div class="sys-row"><span>PHP Version</span><strong><?php echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION; ?></strong></div>
+            <div class="sys-row"><span>PHP Version</span><strong><?php echo PHP_VERSION; ?></strong></div>
             <div class="sys-row"><span>Environment</span><strong style="color:<?php echo (defined('APP_ENV')&&APP_ENV==='production')?'var(--green)':'var(--amber)'; ?>"><?php echo defined('APP_ENV')?strtoupper(APP_ENV):'DEVELOPMENT'; ?></strong></div>
             <div class="sys-row"><span>HTTPS</span><strong style="color:<?php echo (!empty($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!=='off')?'var(--green)':'var(--red)'; ?>"><?php echo (!empty($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!=='off')?'Enabled':'Disabled'; ?></strong></div>
             <div class="sys-row"><span>Database</span><strong style="color:var(--green)">Connected</strong></div>
+            <div class="sys-row"><span>Max Upload</span><strong><?php echo ini_get('upload_max_filesize'); ?></strong></div>
+            <div class="sys-row"><span>Memory Limit</span><strong><?php echo ini_get('memory_limit'); ?></strong></div>
             <div class="sys-row"><span>Server Time</span><strong><?php echo date('Y-m-d H:i:s'); ?></strong></div>
           </div>
 
@@ -1211,7 +1237,15 @@ document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==
     <div class="modal-sub" id="editModalSub">Loading…</div>
     <input type="hidden" id="editFbId">
     <div class="form-row"><label>Plan</label>
-      <select id="editPlan"><option value="free">Free</option><option value="basic">Basic ($25/mo)</option><option value="pro">Pro ($50/mo)</option></select>
+      <select id="editPlan">
+        <option value="free">Free</option>
+        <option value="starter">Starter ($5/mo)</option>
+        <option value="basic">Bronze ($15/mo)</option>
+        <option value="pro">Silver ($30/mo)</option>
+        <option value="gold">Gold ($60/mo)</option>
+        <option value="sapphire">Sapphire ($100/mo)</option>
+        <option value="platinum">Platinum ($150/mo)</option>
+      </select>
     </div>
     <div class="form-row"><label>Message Limit</label><input type="number" id="editLimit" min="0" placeholder="e.g. 200000"></div>
     <div class="form-row"><label>Messages Used</label><input type="number" id="editUsed" min="0" placeholder="e.g. 0"></div>
@@ -1277,6 +1311,7 @@ function navTo(sec) {
   if (sec==='analytics') loadAnalytics();
   if (sec==='users')     loadUsers(1);
   if (sec==='activity')  loadActivity(1, currentActFilter);
+  if (sec==='settings')  loadSystemHealth();
 }
 document.querySelectorAll('.sb-item').forEach(i => i.addEventListener('click', () => navTo(i.dataset.sec)));
 
@@ -1385,8 +1420,16 @@ function renderAnalytics(range, stats) {
   const monthly = stats.monthly_revenue||[];
 
   // KPI values per range
-  let rev=0, tx=0, log=0, lRev='', lTx='', lLog='', plans={basic:0,pro:0}, chartTitle='';
+  let rev=0, tx=0, log=0, lRev='', lTx='', lLog='', chartTitle='';
   const st = stats.server_today||''; const sm = stats.server_month||'';
+
+  // Plans Distribution for the chart
+  const planCounts = {starter:0, bronze:0, silver:0, gold:0, sapphire:0, platinum:0, free:0};
+  (stats.all_users_plans || []).forEach(p => {
+    const lbl = planLabel(p.plan, p.messages_limit).toLowerCase();
+    if(planCounts.hasOwnProperty(lbl)) planCounts[lbl]++;
+    else planCounts.free++;
+  });
 
   if (range==='7d') {
     const last7 = daily.filter(d => d.day >= new Date(Date.now()-6*864e5).toISOString().slice(0,10));
@@ -1861,6 +1904,27 @@ async function loadActivity(page=1, filter='all') {
 document.querySelectorAll('.filter-tab').forEach(t => t.addEventListener('click', () => loadActivity(1, t.dataset.filter)));
 
 /* ─── SETTINGS ─── */
+async function loadSystemHealth() {
+  const data = await api('system_health');
+  if (data.success && data.health) {
+    const h = data.health;
+    const set = (id, v, color='') => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = v;
+        if (color) el.style.color = color;
+      }
+    };
+    set('h-status', 'Online', 'var(--green)');
+    set('h-php', h.php_version);
+    set('h-db', h.db_status, 'var(--green)');
+    set('h-stripe', h.stripe_configured ? 'Configured' : 'Missing API Key', h.stripe_configured ? 'var(--green)' : 'var(--red)');
+    set('h-fb', h.fb_configured ? 'Connected' : 'Missing App ID/Secret', h.fb_configured ? 'var(--green)' : 'var(--red)');
+    set('h-env', h.env.toUpperCase(), h.env === 'production' ? 'var(--green)' : 'var(--amber)');
+    set('h-records', `${h.total_users.toLocaleString()} Users | ${h.total_activity.toLocaleString()} Logs`);
+  }
+}
+
 async function saveFreeLimitSetting() {
   const limit = parseInt(document.getElementById('settFreeLimit').value,10);
   if (!limit||limit<1) { showToast('Enter valid number (≥1)','error'); return; }
