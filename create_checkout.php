@@ -193,7 +193,7 @@ try {
     }
     $baseUrl = rtrim($baseUrl, '/');
 
-    $successUrl = $baseUrl . '/index.php?payment=success&session_id={CHECKOUT_SESSION_ID}';
+    $successUrl = $baseUrl . '/payment_success.php?session_id={CHECKOUT_SESSION_ID}';
     $cancelUrl  = $baseUrl . '/index.php?payment=cancelled';
 
     $sessionPayload = [
