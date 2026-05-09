@@ -471,6 +471,12 @@ function initImagePanel() {
     if (badge) badge.style.display = 'none';
     if (urlInput) urlInput.value = '';
     if (fileInput) fileInput.value = '';
+    
+    // Reset upload UI elements
+    if (uploadProg) uploadProg.style.display = 'none';
+    if (dropZone)   dropZone.style.display = '';
+    if (uploadTxt)  uploadTxt.textContent = 'Uploading…';
+
     // Show back the active tab area
     const isUpload = tabUpload && tabUpload.classList.contains('active');
     if (urlArea) urlArea.style.display = isUpload ? 'none' : '';
@@ -516,7 +522,11 @@ function initImagePanel() {
   urlInput?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); loadFromUrl(); } });
 
   // File input
-  fileInput?.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+  fileInput?.addEventListener('change', () => { 
+    if (fileInput.files[0]) {
+      handleFile(fileInput.files[0]); 
+    }
+  });
   dropZone?.addEventListener('click', () => fileInput?.click());
   dropZone?.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
   dropZone?.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
@@ -551,6 +561,10 @@ function initImagePanel() {
         body: formData
       });
       const data = await res.json();
+      
+      // Clear the file input immediately after reading it to allow re-selecting the same file
+      if (fileInput) fileInput.value = '';
+
       if (data.success && data.url) {
         showPreview(data.url, file.name);
         if (window.showToast) window.showToast('Image uploaded successfully.', 'success');
