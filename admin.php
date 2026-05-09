@@ -721,6 +721,21 @@ if ($action === 'sync_stripe' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     jsonOut(['success' => true, 'fixed' => $fixed, 'skipped' => $skipped, 'errors' => $errors]);
 }
 
+if ($action === 'fix_payment_amount' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireAuth();
+    $body      = json_decode(get_raw_input(), true) ?: [];
+    $fbUserId  = trim($body['fb_user_id'] ?? '');
+    $correctCents = (int)($body['correct_cents'] ?? 0);
+    if (!$fbUserId || $correctCents <= 0) jsonOut(['error' => 'Missing params'], 400);
+    $stmt = $db->prepare(
+        "UPDATE payment_history SET amount_cents = ?
+         WHERE fb_user_id = ? AND DATE(created_at) = CURDATE()
+         ORDER BY created_at DESC LIMIT 1"
+    );
+    $stmt->execute([$correctCents, $fbUserId]);
+    jsonOut(['success' => true, 'rows' => $stmt->rowCount()]);
+}
+
 $isLoggedIn=!empty($_SESSION['fbcast_admin']);
 $freeLimit=(int)getSetting($db,'free_limit','2000');
 $announcementEnabled = getSetting($db, 'announcement_enabled', '0') === '1';
