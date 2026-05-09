@@ -727,12 +727,21 @@ if ($action === 'fix_payment_amount' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $fbUserId  = trim($body['fb_user_id'] ?? '');
     $correctCents = (int)($body['correct_cents'] ?? 0);
     if (!$fbUserId || $correctCents <= 0) jsonOut(['error' => 'Missing params'], 400);
+    // Try by fb_user_id first, then by wrong amount as fallback
     $stmt = $db->prepare(
         "UPDATE payment_history SET amount_cents = ?
-         WHERE fb_user_id = ?
-         ORDER BY created_at DESC LIMIT 1"
+         WHERE fb_user_id = ? ORDER BY created_at DESC LIMIT 1"
     );
     $stmt->execute([$correctCents, $fbUserId]);
+    if ($stmt->rowCount() === 0) {
+        // Fallback: fix the most recent record with the wrong amount (1500 = $15)
+        $stmt = $db->prepare(
+            "UPDATE payment_history SET amount_cents = ?
+             WHERE amount_cents = 1500 AND created_at >= NOW() - INTERVAL 7 DAY
+             ORDER BY created_at DESC LIMIT 1"
+        );
+        $stmt->execute([$correctCents]);
+    }
     jsonOut(['success' => true, 'rows' => $stmt->rowCount()]);
 }
 
