@@ -1243,6 +1243,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <div class="modal-head-icon">🚀</div>
       <h2 id="upgradeModalTitle">Upgrade to Keep Broadcasting</h2>
       <p id="upgradeModalSub">Your free trial has ended. Choose a plan to continue.</p>
+      <div class="modal-promo-strip">🔥 <strong>Sign-Up Special:</strong> 50% OFF all plans — This month only!</div>
     </div>
     <div class="modal-security">
       <i class="fas fa-lock"></i>
@@ -1258,6 +1259,8 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <!-- Starter -->
       <div class="modal-plan modal-plan--starter">
         <div class="modal-plan-label modal-plan-label--starter">Starter</div>
+        <div class="modal-off-badge">50% OFF</div>
+        <div class="modal-original-price"><s>$10</s>/mo</div>
         <div class="modal-plan-price">$5<sub>/mo</sub></div>
         <div class="modal-plan-period">30,000 messages/month</div>
         <ul class="modal-plan-feats">
@@ -1275,6 +1278,8 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <!-- Bronze -->
       <div class="modal-plan modal-plan--bronze">
         <div class="modal-plan-label modal-plan-label--bronze">Bronze</div>
+        <div class="modal-off-badge">50% OFF</div>
+        <div class="modal-original-price"><s>$30</s>/mo</div>
         <div class="modal-plan-price">$15<sub>/mo</sub></div>
         <div class="modal-plan-period">300,000 messages/month</div>
         <ul class="modal-plan-feats">
@@ -1292,6 +1297,8 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <!-- Silver -->
       <div class="modal-plan modal-plan--silver">
         <div class="modal-plan-label modal-plan-label--silver">Silver</div>
+        <div class="modal-off-badge">50% OFF</div>
+        <div class="modal-original-price"><s>$60</s>/mo</div>
         <div class="modal-plan-price">$30<sub>/mo</sub></div>
         <div class="modal-plan-period">650,000 messages/month</div>
         <ul class="modal-plan-feats">
@@ -1310,6 +1317,8 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <div class="modal-plan modal-plan--gold modal-plan--featured">
         <div class="price-popular"><i class="fas fa-star" style="font-size:8px;margin-right:3px;"></i> MOST POPULAR</div>
         <div class="modal-plan-label modal-plan-label--gold">Gold</div>
+        <div class="modal-off-badge modal-off-badge--gold">50% OFF</div>
+        <div class="modal-original-price modal-original-price--gold"><s>$120</s>/mo</div>
         <div class="modal-plan-price modal-plan-price--gold">$60<sub>/mo</sub></div>
         <div class="modal-plan-period">1,750,000 messages/month</div>
         <ul class="modal-plan-feats">
@@ -1327,6 +1336,8 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <!-- Sapphire -->
       <div class="modal-plan modal-plan--sapphire">
         <div class="modal-plan-label modal-plan-label--sapphire">Sapphire</div>
+        <div class="modal-off-badge">50% OFF</div>
+        <div class="modal-original-price"><s>$200</s>/mo</div>
         <div class="modal-plan-price">$100<sub>/mo</sub></div>
         <div class="modal-plan-period">4,000,000 messages/month</div>
         <ul class="modal-plan-feats">
@@ -1344,6 +1355,8 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <!-- Platinum -->
       <div class="modal-plan modal-plan--platinum">
         <div class="modal-plan-label modal-plan-label--platinum">Platinum</div>
+        <div class="modal-off-badge">50% OFF</div>
+        <div class="modal-original-price"><s>$300</s>/mo</div>
         <div class="modal-plan-price">$150<sub>/mo</sub></div>
         <div class="modal-plan-period">7,000,000 messages/month</div>
         <ul class="modal-plan-feats">
