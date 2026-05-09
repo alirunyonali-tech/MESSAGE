@@ -141,6 +141,17 @@ function processStripeEvent(PDO $db, array $event): void {
                 } catch (Throwable $e) {
                     logger('warn', 'Failed to insert payment_history on checkout', ['error' => $e->getMessage()]);
                 }
+            } else {
+                logger('error', 'checkout.session.completed: skipped activation — missing or invalid metadata', [
+                    'fb_user_id'   => $fbUserId,
+                    'plan'         => $plan,
+                    'plan_valid'   => isset(STRIPE_PLANS[$plan]),
+                    'sub_id'       => $subId,
+                    'email'        => $email,
+                    'session_id'   => $session['id'] ?? '',
+                    'customer_id'  => $session['customer'] ?? '',
+                    'amount_total' => $amountTotal,
+                ]);
             }
             break;
 
@@ -336,23 +347,36 @@ function activatePlan(PDO $db, string $fbUserId, string $plan, string $subId, st
         : 'DATE_ADD(NOW(), INTERVAL 1 MONTH)';
     $storedSubId = $subId;
     if ($email !== '') {
-        $db->prepare(
+        $stmt = $db->prepare(
             "UPDATE users
              SET plan = ?, messages_limit = ?, messages_used = 0,
                  stripe_subscription_id = ?,
                  subscription_expires = $expiresSql,
                  email = ?
              WHERE fb_user_id = ?"
-        )->execute([$dbPlan, $planData['limit'], $storedSubId, $email, $fbUserId]);
+        );
+        $stmt->execute([$dbPlan, $planData['limit'], $storedSubId, $email, $fbUserId]);
     } else {
-        $db->prepare(
+        $stmt = $db->prepare(
             "UPDATE users
              SET plan = ?, messages_limit = ?, messages_used = 0,
                  stripe_subscription_id = ?,
                  subscription_expires = $expiresSql
              WHERE fb_user_id = ?"
-        )->execute([$dbPlan, $planData['limit'], $storedSubId, $fbUserId]);
+        );
+        $stmt->execute([$dbPlan, $planData['limit'], $storedSubId, $fbUserId]);
     }
+
+    if ($stmt->rowCount() === 0) {
+        logger('error', 'activatePlan: UPDATE affected 0 rows — user not found in DB', [
+            'fb_user_id' => $fbUserId,
+            'plan'       => $plan,
+            'db_plan'    => $dbPlan,
+            'sub_id'     => $storedSubId,
+        ]);
+        return;
+    }
+
     $planTypeLabel = $interval === 'year' ? 'yearly' : 'monthly';
     logActivity($db, $fbUserId, 'subscription', "Activated: {$plan} ({$planTypeLabel}) | {$planData['limit']} messages");
 }
