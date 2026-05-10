@@ -71,7 +71,7 @@ if (file_exists($config_file)) {
                 ];
                 $db = new PDO($dsn, DB_USER, DB_PASS, $options);
                 
-                $stmt = $db->prepare("SELECT setting_value FROM site_settings WHERE setting_key = ?");
+                $stmt = $db->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
                 $stmt->execute([$key]);
                 $v = $stmt->fetchColumn();
                 return ($v !== false) ? $v : $default;
