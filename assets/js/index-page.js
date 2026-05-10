@@ -1186,6 +1186,8 @@ document.addEventListener('DOMContentLoaded',async()=>{
     `).join('');
   }
 
+  let performanceChart = null;
+
   function loadHomeDashboard() {
     const user = JSON.parse(localStorage.getItem('fbcast_user') || '{}');
     const quota = getQuota();
@@ -1195,8 +1197,12 @@ document.addEventListener('DOMContentLoaded',async()=>{
     const homeUser = document.getElementById('homeUserName');
     if (homeUser) homeUser.textContent = user.fb_name || 'User';
 
+    const remaining = quota.messageLimit - quota.messagesUsed;
+    const homeHeroQuota = document.getElementById('homeHeroQuota');
+    if (homeHeroQuota) homeHeroQuota.textContent = remaining.toLocaleString();
+
     const homeQuota = document.getElementById('homeStatQuota');
-    if (homeQuota) homeQuota.textContent = (quota.messageLimit - quota.messagesUsed).toLocaleString();
+    if (homeQuota) homeQuota.textContent = remaining.toLocaleString();
 
     const homeSent = document.getElementById('homeStatSent');
     if (homeSent) {
@@ -1210,20 +1216,86 @@ document.addEventListener('DOMContentLoaded',async()=>{
     const activityList = document.getElementById('homeRecentActivity');
     if (activityList && history.length > 0) {
       activityList.innerHTML = history.slice(0, 4).map(item => `
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;">
+        <div class="activity-item">
           <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 32px; height: 32px; background: var(--primary-dim); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--primary-light);">
-              <i class="fa-solid fa-paper-plane" style="font-size: 12px;"></i>
+            <div style="width: 36px; height: 36px; background: var(--primary-dim); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--primary-light);">
+              <i class="fa-solid fa-paper-plane" style="font-size: 14px;"></i>
             </div>
             <div>
-              <div style="font-size: 13px; font-weight: 600; color: var(--text);">Campaign to ${item.pageName}</div>
+              <div style="font-size: 13px; font-weight: 700; color: var(--text);">Campaign to ${item.pageName}</div>
               <div style="font-size: 11px; color: var(--text3);">${new Date(item.timestamp).toLocaleDateString()}</div>
             </div>
           </div>
-          <div style="font-size: 12px; font-weight: 700; color: var(--green);">+${item.sent}</div>
+          <div style="text-align: right">
+            <div style="font-size: 13px; font-weight: 800; color: var(--green);">+${item.sent}</div>
+            <div style="font-size: 10px; color: var(--text3);">Sent</div>
+          </div>
         </div>
       `).join('');
     }
+
+    initPerformanceChart(history);
+  }
+
+  function initPerformanceChart(history) {
+    const ctx = document.getElementById('homePerformanceChart');
+    if (!ctx) return;
+
+    // Generate last 7 days labels
+    const labels = [];
+    const data = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      labels.push(dateStr);
+      
+      // Filter history for this day
+      const daySent = history
+        .filter(item => new Date(item.timestamp).toDateString() === d.toDateString())
+        .reduce((sum, item) => sum + (item.sent || 0), 0);
+      data.push(daySent);
+    }
+
+    if (performanceChart) performanceChart.destroy();
+
+    performanceChart = new Chart(ctx.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Messages Sent',
+          data: data,
+          borderColor: '#1877f2',
+          backgroundColor: 'rgba(24, 119, 242, 0.1)',
+          fill: true,
+          tension: 0.4,
+          borderWidth: 3,
+          pointRadius: 4,
+          pointBackgroundColor: '#fff',
+          pointBorderColor: '#1877f2',
+          pointBorderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(255,255,255,0.05)' },
+            ticks: { color: '#9ca3af', font: { size: 10 } }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { color: '#9ca3af', font: { size: 10 } }
+          }
+        }
+      }
+    });
   }
 
   function loadTemplateManager() {

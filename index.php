@@ -892,44 +892,77 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
 
   <!-- VIEWS -->
   <div id="homeView" class="view-container active" style="padding: 24px; overflow-y: auto;">
-    <div class="home-hero" style="background: linear-gradient(135deg, var(--primary), #7c3aed); border-radius: 20px; padding: 40px; color: #fff; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(8,102,255,0.3); position: relative; overflow: hidden;">
-      <div style="position: relative; z-index: 2;">
-        <h1 style="font-size: 32px; margin-bottom: 10px;">Welcome back, <span id="homeUserName">User</span>! 👋</h1>
-        <p style="opacity: 0.9; font-size: 16px;">Ready to reach your audience? Here's your campaign overview for today.</p>
-      </div>
-      <i class="fa-solid fa-rocket" style="position: absolute; right: 40px; top: 50%; transform: translateY(-50%); font-size: 120px; opacity: 0.15;"></i>
-    </div>
-
-    <div class="home-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px;">
-      <div class="home-stat-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-        <div style="color: var(--text3); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Quota Remaining</div>
-        <div style="font-size: 28px; font-weight: 800; color: var(--primary-light); font-family: 'JetBrains Mono', monospace;" id="homeStatQuota">-</div>
-      </div>
-      <div class="home-stat-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-        <div style="color: var(--text3); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Total Sent</div>
-        <div style="font-size: 28px; font-weight: 800; color: var(--green);" id="homeStatSent">-</div>
-      </div>
-      <div class="home-stat-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-        <div style="color: var(--text3); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Pages Connected</div>
-        <div style="font-size: 28px; font-weight: 800; color: var(--amber);" id="homeStatPages">-</div>
-      </div>
-    </div>
-
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
-      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px;">
-        <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-chart-line" style="margin-right: 10px; color: var(--primary-light);"></i> Recent Activity</h3>
-        <div id="homeRecentActivity" style="display: flex; flex-direction: column; gap: 12px;">
-          <!-- Recent activity items -->
-          <div style="color: var(--text3); text-align: center; padding: 40px;">No recent activity yet.</div>
+    <div class="home-hero" style="background: linear-gradient(135deg, var(--primary), #7c3aed); border-radius: 24px; padding: 48px; color: #fff; margin-bottom: 30px; box-shadow: 0 12px 40px rgba(8,102,255,0.3); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between;">
+      <div style="position: relative; z-index: 2; max-width: 60%;">
+        <h1 style="font-size: 38px; margin-bottom: 12px; font-weight: 850; letter-spacing: -1px;">Welcome back, <span id="homeUserName">User</span>! 👋</h1>
+        <p style="opacity: 0.9; font-size: 18px; line-height: 1.6;">Your broadcasting engine is primed and ready. You have <strong id="homeHeroQuota">-</strong> messages remaining in your current cycle.</p>
+        <div style="display: flex; gap: 12px; margin-top: 24px;">
+           <button class="btn-upgrade" onclick="switchView('promo')" style="background: #fff; color: var(--primary); padding: 12px 24px; font-size: 14px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: none;">
+             <i class="fa-solid fa-paper-plane" style="margin-right: 8px;"></i> Start Campaign
+           </button>
+           <button class="btn-upgrade" onclick="switchView('templates')" style="background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 12px 24px; font-size: 14px; border-radius: 12px; backdrop-filter: blur(10px);">
+             <i class="fa-solid fa-wand-magic-sparkles" style="margin-right: 8px;"></i> My Templates
+           </button>
         </div>
       </div>
-      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px;">
-        <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-lightbulb" style="margin-right: 10px; color: var(--amber);"></i> Pro Tips</h3>
-        <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 16px;">
-          <li style="font-size: 13px; color: var(--text2); display: flex; gap: 12px;"><i class="fa-solid fa-circle-check" style="color: var(--green); margin-top: 3px;"></i> Use personalized names for 2x more replies.</li>
-          <li style="font-size: 13px; color: var(--text2); display: flex; gap: 12px;"><i class="fa-solid fa-circle-check" style="color: var(--green); margin-top: 3px;"></i> Attach images to increase trust and engagement.</li>
-          <li style="font-size: 13px; color: var(--text2); display: flex; gap: 12px;"><i class="fa-solid fa-circle-check" style="color: var(--green); margin-top: 3px;"></i> Best time to send is between 10 AM and 4 PM.</li>
-        </ul>
+      <div style="position: relative; z-index: 2; text-align: right;">
+         <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2);">
+            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; margin-bottom: 4px;">Platform Status</div>
+            <div style="display: flex; align-items: center; gap: 8px; font-weight: 700;">
+               <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px #22c55e;"></span>
+               Operational
+            </div>
+         </div>
+      </div>
+      <i class="fa-solid fa-rocket" style="position: absolute; right: -20px; bottom: -30px; font-size: 240px; opacity: 0.1; transform: rotate(-15deg);"></i>
+    </div>
+
+    <div class="home-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 30px;">
+      <div class="home-stat-card glass-card">
+        <div class="stat-icon-wrap" style="background: rgba(8,102,255,0.1); color: var(--primary-light);"><i class="fa-solid fa-chart-pie"></i></div>
+        <div class="stat-content">
+          <div class="stat-label">Quota Remaining</div>
+          <div class="stat-value" id="homeStatQuota">-</div>
+        </div>
+      </div>
+      <div class="home-stat-card glass-card">
+        <div class="stat-icon-wrap" style="background: rgba(34,197,94,0.1); color: var(--green);"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="stat-content">
+          <div class="stat-label">Total Messages Sent</div>
+          <div class="stat-value" id="homeStatSent">-</div>
+        </div>
+      </div>
+      <div class="home-stat-card glass-card">
+        <div class="stat-icon-wrap" style="background: rgba(245,158,11,0.1); color: var(--amber);"><i class="fa-solid fa-flag"></i></div>
+        <div class="stat-content">
+          <div class="stat-label">Active Pages</div>
+          <div class="stat-value" id="homeStatPages">-</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; margin-bottom: 30px;">
+      <div class="glass-card" style="padding: 28px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+           <h3 style="margin: 0; display: flex; align-items: center; gap: 12px; font-size: 18px;">
+             <i class="fa-solid fa-chart-line" style="color: var(--primary-light);"></i> 
+             Performance Overview
+           </h3>
+           <span style="font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase;">Last 7 Days</span>
+        </div>
+        <div style="height: 240px; position: relative;">
+           <canvas id="homePerformanceChart"></canvas>
+        </div>
+      </div>
+      
+      <div class="glass-card" style="padding: 28px;">
+        <h3 style="margin: 0 0 24px 0; display: flex; align-items: center; gap: 12px; font-size: 18px;">
+          <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary-light);"></i>
+          Recent Activity
+        </h3>
+        <div id="homeRecentActivity" style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="color: var(--text3); text-align: center; padding: 60px;">No recent activity yet.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1545,6 +1578,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
 </div>
 
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://js.stripe.com/v3/" defer></script>
 <script src="assets/js/index-page.js?v=<?php echo filemtime(__DIR__.'/assets/js/index-page.js'); ?>" defer></script>
 <script src="assets/js/ui-components.js?v=<?php echo filemtime(__DIR__.'/assets/js/ui-components.js'); ?>" defer></script>
