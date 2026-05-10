@@ -959,81 +959,124 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
   <div id="networkBanner" class="network-banner" role="status" aria-live="polite" hidden></div>
 
   <!-- VIEWS -->
-  <div id="homeView" class="view-container">
-    <div class="home-hero">
-      <div class="home-hero-content">
-        <h1 class="home-hero-h1">Welcome back, <span id="homeUserName">User</span>! 👋 <button class="btn-refresh" onclick="loadHomeDashboard(true)" title="Refresh Data"><i class="fa-solid fa-rotate-right"></i></button></h1>
-        <p class="home-hero-sub">Your broadcasting engine is primed and ready. You have <strong id="homeHeroQuota">-</strong> messages remaining in your current cycle.</p>
-        <div class="home-hero-actions">
-           <button class="btn-action-primary" onclick="switchView('promo')">
-             <i class="fa-solid fa-paper-plane"></i> Start Campaign
-           </button>
-           <button class="btn-action-secondary" onclick="switchView('templates')">
-             <i class="fa-solid fa-wand-magic-sparkles"></i> My Templates
-           </button>
-        </div>
-      </div>
-      <div class="home-hero-status">
-         <div class="status-card">
-            <div class="status-card-label">Platform Status</div>
-            <div class="status-card-value">
-               <span class="status-dot"></span>
-               Operational
-            </div>
-         </div>
-      </div>
-      <i class="fa-solid fa-rocket home-hero-bg-icon"></i>
-    </div>
+  <div id="homeView" class="view-container" style="padding: 24px;">
 
-    <div class="home-stats-grid">
-      <div class="home-stat-card glass-card">
-        <div class="stat-icon-wrap" style="background: rgba(8,102,255,0.1); color: var(--primary-light);"><i class="fa-solid fa-chart-pie"></i></div>
-        <div class="stat-content">
-          <div class="stat-label">Quota Remaining</div>
-          <div class="stat-value" id="homeStatQuota">-</div>
-        </div>
+    <!-- Welcome Section -->
+    <div style="margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div>
+        <h1 style="font-size: 26px; font-weight: 700; color: #f1f5f9; margin: 0 0 8px 0;">
+          Welcome back, <span id="homeUserName" style="color: #60a5fa;">User</span>! 👋
+        </h1>
+        <p style="color: #94a3b8; font-size: 14px; margin: 0;">
+          You have <strong style="color: #10b981;" id="homeHeroQuota">-</strong> messages remaining this month
+        </p>
       </div>
-      <div class="home-stat-card glass-card">
-        <div class="stat-icon-wrap" style="background: rgba(34,197,94,0.1); color: var(--green);"><i class="fa-solid fa-circle-check"></i></div>
-        <div class="stat-content">
-          <div class="stat-label">Total Messages Sent</div>
-          <div class="stat-value" id="homeStatSent">-</div>
-        </div>
-      </div>
-      <div class="home-stat-card glass-card">
-        <div class="stat-icon-wrap" style="background: rgba(245,158,11,0.1); color: var(--amber);"><i class="fa-solid fa-flag"></i></div>
-        <div class="stat-content">
-          <div class="stat-label">Active Pages</div>
-          <div class="stat-value" id="homeStatPages">-</div>
-        </div>
+      <div style="display: flex; gap: 10px;">
+        <button onclick="loadHomeDashboard(true)" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; padding: 10px 16px; border-radius: 10px; cursor: pointer;">
+          <i class="fa-solid fa-rotate-right"></i> Refresh
+        </button>
+        <button onclick="switchView('promo')" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer;">
+          <i class="fa-solid fa-paper-plane"></i> New Campaign
+        </button>
       </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 24px; margin-bottom: 24px;">
-      <div class="glass-card" style="padding: 24px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-           <h3 style="margin: 0; display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 800;">
-             <i class="fa-solid fa-chart-line" style="color: var(--primary-light);"></i> 
-             Performance Overview
-           </h3>
-           <span style="font-size: 9px; color: var(--text3); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; background: rgba(255,255,255,0.05); padding: 3px 10px; border-radius: 100px;">Last 7 Days</span>
+    <!-- Stats Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px;">
+      <div style="background: linear-gradient(135deg, rgba(37,99,235,0.15), rgba(29,78,216,0.1)); border: 1px solid rgba(37,99,235,0.2); border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 16px;">
+        <div style="width: 50px; height: 50px; background: rgba(37,99,235,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #60a5fa; font-size: 20px;">
+          <i class="fa-solid fa-message"></i>
         </div>
-        <div style="height: 240px; position: relative;">
-           <canvas id="homePerformanceChart"></canvas>
+        <div>
+          <div style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Quota Remaining</div>
+          <div style="color: #f1f5f9; font-size: 24px; font-weight: 700;" id="homeStatQuota">-</div>
         </div>
       </div>
-      
-      <div class="glass-card" style="padding: 24px;">
-        <h3 style="margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 800;">
-          <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary-light);"></i>
-          Recent Activity
-        </h3>
-        <div id="homeRecentActivity" style="display: flex; flex-direction: column; gap: 12px;">
-          <div style="color: var(--text3); text-align: center; padding: 60px; background: rgba(255,255,255,0.01); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.05);">
-            <i class="fa-solid fa-ghost" style="font-size: 32px; margin-bottom: 12px; opacity: 0.2; display: block;"></i>
-            <p style="font-size: 13px;">No recent activity yet.</p>
+
+      <div style="background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.1)); border: 1px solid rgba(16,185,129,0.2); border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 16px;">
+        <div style="width: 50px; height: 50px; background: rgba(16,185,129,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #34d399; font-size: 20px;">
+          <i class="fa-solid fa-check-circle"></i>
+        </div>
+        <div>
+          <div style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Messages Sent</div>
+          <div style="color: #f1f5f9; font-size: 24px; font-weight: 700;" id="homeStatSent">-</div>
+        </div>
+      </div>
+
+      <div style="background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.1)); border: 1px solid rgba(245,158,11,0.2); border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 16px;">
+        <div style="width: 50px; height: 50px; background: rgba(245,158,11,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fbbf24; font-size: 20px;">
+          <i class="fa-solid fa-flag"></i>
+        </div>
+        <div>
+          <div style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Active Pages</div>
+          <div style="color: #f1f5f9; font-size: 24px; font-weight: 700;" id="homeStatPages">-</div>
+        </div>
+      </div>
+
+      <div style="background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(109,40,217,0.1)); border: 1px solid rgba(139,92,246,0.2); border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 16px;">
+        <div style="width: 50px; height: 50px; background: rgba(139,92,246,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #a78bfa; font-size: 20px;">
+          <i class="fa-solid fa-gem"></i>
+        </div>
+        <div>
+          <div style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Your Plan</div>
+          <div style="color: #f1f5f9; font-size: 24px; font-weight: 700;" id="homeStatPlan">Free</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart & Activity Section -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+      <!-- Performance Chart -->
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h3 style="color: #f1f5f9; font-size: 16px; font-weight: 700; margin: 0;">
+            <i class="fa-solid fa-chart-line" style="color: #60a5fa; margin-right: 10px;"></i>
+            Performance Overview
+          </h3>
+          <span style="background: rgba(96,165,250,0.1); color: #60a5fa; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 600;">Last 7 Days</span>
+        </div>
+        <div style="height: 220px;">
+          <canvas id="homePerformanceChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h3 style="color: #f1f5f9; font-size: 16px; font-weight: 700; margin: 0;">
+            <i class="fa-solid fa-clock-rotate-left" style="color: #60a5fa; margin-right: 10px;"></i>
+            Recent Activity
+          </h3>
+          <button onclick="switchView('history')" style="background: none; border: none; color: #60a5fa; font-size: 12px; cursor: pointer;">View All →</button>
+        </div>
+        <div id="homeRecentActivity" style="display: flex; flex-direction: column; gap: 12px; max-height: 220px; overflow-y: auto;">
+          <div style="text-align: center; padding: 40px 20px; color: #64748b;">
+            <i class="fa-solid fa-ghost" style="font-size: 36px; margin-bottom: 12px; opacity: 0.3;"></i>
+            <p style="font-size: 13px; margin: 0;">No recent activity yet</p>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div style="margin-top: 28px;">
+      <h3 style="color: #94a3b8; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">
+        <i class="fa-solid fa-bolt" style="color: #f59e0b; margin-right: 8px;"></i>
+        Quick Actions
+      </h3>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <button onclick="switchView('promo')" style="background: rgba(37,99,235,0.1); border: 1px solid rgba(37,99,235,0.2); color: #60a5fa; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;">
+          <i class="fa-solid fa-bullhorn"></i> Send Broadcast
+        </button>
+        <button onclick="switchView('templates')" style="background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.2); color: #a78bfa; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;">
+          <i class="fa-solid fa-clone"></i> Templates
+        </button>
+        <button onclick="switchView('history')" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #34d399; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;">
+          <i class="fa-solid fa-chart-bar"></i> View Reports
+        </button>
+        <button onclick="switchView('messenger')" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: #fbbf24; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;">
+          <i class="fa-brands fa-facebook-messenger"></i> Messenger
+        </button>
       </div>
     </div>
   </div>

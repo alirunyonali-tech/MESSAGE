@@ -70,6 +70,13 @@ async function loadHomeDashboard(force = false) {
     homeSent.textContent = totalSent.toLocaleString();
   }
 
+  // Update Plan Name in dashboard
+  const homeStatPlan = document.getElementById('homeStatPlan');
+  if (homeStatPlan) {
+    const planLabel = getPlanLabel(quota.subscriptionStatus, quota.messageLimit);
+    homeStatPlan.textContent = planLabel;
+  }
+
   const homePages = document.getElementById('homeStatPages');
   if (homePages) homePages.textContent = pages.length;
 
