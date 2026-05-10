@@ -406,11 +406,35 @@ window.saveAllSettings = function() {
   showToast('Configuration saved successfully', 'success');
 };
 
-// Notification Logic
-let notifications = [
-  { id: 1, title: 'Welcome to FBCast Pro!', message: 'Explore the new dashboard and start your first campaign today.', time: new Date(), read: false },
-  { id: 2, title: 'Quota Reset', message: 'Your monthly message quota has been successfully reset.', time: new Date(Date.now() - 86400000), read: true }
-];
+// Notification Logic - Load from server
+let notifications = [];
+let _notifLoaded = false;
+
+async function loadNotificationsFromServer() {
+  const user = JSON.parse(localStorage.getItem('fbcast_user') || '{}');
+  if (!user.fb_user_id) return;
+
+  try {
+    const res = await fetch('notifications_api.php?action=get&fb_user_id=' + encodeURIComponent(user.fb_user_id), {
+      headers: { 'X-CSRF-Token': CSRF_TOKEN }
+    });
+    const data = await res.json();
+    if (data.success && data.notifications) {
+      notifications = data.notifications.map(n => ({
+        id: n.id,
+        title: n.title,
+        message: n.message,
+        type: n.type,
+        time: new Date(n.created_at),
+        read: !!n.is_read
+      }));
+      _notifLoaded = true;
+      updateNotifUI();
+    }
+  } catch (e) {
+    console.warn('Failed to load notifications', e);
+  }
+}
 
 function updateNotifUI() {
   const list = document.getElementById('notifList');
@@ -421,7 +445,7 @@ function updateNotifUI() {
   if (badge) badge.style.display = unreadCount > 0 ? 'block' : 'none';
 
   if (notifications.length === 0) {
-    list.innerHTML = '<div style="padding: 30px 20px; text-align: center; color: var(--text3); font-size: 12px;"><i class="fa-solid fa-bell-slash" style="font-size: 24px; margin-bottom: 10px; opacity: 0.5; display: block;"></i>No new notifications.</div>';
+    list.innerHTML = '<div style="padding: 30px 20px; text-align: center; color: #94a3b8; font-size: 12px;"><i class="fa-solid fa-bell-slash" style="font-size: 24px; margin-bottom: 10px; opacity: 0.5; display: block;"></i>No new notifications.</div>';
     return;
   }
 
@@ -1156,6 +1180,9 @@ document.addEventListener('DOMContentLoaded', function () {
   syncAnalyticsQueue();
   _analyticsSyncTimer = setInterval(syncAnalyticsQueue, ANALYTICS_SYNC_INTERVAL_MS);
 
+  // Load notifications from server
+  loadNotificationsFromServer();
+
   initNotifPanel();
   initSupportPanel();
 
@@ -1294,6 +1321,8 @@ async function syncQuotaFromServer(options = {}){
       updateQuotaUI();
       updateHeroAvatars();
       if (typeof loadHomeDashboard === 'function') loadHomeDashboard();
+      // Load notifications after successful login
+      loadNotificationsFromServer();
       _lastTrackUserSyncAt = Date.now();
       return true;
     }

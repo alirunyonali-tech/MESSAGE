@@ -52,6 +52,22 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 
+    // Notifications table for admin-to-user notifications
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS `notifications` (
+          `id`               INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+          `fb_user_id`       VARCHAR(50)  NOT NULL,
+          `title`            VARCHAR(255) NOT NULL,
+          `message`          TEXT        NOT NULL,
+          `type`             VARCHAR(20)  NOT NULL DEFAULT 'info',
+          `is_read`          TINYINT(1)   NOT NULL DEFAULT 0,
+          `created_at`       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          INDEX `idx_notif_user` (`fb_user_id`),
+          INDEX `idx_notif_read` (`is_read`),
+          INDEX `idx_notif_created` (`created_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
+
     // Admin password is stored as bcrypt hash.
     // Use ADMIN_BOOTSTRAP_PASSWORD from env if provided, otherwise generate a random bootstrap password.
     $bootstrapPassword = getenv('ADMIN_BOOTSTRAP_PASSWORD');

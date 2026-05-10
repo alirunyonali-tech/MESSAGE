@@ -556,6 +556,44 @@ if ($action === 'reset_quota' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     jsonOut(['success'=>true]);
 }
 
+if ($action === 'send_notification' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireAuth();
+    requireCsrfToken();
+    $body = json_decode(get_raw_input(), true) ?: [];
+    $fbUserId = trim($body['fb_user_id'] ?? '');
+    $title = trim($body['title'] ?? '');
+    $message = trim($body['message'] ?? '');
+    $type = $body['type'] ?? 'info';
+
+    if (!$title || !$message) {
+        jsonOut(['error' => 'Title and message are required'], 400);
+    }
+
+    if (!in_array($type, ['info', 'warning', 'success', 'error'])) {
+        $type = 'info';
+    }
+
+    if ($fbUserId === 'all') {
+        // Send to all users
+        $users = $db->query("SELECT fb_user_id FROM users")->fetchAll(PDO::FETCH_COLUMN);
+        $stmt = $db->prepare("INSERT INTO notifications (fb_user_id, title, message, type) VALUES (?, ?, ?, ?)");
+        $count = 0;
+        foreach ($users as $uid) {
+            $stmt->execute([$uid, $title, $message, $type]);
+            $count++;
+        }
+        jsonOut(['success' => true, 'count' => $count, 'message' => "Notification sent to $count users"]);
+    } else {
+        $fbUserId = validateFbId($fbUserId);
+        if (!$fbUserId) {
+            jsonOut(['error' => 'Invalid fb_user_id'], 400);
+        }
+        $db->prepare("INSERT INTO notifications (fb_user_id, title, message, type) VALUES (?, ?, ?, ?)")
+           ->execute([$fbUserId, $title, $message, $type]);
+        jsonOut(['success' => true, 'message' => 'Notification sent']);
+    }
+}
+
 if ($action === 'update_settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     requireAuth();
     requireCsrfToken();
@@ -1387,6 +1425,37 @@ document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==
             <button class="btn btn-primary" onclick="saveSupportSettings()"><i class="fa-solid fa-floppy-disk"></i> Save Support Info</button>
           </div>
 
+          <div class="settings-card" style="border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.05);">
+            <h3><i class="fa-solid fa-bell" style="color:#f59e0b"></i> Send Notification to Users</h3>
+            <p>Send a notification to a specific user or all users.</p>
+            <div class="form-row">
+              <label>Send To</label>
+              <select id="notifSendTo" style="padding:8px 12px; border-radius:8px; background:rgba(255,255,255,0.05); color:#e2e8f0; border:1px solid rgba(255,255,255,0.1);">
+                <option value="">Select User...</option>
+                <option value="all">All Users</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Title</label>
+              <input type="text" id="notifTitle" placeholder="Notification title" style="width:100%;">
+            </div>
+            <div class="form-row">
+              <label>Message</label>
+              <textarea id="notifMessage" placeholder="Write your message here..." rows="3" style="width:100%; padding:10px; border-radius:8px; background:rgba(255,255,255,0.05); color:#e2e8f0; border:1px solid rgba(255,255,255,0.1); resize:vertical;"></textarea>
+            </div>
+            <div class="form-row">
+              <label>Type</label>
+              <select id="notifType" style="padding:8px 12px; border-radius:8px; background:rgba(255,255,255,0.05); color:#e2e8f0; border:1px solid rgba(255,255,255,0.1);">
+                <option value="info">Info</option>
+                <option value="warning">Warning</option>
+                <option value="success">Success</option>
+                <option value="error">Error</option>
+              </select>
+            </div>
+            <button class="btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff;" onclick="sendNotification()"><i class="fa-solid fa-paper-plane"></i> Send Notification</button>
+            <div id="notifResult" style="margin-top:10px; font-size:12px;"></div>
+          </div>
+
           <div class="settings-card">
             <h3><i class="fa-solid fa-key" style="color:#fbbf24"></i> Change Admin Password</h3>
             <p>Change the password used to access this admin panel. Minimum 8 characters required.</p>
@@ -1605,7 +1674,8 @@ function planClass(plan, limit) {
 
 /* ─── SETTINGS ─── */
 function loadSettings() {
-  // Just static settings for now
+  // Load users for notification dropdown
+  loadUsersForNotification();
 }
 
 /* ─── TRACKING ─── */
@@ -2328,6 +2398,66 @@ async function saveSupportSettings() {
   if (d.success) showToast('Support contact settings updated');
   else showToast(d.error || 'Failed', 'error');
 }
+
+// Populate users dropdown when settings section loads
+let _usersCache = null;
+async function loadUsersForNotification() {
+  if (_usersCache) return _usersCache;
+  try {
+    const d = await api('users', 'GET', null, { silent: true });
+    if (d.users) {
+      _usersCache = d.users;
+      const sel = document.getElementById('notifSendTo');
+      if (sel) {
+        // Keep "Select User..." and "All Users" options
+        sel.innerHTML = '<option value="">Select User...</option><option value="all">All Users</option>';
+        d.users.forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u.fb_user_id;
+          opt.textContent = u.fb_name || u.fb_user_id;
+          sel.appendChild(opt);
+        });
+      }
+    }
+  } catch(e) { console.error('Failed to load users', e); }
+}
+
+async function sendNotification() {
+  const sendTo = document.getElementById('notifSendTo').value;
+  const title = document.getElementById('notifTitle').value.trim();
+  const message = document.getElementById('notifMessage').value.trim();
+  const type = document.getElementById('notifType').value;
+  const resultEl = document.getElementById('notifResult');
+
+  if (!title || !message) {
+    resultEl.innerHTML = '<span style="color:#ef4444">Title and message are required</span>';
+    return;
+  }
+
+  const payload = {
+    fb_user_id: sendTo || 'all',
+    title: title,
+    message: message,
+    type: type
+  };
+
+  resultEl.innerHTML = '<span style="color:#f59e0b">Sending...</span>';
+
+  try {
+    const d = await api('send_notification', 'POST', payload);
+    if (d.success) {
+      resultEl.innerHTML = '<span style="color:#10b981">✓ ' + (d.message || 'Notification sent!') + '</span>';
+      // Clear form
+      document.getElementById('notifTitle').value = '';
+      document.getElementById('notifMessage').value = '';
+    } else {
+      resultEl.innerHTML = '<span style="color:#ef4444">Error: ' + (d.error || 'Failed to send') + '</span>';
+    }
+  } catch(e) {
+    resultEl.innerHTML = '<span style="color:#ef4444">Error: ' + e.message + '</span>';
+  }
+}
+
 async function savePasswordSetting() {
   const pw1 = document.getElementById('settPw1').value.trim();
   const pw2 = document.getElementById('settPw2').value.trim();
