@@ -504,7 +504,7 @@ if ($action === 'bulk_update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $placeholders = implode(',',array_fill(0,count($ids),'?'));
     $updated = 0;
     try {
-        if ($plan && in_array($plan,['free','basic','pro'])) {
+        if ($plan && in_array($plan,['free','starter','basic','pro'])) {
             $vals = array_values($ids);
             $stmt = $db->prepare("UPDATE users SET $planCol=? WHERE fb_user_id IN ($placeholders)");
             $stmt->execute(array_merge([$plan],$vals));
@@ -534,7 +534,7 @@ if ($action === 'update_user' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $limit = isset($body['messageLimit']) ? (int)$body['messageLimit'] : (isset($body['messages_limit']) ? (int)$body['messages_limit'] : null);
     if (!$fbId) jsonOut(['error'=>'Invalid or missing fb_user_id'],400);
     $sets=[]; $vals=[];
-    if ($plan && in_array($plan,['free','basic','pro'])) { $sets[]="$planCol = ?"; $vals[]=$plan; }
+    if ($plan && in_array($plan,['free','starter','basic','pro'])) { $sets[]="$planCol = ?"; $vals[]=$plan; }
     if ($limit!==null && $limit>=0) { $sets[]="$limitCol = ?"; $vals[]=$limit; }
     if (isset($body['messagesUsed'])||isset($body['messages_used'])) { $sets[]="$usedCol = ?"; $vals[]=max(0,(int)($body['messagesUsed']??$body['messages_used'])); }
     if (isset($body['subscription_expires'])) { $sets[]='subscription_expires = ?'; $vals[]=$body['subscription_expires']?:null; }
@@ -2125,7 +2125,7 @@ async function bulkAction(type) {
     const d = await api('bulk_update','POST',{ids,reset_quota:true});
     if(d.success) { showToast(`Reset ${d.count} user(s)`); clearSelection(); loadUsers(currentUserPage); } return;
   }
-  const planMap = {basic:'basic',pro:'pro',free:'free'};
+  const planMap = {starter:'starter',basic:'basic',pro:'pro',free:'free'};
   if (planMap[type]) {
     const d = await api('bulk_update','POST',{ids,plan:planMap[type]});
     if(d.success) { showToast(`Updated ${d.count} user(s) to ${planMap[type]}`); clearSelection(); statsCache=null; loadUsers(currentUserPage); }

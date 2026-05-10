@@ -48,45 +48,8 @@ async function loadHomeDashboard(force = false) {
   const user = JSON.parse(localStorage.getItem('fbcast_user') || '{}');
   const quota = getQuota();
 
-  // Update Plan Badge in Topbar
-  const badgeEl = document.getElementById('planBadge');
-  if (badgeEl) {
-    const plan = (quota.planName || 'free').toLowerCase();
-    const isPro = plan === 'pro';
-    const isBasic = plan === 'basic';
-    const isStarter = plan === 'starter';
-    
-    let label = (quota.planName || 'Free').charAt(0).toUpperCase() + (quota.planName || 'Free').slice(1).toLowerCase();
-    let icon = 'fa-gem';
-    let planKey = 'free';
-    
-    if (isPro) {
-      label = 'Pro';
-      icon = 'fa-crown';
-      planKey = 'pro';
-    } else if (isBasic) {
-      label = 'Basic';
-      icon = 'fa-layer-group';
-      planKey = 'basic';
-    } else if (isStarter) {
-      label = 'Starter';
-      icon = 'fa-bolt';
-      planKey = 'starter';
-    }
-
-    badgeEl.setAttribute('data-plan', planKey);
-    badgeEl.innerHTML = `<i class="fa-solid ${icon}" aria-hidden="true"></i><span>${label}</span>`;
-    
-    if (isPro) {
-      badgeEl.style.cssText = 'background:linear-gradient(135deg,rgba(79,70,229,.3),rgba(24,119,242,.2));color:#818cf8;border-color:rgba(79,70,229,.3)';
-    } else if (isBasic) {
-      badgeEl.style.cssText = 'background:rgba(24,119,242,.15);color:#60a5fa;border-color:rgba(24,119,242,.2)';
-    } else if (isStarter) {
-      badgeEl.style.cssText = 'background:rgba(16,185,129,.15);color:#10b981;border-color:rgba(16,185,129,.2)';
-    } else {
-      badgeEl.style.cssText = 'background:rgba(255,255,255,.06);color:var(--text2);border-color:rgba(255,255,255,.12)';
-    }
-  }
+  // Update Plan Badge and Numbers
+  updateQuotaUI();
 
   const pages = JSON.parse(localStorage.getItem('fb_pages') || '[]');
   const history = JSON.parse(localStorage.getItem(CAMPAIGN_HISTORY_KEY) || '[]');
@@ -410,7 +373,8 @@ function loadSettingsView() {
 
   const planName = document.getElementById('set-plan-name');
   if (planName) {
-    let planInfo = quota.planName.toUpperCase();
+    const label = getPlanLabel(quota.subscriptionStatus, quota.messageLimit);
+    let planInfo = label.toUpperCase();
     // Use user.subscription_expires if available (from backend usually)
     if (user.subscription_expires) {
       const expiry = new Date(user.subscription_expires);
@@ -1246,6 +1210,9 @@ document.addEventListener('DOMContentLoaded', function () {
   window.addEventListener('online', function () {
     showNetworkBanner('banner-online', 'Connection restored.', 2500);
   });
+
+  // Initial UI Update
+  updateQuotaUI();
 });
 
 /* ════════════════════════════════
@@ -1344,8 +1311,28 @@ function consumeQuota(count){
   return true;
 }
 
+function getPlanLabel(plan, limit) {
+  limit = parseInt(limit) || 0;
+  plan = (plan || 'free').toLowerCase();
+  if (plan === 'free') return 'Free';
+  if (plan === 'starter') return 'Starter';
+  if (plan === 'basic') {
+    if (limit <= 30000) return 'Starter';
+    return 'Bronze';
+  }
+  if (plan === 'pro') {
+    if (limit >= 7000000) return 'Platinum';
+    if (limit >= 4000000) return 'Sapphire';
+    if (limit >= 1750000) return 'Gold';
+    return 'Silver';
+  }
+  return plan.charAt(0).toUpperCase() + plan.slice(1);
+}
+
 function updateQuotaUI(){
   const q=getQuota();
+  const label = getPlanLabel(q.subscriptionStatus, q.messageLimit);
+  const planKey = label.toLowerCase();
   const rem=Math.max(0,q.messageLimit-q.messagesUsed);
   const pct=q.messageLimit>0?rem/q.messageLimit:0;
   const valEl=document.getElementById('quotaVal');
@@ -1371,37 +1358,19 @@ function updateQuotaUI(){
   }
 
   if(badgeEl){
-    const plan=(q.subscriptionStatus||'free').toLowerCase();
-    const isPro=plan==='pro';
-    const isBasic=plan==='basic';
-    const isStarter=plan==='starter';
-    
-    let label = 'Free';
     let icon = 'fa-gem';
-    let planKey = 'free';
-    
-    if (isPro) {
-      label = 'Pro';
-      icon = 'fa-crown';
-      planKey = 'pro';
-    } else if (isBasic) {
-      label = 'Basic';
-      icon = 'fa-layer-group';
-      planKey = 'basic';
-    } else if (isStarter) {
-      label = 'Starter';
-      icon = 'fa-bolt';
-      planKey = 'starter';
-    }
+    if (['pro','silver','gold','sapphire','platinum'].includes(planKey)) icon = 'fa-crown';
+    else if (planKey === 'basic' || planKey === 'bronze') icon = 'fa-layer-group';
+    else if (planKey === 'starter') icon = 'fa-bolt';
 
     badgeEl.setAttribute('data-plan', planKey);
-    badgeEl.innerHTML=`<i class="fa-solid ${icon}" aria-hidden="true"></i><span>${label}</span>`;
+    badgeEl.innerHTML=`<i class="fa-solid ${icon}" aria-hidden="true"></i><span>${label.toUpperCase()}</span>`;
     
-    if(isPro){
+    if (['pro','silver','gold','sapphire','platinum'].includes(planKey)) {
       badgeEl.style.cssText='background:linear-gradient(135deg,rgba(79,70,229,.3),rgba(24,119,242,.2));color:#818cf8;border-color:rgba(79,70,229,.3)';
-    } else if(isBasic){
+    } else if (planKey === 'basic' || planKey === 'bronze') {
       badgeEl.style.cssText='background:rgba(24,119,242,.15);color:#60a5fa;border-color:rgba(24,119,242,.2)';
-    } else if(isStarter){
+    } else if (planKey === 'starter') {
       badgeEl.style.cssText='background:rgba(16,185,129,.15);color:#10b981;border-color:rgba(16,185,129,.2)';
     } else {
       badgeEl.style.cssText='background:rgba(255,255,255,.06);color:var(--text2);border-color:rgba(255,255,255,.12)';
