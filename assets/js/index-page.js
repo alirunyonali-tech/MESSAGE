@@ -422,6 +422,23 @@ function initNotifPanel() {
   updateNotifUI();
 }
 
+function initSupportPanel() {
+  const btn = document.getElementById('btnSupport');
+  const menu = document.getElementById('supportMenu');
+  if (!btn || !menu) return;
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menu.classList.toggle('active');
+  });
+
+  document.addEventListener('click', () => {
+    menu.classList.remove('active');
+  });
+
+  menu.addEventListener('click', (e) => e.stopPropagation());
+}
+
 function getSessionId() {
   let id = sessionStorage.getItem(SESSION_ID_KEY);
   if (!id) {
@@ -1078,6 +1095,7 @@ document.addEventListener('DOMContentLoaded', function () {
   _analyticsSyncTimer = setInterval(syncAnalyticsQueue, ANALYTICS_SYNC_INTERVAL_MS);
 
   initNotifPanel();
+  initSupportPanel();
 
   const navHamburger = document.getElementById('navHamburger');
   const mobileMenuClose = document.getElementById('mobileMenuClose');

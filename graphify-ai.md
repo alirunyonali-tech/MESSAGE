@@ -1,6 +1,6 @@
 # Graphify AI Context
 
-Generated at (UTC): 2026-05-10T01:03:17+00:00
+Generated at (UTC): 2026-05-10T01:17:54+00:00
 
 Use this file before scanning the full repository.
 
@@ -82,6 +82,8 @@ Use this file before scanning the full repository.
 - www.facebook.com
 - drive.google.com
 - staticxx.facebook.com;
+- wa.me
+- m.me
 - www.w3.org
 - developers.facebook.com
 - transparency.fb.com

@@ -802,6 +802,29 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <i class="fa-solid fa-wand-magic-sparkles"></i>
     </div>
     <div style="margin-top:auto"></div>
+    
+    <!-- SUPPORT COMPONENT -->
+    <div class="sidebar-support-wrap">
+       <button class="support-btn" id="btnSupport">
+          <div style="display: flex; align-items: center; gap: 10px;">
+             <i class="fa-solid fa-headset"></i>
+             <span class="support-text">Support</span>
+          </div>
+          <i class="fa-solid fa-up-down support-arrows"></i>
+       </button>
+       <div id="supportMenu" class="support-popup">
+          <a href="https://wa.me/YOUR_NUMBER" target="_blank" class="support-item">
+             <i class="fa-brands fa-whatsapp"></i> Contact via WhatsApp
+          </a>
+          <a href="https://m.me/YOUR_PAGE" target="_blank" class="support-item">
+             <i class="fa-brands fa-facebook-messenger"></i> Contact via Messenger
+          </a>
+          <a href="mailto:support@example.com" class="support-item">
+             <i class="fa-solid fa-envelope"></i> Contact via Email
+          </a>
+       </div>
+    </div>
+
     <div class="main-sidebar-item" title="Logout" onclick="triggerLogout()">
       <i class="fa-solid fa-right-from-bracket"></i>
     </div>
