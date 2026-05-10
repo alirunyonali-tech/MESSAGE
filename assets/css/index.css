@@ -702,7 +702,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 /* ═══════════════════════════════════════
    APP DASHBOARD
 ═══════════════════════════════════════ */
-#appPage{width:100vw;height:100vh;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+#appPage{width:100vw;height:100vh;display:flex;flex-direction:row;overflow:hidden;background:var(--bg)}
 
 /* TOPBAR */
 .topbar{
@@ -1498,54 +1498,51 @@ body.light .nav.scrolled{background:rgba(240,244,255,.96)}
 }
 
 .main-sidebar {
-  width: 70px;
-  background: var(--bg2);
+  width: 72px;
+  background: linear-gradient(180deg, var(--surface) 0%, var(--bg2) 100%);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 0;
-  gap: 20px;
+  padding: 24px 0;
+  gap: 16px;
   flex-shrink: 0;
   z-index: 110;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.2);
 }
 
 .main-sidebar-item {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text3);
-  font-size: 18px;
+  font-size: 20px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  background: transparent;
+  border: 1px solid transparent;
 }
 
 .main-sidebar-item:hover {
-  background: var(--surface);
-  color: var(--text2);
+  background: var(--surface2);
+  color: #fff;
+  transform: scale(1.05);
+  border-color: var(--primary-dim);
 }
 
 .main-sidebar-item.active {
-  background: var(--primary-dim);
-  color: var(--primary-light);
-  box-shadow: 0 0 0 1px rgba(8,102,255,0.2) inset;
+  background: linear-gradient(135deg, var(--primary), #0044CC);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(8,102,255,0.4);
+  border-color: rgba(255,255,255,0.1);
 }
 
 .main-sidebar-item.active::after {
-  content: '';
-  position: absolute;
-  left: -13px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 20px;
-  background: var(--primary-light);
-  border-radius: 0 4px 4px 0;
-  box-shadow: 0 0 10px var(--primary-light);
+  display: none;
 }
 
 .main-sidebar-item[title]::before {
