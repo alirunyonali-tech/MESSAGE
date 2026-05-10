@@ -1,41 +1,57 @@
 {
     "name": "FBCast Pro Graphify Map",
-    "generated_at": "2026-04-26T05:03:19+00:00",
-    "project_root": "public_html (8) (Copy)",
+    "generated_at": "2026-05-10T00:08:42+00:00",
+    "project_root": "DEVELOPER WEBSITE",
     "summary": {
-        "total_files": 50,
-        "entrypoints": 18,
+        "total_files": 70,
+        "entrypoints": 23,
         "types": {
-            "php": 29,
-            "js": 5,
-            "css": 2,
-            "docs": 12,
-            "html": 2
+            "php": 37,
+            "js": 7,
+            "css": 3,
+            "docs": 14,
+            "html": 9
         },
         "external_hosts": [
             "api.stripe.com",
             "cdnjs.cloudflare.com",
             "fonts.googleapis.com",
             "cdn.jsdelivr.net",
+            "example.com",
+            "your-offer-page.com",
             "graph.facebook.com",
             "checkout.stripe.com",
-            "www.facebook.com",
+            "facebook-inbox-production-2a22.up.railway.app",
+            "castmepro.com",
+            "www.castmepro.com",
+            "pageinteractorprosite.site",
+            "www.pageinteractorprosite.site",
+            "connect.facebook.net",
             "yourdomain.com",
             "js.stripe.com",
+            "connect.facebook.net;",
             "fonts.googleapis.com;",
             "fonts.gstatic.com",
-            "www.facebook.com;",
+            "www.facebook.com",
+            "drive.google.com",
+            "staticxx.facebook.com;",
             "www.w3.org",
+            "developers.facebook.com",
+            "transparency.fb.com",
+            "localhost:${port}`",
+            "localhost:${port}",
             "yoursite.com"
         ]
     },
     "entrypoints": [
         "activate_subscription.php",
         "admin.php",
+        "analytics.php",
         "check_setup.php",
         "create_checkout.php",
         "db_config.php",
         "exchange_token.php",
+        "fb_auth_proxy.php",
         "fb_proxy.php",
         "get_csrf.php",
         "graphify.php",
@@ -43,11 +59,14 @@
         "index.php",
         "payment_status.php",
         "payment_success.php",
+        "ping.php",
+        "reset_admin.php",
         "setup_db.php",
         "stripe_webhook.php",
         "stripe_webhook_retry.php",
         "track_user.php",
-        "update_quota.php"
+        "update_quota.php",
+        "upload_image.php"
     ],
     "nodes": [
         {
@@ -96,6 +115,11 @@
             "size": 1585
         },
         {
+            "id": "README.md",
+            "type": "docs",
+            "size": 8758
+        },
+        {
             "id": "SAAS_PRODUCTION_READY.md",
             "type": "docs",
             "size": 7739
@@ -118,27 +142,32 @@
         {
             "id": "activate_subscription.php",
             "type": "backend",
-            "size": 5310
+            "size": 5066
         },
         {
             "id": "admin.php",
             "type": "backend",
-            "size": 95726
+            "size": 121570
+        },
+        {
+            "id": "analytics.php",
+            "type": "backend",
+            "size": 3396
         },
         {
             "id": "assets/css/index.css",
             "type": "styles",
-            "size": 115386
+            "size": 119792
         },
         {
             "id": "assets/css/ui-components.css",
             "type": "styles",
-            "size": 12028
+            "size": 12137
         },
         {
             "id": "assets/js/index-page.js",
             "type": "frontend",
-            "size": 57593
+            "size": 71108
         },
         {
             "id": "assets/js/ui-components.js",
@@ -148,17 +177,17 @@
         {
             "id": "check_setup.php",
             "type": "backend",
-            "size": 8526
+            "size": 8860
         },
         {
             "id": "config/csrf.php",
             "type": "backend",
-            "size": 2821
+            "size": 2979
         },
         {
             "id": "config/load-env.php",
             "type": "backend",
-            "size": 11512
+            "size": 13330
         },
         {
             "id": "config/logger.php",
@@ -178,12 +207,12 @@
         {
             "id": "create_checkout.php",
             "type": "backend",
-            "size": 14192
+            "size": 15706
         },
         {
             "id": "db_config.php",
             "type": "backend",
-            "size": 3228
+            "size": 3305
         },
         {
             "id": "exchange_token.php",
@@ -193,17 +222,27 @@
         {
             "id": "fb_api.js",
             "type": "frontend",
-            "size": 20089
+            "size": 22132
+        },
+        {
+            "id": "fb_auth_proxy.php",
+            "type": "backend",
+            "size": 3473
         },
         {
             "id": "fb_proxy.php",
             "type": "backend",
-            "size": 6933
+            "size": 6959
         },
         {
             "id": "get_csrf.php",
             "type": "backend",
             "size": 1313
+        },
+        {
+            "id": "graphify-ai.md",
+            "type": "docs",
+            "size": 2259
         },
         {
             "id": "graphify.php",
@@ -218,7 +257,7 @@
         {
             "id": "index.php",
             "type": "backend",
-            "size": 51663
+            "size": 77961
         },
         {
             "id": "oauth_callback.html",
@@ -238,7 +277,62 @@
         {
             "id": "payment_success.php",
             "type": "backend",
-            "size": 5133
+            "size": 5148
+        },
+        {
+            "id": "ping.php",
+            "type": "backend",
+            "size": 111
+        },
+        {
+            "id": "public/css/styles.css",
+            "type": "styles",
+            "size": 14479
+        },
+        {
+            "id": "public/dashboard.html",
+            "type": "markup",
+            "size": 2990
+        },
+        {
+            "id": "public/delete.html",
+            "type": "markup",
+            "size": 2615
+        },
+        {
+            "id": "public/inbox.html",
+            "type": "markup",
+            "size": 3040
+        },
+        {
+            "id": "public/index.html",
+            "type": "markup",
+            "size": 3985
+        },
+        {
+            "id": "public/js/app.js",
+            "type": "frontend",
+            "size": 19927
+        },
+        {
+            "id": "public/privacy.html",
+            "type": "markup",
+            "size": 5881
+        },
+        {
+            "id": "public/terms.html",
+            "type": "markup",
+            "size": 7637
+        },
+        {
+            "id": "public/thread.html",
+            "type": "markup",
+            "size": 2819
+        },
+        {
+            "id": "reset_admin.php",
+            "type": "backend",
+            "size": 1299
         },
         {
             "id": "scripts/backfill_payment_history.php",
@@ -246,9 +340,19 @@
             "size": 2611
         },
         {
+            "id": "scripts/cleanup_duplicates.php",
+            "type": "backend",
+            "size": 1024
+        },
+        {
             "id": "scripts/database_migration.php",
             "type": "backend",
             "size": 6898
+        },
+        {
+            "id": "scripts/fix_analytics_dupes.php",
+            "type": "backend",
+            "size": 1170
         },
         {
             "id": "scripts/generate_graphify.php",
@@ -271,14 +375,24 @@
             "size": 634
         },
         {
+            "id": "scripts/migrations/20260509_add_tracking_table.php",
+            "type": "backend",
+            "size": 1665
+        },
+        {
+            "id": "server/index.js",
+            "type": "frontend",
+            "size": 17723
+        },
+        {
             "id": "setup_db.php",
             "type": "backend",
-            "size": 7108
+            "size": 7396
         },
         {
             "id": "stripe_webhook.php",
             "type": "backend",
-            "size": 17643
+            "size": 21016
         },
         {
             "id": "stripe_webhook_retry.php",
@@ -288,7 +402,7 @@
         {
             "id": "track_user.php",
             "type": "backend",
-            "size": 6377
+            "size": 9454
         },
         {
             "id": "update_quota.php",
@@ -296,9 +410,14 @@
             "size": 2879
         },
         {
+            "id": "upload_image.php",
+            "type": "backend",
+            "size": 4157
+        },
+        {
             "id": "web_ui.js",
             "type": "frontend",
-            "size": 22104
+            "size": 31011
         }
     ],
     "edges": [
@@ -343,8 +462,23 @@
             "kind": "calls"
         },
         {
+            "from": "analytics.php",
+            "to": "db_config.php",
+            "kind": "include"
+        },
+        {
+            "from": "assets/js/index-page.js",
+            "to": "analytics.php",
+            "kind": "calls"
+        },
+        {
             "from": "assets/js/index-page.js",
             "to": "track_user.php",
+            "kind": "calls"
+        },
+        {
+            "from": "assets/js/index-page.js",
+            "to": "admin.php",
             "kind": "calls"
         },
         {
@@ -364,7 +498,7 @@
         },
         {
             "from": "create_checkout.php",
-            "to": "index.php",
+            "to": "payment_success.php",
             "kind": "calls"
         },
         {
@@ -374,7 +508,7 @@
         },
         {
             "from": "fb_api.js",
-            "to": "track_user.php",
+            "to": "update_quota.php",
             "kind": "calls"
         },
         {
@@ -403,6 +537,21 @@
             "kind": "include"
         },
         {
+            "from": "scripts/migrations/20260509_add_tracking_table.php",
+            "to": "config/load-env.php",
+            "kind": "include"
+        },
+        {
+            "from": "scripts/migrations/20260509_add_tracking_table.php",
+            "to": "db_config.php",
+            "kind": "include"
+        },
+        {
+            "from": "setup_db.php",
+            "to": "config/load-env.php",
+            "kind": "include"
+        },
+        {
             "from": "setup_db.php",
             "to": "db_config.php",
             "kind": "include"
@@ -421,6 +570,11 @@
             "from": "update_quota.php",
             "to": "db_config.php",
             "kind": "include"
+        },
+        {
+            "from": "web_ui.js",
+            "to": "upload_image.php",
+            "kind": "calls"
         }
     ],
     "notes": [

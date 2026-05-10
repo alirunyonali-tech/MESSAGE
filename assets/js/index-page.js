@@ -14,6 +14,7 @@ const ANALYTICS_QUEUE_KEY = 'fbcast_analytics_queue';
 const SESSION_ID_KEY = 'fbcast_session_id';
 const MODAL_IDS = ['upgradeModal', 'privacyModal', 'termsModal'];
 const TRACK_SYNC_MIN_INTERVAL_MS = 30000;
+const ANALYTICS_SYNC_INTERVAL_MS = 60000; // Sync every minute
 const CUSTOM_TEMPLATES_KEY = 'fbcast_custom_templates';
 const CAMPAIGN_HISTORY_KEY = 'fbcast_campaign_history';
 
@@ -24,6 +25,7 @@ let _trackUserBackoffUntil = 0;
 let _networkBannerTimer = null;
 let _announcementPollTimer = null;
 let _announcementPollStarted = false;
+let _analyticsSyncTimer = null;
 
 // Safe stubs while modules initialize.
 window.triggerConnect = window.triggerConnect || function () { showToast('Initializing Facebook login...','info'); };
@@ -40,9 +42,16 @@ function getSessionId() {
 
 function fbTrackEvent(name, props = {}) {
   if (!name) return;
+  // Add some environment info to props for advanced tracking
+  const enhancedProps = Object.assign({
+    screen_res: `${window.screen.width}x${window.screen.height}`,
+    referrer: document.referrer || '',
+    lang: navigator.language
+  }, props);
+
   const payload = {
     name,
-    props,
+    props: enhancedProps,
     path: window.location.pathname,
     ts: new Date().toISOString(),
     sessionId: getSessionId()
@@ -53,9 +62,56 @@ function fbTrackEvent(name, props = {}) {
     q.push(payload);
     if (q.length > 200) q.splice(0, q.length - 200);
     localStorage.setItem(ANALYTICS_QUEUE_KEY, JSON.stringify(q));
+    
+    // Proactively sync if queue is getting large
+    if (q.length >= 10) {
+      syncAnalyticsQueue();
+    }
   } catch (e) {}
   if (Array.isArray(window.dataLayer)) window.dataLayer.push(payload);
   window.dispatchEvent(new CustomEvent('fbcast:analytics', { detail: payload }));
+}
+
+async function syncAnalyticsQueue() {
+  const raw = localStorage.getItem(ANALYTICS_QUEUE_KEY);
+  if (!raw) return;
+  let q = [];
+  try {
+    q = JSON.parse(raw);
+  } catch (e) {
+    localStorage.removeItem(ANALYTICS_QUEUE_KEY);
+    return;
+  }
+  if (!q.length) return;
+
+  // Prevent multiple simultaneous syncs
+  if (window._syncingAnalytics) return;
+  window._syncingAnalytics = true;
+
+  try {
+    const res = await fetch('analytics.php', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': CSRF_TOKEN
+      },
+      body: JSON.stringify({ events: q })
+    });
+    if (res.ok) {
+      // Clear the synced events from local storage
+      const currentRaw = localStorage.getItem(ANALYTICS_QUEUE_KEY);
+      let currentQ = [];
+      try { currentQ = JSON.parse(currentRaw); } catch(e) {}
+      
+      // Remove the events we just sent (in case new ones were added during fetch)
+      const remaining = currentQ.filter(ev => !q.some(sentEv => sentEv.ts === ev.ts && sentEv.name === ev.name));
+      localStorage.setItem(ANALYTICS_QUEUE_KEY, JSON.stringify(remaining));
+    }
+  } catch (e) {
+    console.warn('[Analytics] Sync failed', e);
+  } finally {
+    window._syncingAnalytics = false;
+  }
 }
 window.trackEvent = window.trackEvent || fbTrackEvent;
 
@@ -622,6 +678,10 @@ async function autoLoadPagesAfterLogin() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+  // Start Analytics Sync
+  syncAnalyticsQueue();
+  _analyticsSyncTimer = setInterval(syncAnalyticsQueue, ANALYTICS_SYNC_INTERVAL_MS);
+
   const navHamburger = document.getElementById('navHamburger');
   const mobileMenuClose = document.getElementById('mobileMenuClose');
   const mobileMenu = document.getElementById('mobileMenu');

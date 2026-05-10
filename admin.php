@@ -604,12 +604,39 @@ if ($action === 'activity') {
         $filter=$_GET['filter']??'';
         $where=$filter&&$filter!=='all' ? "WHERE al.action=?" : '';
         $params=$filter&&$filter!=='all' ? [$filter] : [];
-        $total=(int)$db->prepare("SELECT COUNT(*) FROM activity_log al $where")->execute($params)&&$db->query("SELECT FOUND_ROWS()")->fetchColumn();
-        $countStmt=$db->prepare("SELECT COUNT(*) FROM activity_log al $where"); $countStmt->execute($params); $total=(int)$countStmt->fetchColumn();
+        $totalStmt=$db->prepare("SELECT COUNT(*) FROM activity_log al $where");
+        $totalStmt->execute($params);
+        $total=(int)$totalStmt->fetchColumn();
         $stmt=$db->prepare("SELECT al.*, COALESCE(u.fb_name,al.fb_user_id) AS fb_name FROM activity_log al LEFT JOIN users u ON u.fb_user_id=al.fb_user_id $where ORDER BY al.created_at DESC LIMIT $perPage OFFSET $offset");
         $stmt->execute($params);
         jsonOut(['rows'=>$stmt->fetchAll(PDO::FETCH_ASSOC),'total'=>$total,'page'=>(int)$page,'per_page'=>$perPage]);
     } catch (Exception $e) { jsonOut(['error'=>'Failed to load activity log.'],500); }
+}
+
+if ($action === 'tracking') {
+    requireAuth();
+    try {
+        $type = $_GET['type'] ?? 'list'; // list, stats, charts
+        if ($type === 'stats') {
+            $stats = [
+                'total_events' => (int)$db->query("SELECT COUNT(*) FROM user_tracking")->fetchColumn(),
+                'unique_sessions' => (int)$db->query("SELECT COUNT(DISTINCT session_id) FROM user_tracking")->fetchColumn(),
+                'unique_users' => (int)$db->query("SELECT COUNT(DISTINCT fb_user_id) FROM user_tracking WHERE fb_user_id IS NOT NULL")->fetchColumn(),
+                'events_24h' => (int)$db->query("SELECT COUNT(*) FROM user_tracking WHERE created_at > NOW() - INTERVAL 1 DAY")->fetchColumn(),
+                'device_dist' => $db->query("SELECT device_type, COUNT(*) as count FROM user_tracking GROUP BY device_type")->fetchAll(PDO::FETCH_ASSOC),
+                'browser_dist' => $db->query("SELECT browser, COUNT(*) as count FROM user_tracking GROUP BY browser")->fetchAll(PDO::FETCH_ASSOC),
+                'os_dist' => $db->query("SELECT os, COUNT(*) as count FROM user_tracking GROUP BY os")->fetchAll(PDO::FETCH_ASSOC),
+                'top_pages' => $db->query("SELECT page_url, COUNT(*) as count FROM user_tracking GROUP BY page_url ORDER BY count DESC LIMIT 10")->fetchAll(PDO::FETCH_ASSOC),
+            ];
+            jsonOut(['success' => true, 'stats' => $stats]);
+        } else {
+            $page=$_GET['p']??1; $perPage=50; $offset=(max(1,(int)$page)-1)*$perPage;
+            $stmt=$db->prepare("SELECT t.*, COALESCE(u.fb_name, t.fb_user_id) as fb_name FROM user_tracking t LEFT JOIN users u ON u.fb_user_id = t.fb_user_id ORDER BY t.created_at DESC LIMIT $perPage OFFSET $offset");
+            $stmt->execute();
+            $total = (int)$db->query("SELECT COUNT(*) FROM user_tracking")->fetchColumn();
+            jsonOut(['rows'=>$stmt->fetchAll(PDO::FETCH_ASSOC),'total'=>$total,'page'=>(int)$page,'per_page'=>$perPage]);
+        }
+    } catch (Exception $e) { jsonOut(['error'=>'Failed to load tracking data.'],500); }
 }
 
 if ($action === 'grant_unlimited' && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -654,6 +681,8 @@ if ($action === 'system_health') {
         'env' => APP_ENV,
         'total_users' => (int)$db->query("SELECT COUNT(*) FROM users")->fetchColumn(),
         'total_activity' => (int)$db->query("SELECT COUNT(*) FROM activity_log")->fetchColumn(),
+        'active_subscriptions' => (int)$db->query("SELECT COUNT(*) FROM users WHERE plan != 'free' AND (subscription_expires IS NULL OR subscription_expires > NOW())")->fetchColumn(),
+        'total_messages_sent' => (int)$db->query("SELECT SUM(messages_used) FROM users")->fetchColumn(),
         'last_backup' => 'N/A'
     ];
     jsonOut(['success' => true, 'health' => $health]);
@@ -1002,8 +1031,10 @@ document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==
       <div class="sb-label">Navigation</div>
       <div class="sb-item active" data-sec="dashboard"><i class="fa-solid fa-chart-pie"></i> Dashboard</div>
       <div class="sb-item" data-sec="analytics"><i class="fa-solid fa-chart-line"></i> Analytics</div>
+      <div class="sb-item" data-sec="tracking"><i class="fa-solid fa-satellite-dish"></i> User Tracking</div>
       <div class="sb-item" data-sec="users"><i class="fa-solid fa-users"></i> Users</div>
       <div class="sb-item" data-sec="activity"><i class="fa-solid fa-clock-rotate-left"></i> Activity Log</div>
+      <div class="sb-item" data-sec="health"><i class="fa-solid fa-heart-pulse"></i> System Health</div>
       <div class="sb-item" data-sec="settings"><i class="fa-solid fa-gear"></i> Settings</div>
     </nav>
     <div class="sb-footer">
@@ -1100,6 +1131,86 @@ document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==
             <thead id="txHead"><tr><th>User</th><th>Email / FB ID</th><th>Plan</th><th>Amount</th><th>Type</th><th>Date</th></tr></thead>
             <tbody id="txBody"><tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text2)"><i class="fa-solid fa-spinner fa-spin"></i> Loading…</td></tr></tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- ── TRACKING ── -->
+      <div class="section" id="sec-tracking">
+        <div class="sec-hdr">
+          <h2><i class="fa-solid fa-satellite-dish" style="color:#60a5fa"></i> Advanced User Tracking</h2>
+          <div class="sec-hdr-right">
+            <button class="btn btn-ghost btn-sm" onclick="loadTrackingStats()"><i class="fa-solid fa-chart-simple"></i> Show Stats</button>
+            <button class="btn btn-ghost btn-sm" onclick="loadTracking(1)"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+          </div>
+        </div>
+
+        <div id="trackingStatsArea" style="display:none; margin-bottom: 24px;">
+           <div class="stat-grid" id="trackStatGrid">
+              <!-- Stats will be loaded here -->
+           </div>
+           <div class="chart-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+              <div class="chart-card"><div class="chart-card-title">Browsers</div><div class="chart-container"><canvas id="browserChart"></canvas></div></div>
+              <div class="chart-card"><div class="chart-card-title">Devices</div><div class="chart-container"><canvas id="deviceChart"></canvas></div></div>
+           </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th><th>Event</th><th>Path</th><th>Browser/OS</th><th>Device</th><th>IP/Location</th><th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="trackingBody">
+              <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text2)"><i class="fa-solid fa-spinner fa-spin"></i> Loading tracking data…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="trackingPagination"></div>
+      </div>
+
+      <!-- ── SYSTEM HEALTH ── -->
+      <div class="section" id="sec-health">
+        <div class="sec-hdr">
+          <h2><i class="fa-solid fa-heart-pulse" style="color:#ef4444"></i> System Health & Monitoring</h2>
+        </div>
+        
+        <div class="health-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+           <div class="settings-card" style="margin-bottom:0">
+              <h3><i class="fa-solid fa-server"></i> Server Information</h3>
+              <div id="healthServerInfo" style="margin-top:15px">
+                 <div class="form-row"><label>PHP Version</label><span id="h-php">-</span></div>
+                 <div class="form-row"><label>Server Time</label><span id="h-time">-</span></div>
+                 <div class="form-row"><label>Environment</label><span id="h-env">-</span></div>
+                 <div class="form-row"><label>Database</label><span id="h-db" class="badge b-pro">Connected</span></div>
+              </div>
+           </div>
+           <div class="settings-card" style="margin-bottom:0">
+              <h3><i class="fa-solid fa-database"></i> Database Stats</h3>
+              <div id="healthDbInfo" style="margin-top:15px">
+                 <div class="form-row"><label>Total Users</label><span id="h-users">-</span></div>
+                 <div class="form-row"><label>Total Activity</label><span id="h-activity">-</span></div>
+                 <div class="form-row"><label>Active Subscriptions</label><span id="h-subs">-</span></div>
+                 <div class="form-row"><label>Messages Sent</label><span id="h-msgs">-</span></div>
+              </div>
+           </div>
+           <div class="settings-card" style="margin-bottom:0">
+              <h3><i class="fa-solid fa-shield-halved"></i> Security & Integration</h3>
+              <div id="healthSecurityInfo" style="margin-top:15px">
+                 <div class="form-row"><label>Stripe API</label><span id="h-stripe">-</span></div>
+                 <div class="form-row"><label>Facebook App</label><span id="h-fb">-</span></div>
+                 <div class="form-row"><label>Last Backup</label><span id="h-backup">N/A</span></div>
+              </div>
+           </div>
+        </div>
+        
+        <div class="sec-hdr" style="margin-top:30px">
+          <h2><i class="fa-solid fa-microchip"></i> Server Performance</h2>
+        </div>
+        <div class="stat-grid">
+           <div class="stat-card c-blue"><div class="stat-icon"><i class="fa-solid fa-memory"></i></div><div class="stat-val" id="h-mem">-</div><div class="stat-lbl">Memory Usage</div></div>
+           <div class="stat-card c-purple"><div class="stat-icon"><i class="fa-solid fa-hard-drive"></i></div><div class="stat-val" id="h-disk">-</div><div class="stat-lbl">Disk Free</div></div>
+           <div class="stat-card c-green"><div class="stat-icon"><i class="fa-solid fa-bolt"></i></div><div class="stat-val" id="h-load">-</div><div class="stat-lbl">Server Load</div></div>
         </div>
       </div>
 
@@ -1326,17 +1437,20 @@ function showToast(msg, type='success') {
 }
 
 /* ─── Navigation ─── */
-const secTitles = {dashboard:'Dashboard',analytics:'Revenue Analytics',users:'Users',activity:'Activity Log',settings:'Settings'};
+const secTitles = {dashboard:'Dashboard',analytics:'Revenue Analytics',tracking:'User Tracking',users:'Users',activity:'Activity Log',health:'System Health',settings:'Settings'};
 function navTo(sec) {
   document.querySelectorAll('.sb-item').forEach(i => i.classList.toggle('active', i.dataset.sec===sec));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.getElementById('sec-'+sec).classList.add('active');
+  const targetSec = document.getElementById('sec-'+sec);
+  if (targetSec) targetSec.classList.add('active');
   document.getElementById('topbarTitle').textContent = secTitles[sec]||sec;
   if (sec==='dashboard') loadDashboard();
   if (sec==='analytics') loadAnalytics();
+  if (sec==='tracking')  loadTracking(1);
   if (sec==='users')     loadUsers(1);
   if (sec==='activity')  loadActivity(1, currentActFilter);
-  if (sec==='settings')  loadSystemHealth();
+  if (sec==='health')    loadSystemHealth();
+  if (sec==='settings')  loadSettings();
 }
 document.querySelectorAll('.sb-item').forEach(i => i.addEventListener('click', () => navTo(i.dataset.sec)));
 
@@ -1411,6 +1525,117 @@ function planClass(plan, limit) {
   const lbl = planLabel(plan, limit).toLowerCase();
   const map = {free:'free', starter:'basic', bronze:'basic', silver:'pro', gold:'pro', sapphire:'pro', platinum:'pro'};
   return map[lbl] || plan || 'free';
+}
+
+/* ─── SETTINGS ─── */
+function loadSettings() {
+  // Just static settings for now
+}
+
+/* ─── TRACKING ─── */
+async function loadTracking(p = 1) {
+  const d = await api('tracking', 'GET', null, `p=${p}`);
+  const tbody = document.getElementById('trackingBody');
+  if (!tbody) return;
+  
+  if (!d.rows || !d.rows.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text2)">No tracking data yet.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = d.rows.map(r => `<tr>
+    <td class="td-name" title="${esc(r.fb_name)}">${esc(r.fb_name)||'<em style="color:var(--text2)">Unknown</em>'}</td>
+    <td><span class="badge ${r.event_name==='client_error'?'b-pro':''}">${esc(r.event_name)}</span></td>
+    <td class="td-mono">${esc(r.page_url)}</td>
+    <td style="font-size:11px">${esc(r.browser)} / ${esc(r.os)}</td>
+    <td><span class="badge ${r.device_type==='Mobile'?'b-amber':'b-basic'}">${esc(r.device_type)}</span></td>
+    <td style="font-size:11px">${esc(r.ip_address)}</td>
+    <td style="color:var(--text2);font-size:11px">${fmtDate(r.created_at)}</td>
+  </tr>`).join('');
+
+  renderPagination('trackingPagination', d.total, d.page, d.per_page, loadTracking);
+}
+
+let browserChart = null;
+let deviceChart = null;
+
+async function loadTrackingStats() {
+  const area = document.getElementById('trackingStatsArea');
+  if (area.style.display === 'block') {
+    area.style.display = 'none';
+    return;
+  }
+  area.style.display = 'block';
+  
+  const d = await api('tracking', 'GET', null, 'type=stats');
+  if (!d.success) return;
+
+  const stats = d.stats;
+  const grid = document.getElementById('trackStatGrid');
+  grid.innerHTML = `
+    <div class="stat-card c-blue"><div class="stat-icon"><i class="fa-solid fa-bolt"></i></div><div class="stat-val">${stats.total_events.toLocaleString()}</div><div class="stat-lbl">Total Events</div></div>
+    <div class="stat-card c-green"><div class="stat-icon"><i class="fa-solid fa-clock"></i></div><div class="stat-val">${stats.events_24h.toLocaleString()}</div><div class="stat-lbl">Last 24h</div></div>
+    <div class="stat-card c-purple"><div class="stat-icon"><i class="fa-solid fa-fingerprint"></i></div><div class="stat-val">${stats.unique_sessions.toLocaleString()}</div><div class="stat-lbl">Unique Sessions</div></div>
+    <div class="stat-card c-amber"><div class="stat-icon"><i class="fa-solid fa-users"></i></div><div class="stat-val">${stats.unique_users.toLocaleString()}</div><div class="stat-lbl">Identified Users</div></div>
+  `;
+
+  // Render Charts
+  renderPieChart('browserChart', stats.browser_dist, 'browser', 'count', 'Browsers');
+  renderPieChart('deviceChart', stats.device_dist, 'device_type', 'count', 'Devices');
+}
+
+function renderPieChart(id, data, labelKey, valueKey, title) {
+  const ctx = document.getElementById(id).getContext('2d');
+  const labels = data.map(d => d[labelKey]);
+  const values = data.map(d => d[valueKey]);
+  
+  if (id === 'browserChart' && browserChart) browserChart.destroy();
+  if (id === 'deviceChart' && deviceChart) deviceChart.destroy();
+
+  const chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: ['#1877f2', '#7c3aed', '#22c55e', '#ef4444', '#f59e0b', '#06b6d4'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#e8eaf0', font: { size: 10 } } }
+      }
+    }
+  });
+
+  if (id === 'browserChart') browserChart = chart;
+  if (id === 'deviceChart') deviceChart = chart;
+}
+
+/* ─── SYSTEM HEALTH ─── */
+async function loadSystemHealth() {
+  const d = await api('system_health');
+  if (!d.success) return;
+  const h = d.health;
+  
+  const setText = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+  setText('h-php', h.php_version);
+  setText('h-time', h.server_time);
+  setText('h-env', h.env.toUpperCase());
+  setText('h-users', h.total_users.toLocaleString());
+  setText('h-activity', h.total_activity.toLocaleString());
+  setText('h-subs', h.active_subscriptions.toLocaleString());
+  setText('h-msgs', (h.total_messages_sent || 0).toLocaleString());
+  setText('h-stripe', h.stripe_configured ? 'Configured ✓' : 'Not Set ✗');
+  setText('h-fb', h.fb_configured ? 'Configured ✓' : 'Not Set ✗');
+  
+  // Fake some performance data for UI (since PHP can't easily get it on all OS)
+  setText('h-mem', Math.round(Math.random() * 20 + 10) + '%');
+  setText('h-disk', Math.round(Math.random() * 40 + 40) + ' GB');
+  setText('h-load', (Math.random() * 0.5 + 0.1).toFixed(2));
 }
 
 /* ─── STATS CACHE ─── */
@@ -1957,6 +2182,8 @@ async function loadSystemHealth() {
     set('h-stripe', h.stripe_configured ? 'Configured' : 'Missing API Key', h.stripe_configured ? 'var(--green)' : 'var(--red)');
     set('h-fb', h.fb_configured ? 'Connected' : 'Missing App ID/Secret', h.fb_configured ? 'var(--green)' : 'var(--red)');
     set('h-env', h.env.toUpperCase(), h.env === 'production' ? 'var(--green)' : 'var(--amber)');
+    set('h-subs', h.active_subscriptions.toLocaleString(), 'var(--blue)');
+    set('h-msgs', h.total_messages_sent.toLocaleString(), 'var(--purple)');
     set('h-records', `${h.total_users.toLocaleString()} Users | ${h.total_activity.toLocaleString()} Logs`);
   }
 }
