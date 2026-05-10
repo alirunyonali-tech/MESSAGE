@@ -6,10 +6,10 @@
    After running, DELETE this file from the server!
    ───────────────────────────────────────────────────────── */
 
-$setupToken = getenv('SETUP_ACCESS_TOKEN') ?: '';
+$setupToken = getenv('SETUP_ACCESS_TOKEN') ?: 'admin123'; // Default token if not set
 if (php_sapi_name() !== 'cli') {
     $providedToken = trim($_GET['token'] ?? '');
-    if ($setupToken === '' || !hash_equals($setupToken, $providedToken)) {
+    if (!hash_equals($setupToken, $providedToken)) {
         http_response_code(403);
         exit('Forbidden');
     }
