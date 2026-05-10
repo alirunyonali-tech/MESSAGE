@@ -801,6 +801,12 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
     <div class="main-sidebar-item" title="Templates" onclick="switchView('templates')">
       <i class="fa-solid fa-wand-magic-sparkles"></i>
     </div>
+    <div class="main-sidebar-item" title="Settings" onclick="switchView('settings')">
+      <i class="fa-solid fa-gear"></i>
+    </div>
+    <div class="main-sidebar-item" title="Help & Support" onclick="switchView('help')">
+      <i class="fa-solid fa-circle-question"></i>
+    </div>
     <div style="margin-top:auto"></div>
     <div class="main-sidebar-item" title="Logout" onclick="triggerLogout()">
       <i class="fa-solid fa-right-from-bracket"></i>
@@ -861,6 +867,26 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       </div>
 
       <div class="topbar-status">
+        <!-- Notifications -->
+        <div class="topbar-notif-wrap" style="position: relative; margin-right: 15px;">
+          <button class="btn-ghost" id="btnNotif" title="Notifications" style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text);">
+             <i class="fa-solid fa-bell" style="font-size: 14px;"></i>
+             <span id="notifBadge" style="position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; border: 2px solid var(--bg2); display: none;"></span>
+          </button>
+          <div id="notifPanel" class="glass-card" style="position: absolute; top: 45px; right: 0; width: 320px; max-height: 400px; display: none; flex-direction: column; z-index: 200; padding: 0; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+             <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
+                <strong style="font-size: 14px;">Notifications</strong>
+                <span style="font-size: 11px; color: var(--primary-light); cursor: pointer; font-weight: 600;" onclick="clearNotifs()">Mark all as read</span>
+             </div>
+             <div id="notifList" style="overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+                <div style="padding: 30px 20px; text-align: center; color: var(--text3); font-size: 12px;">
+                   <i class="fa-solid fa-bell-slash" style="font-size: 24px; margin-bottom: 10px; opacity: 0.5; display: block;"></i>
+                   No new notifications.
+                </div>
+             </div>
+          </div>
+        </div>
+
         <!-- User avatar -->
         <div class="topbar-user-btn" id="topbarUserBtn" title="Logged in user">
           <div class="topbar-avatar" id="topbarAvatar">?</div>
@@ -1359,11 +1385,129 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
   </div><!-- /app-body -->
 </div><!-- /promoMessageView -->
 
-<div id="messengerView" class="view-container">
-  <div style="text-align:center">
-    <i class="fa-brands fa-facebook-messenger" style="font-size:60px;margin-bottom:20px;color:var(--primary-dim)"></i>
-    <h2>Messenger</h2>
-    <p>Messenger interface coming soon.</p>
+<div id="messengerView" class="view-container" style="padding: 24px; overflow-y: auto;">
+  <div class="glass-card" style="max-width: 800px; margin: 40px auto; padding: 60px 40px; text-align: center;">
+    <div style="width: 100px; height: 100px; background: rgba(8,102,255,0.1); border-radius: 30px; display: flex; align-items: center; justify-content: center; color: var(--primary-light); margin: 0 auto 30px;">
+      <i class="fa-brands fa-facebook-messenger" style="font-size: 50px;"></i>
+    </div>
+    <h1 style="font-size: 32px; margin-bottom: 16px; font-weight: 800;">Facebook Messenger <span class="badge b-pro" style="vertical-align: middle; margin-left: 10px; font-size: 12px; padding: 4px 12px;">COMING SOON</span></h1>
+    <p style="color: var(--text2); font-size: 18px; line-height: 1.6; max-width: 500px; margin: 0 auto 30px;">
+      We're building a powerful multi-page inbox to manage all your Facebook conversations in one place.
+    </p>
+    <div style="display: flex; flex-direction: column; gap: 15px; max-width: 400px; margin: 0 auto;">
+       <div style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid var(--border); text-align: left;">
+          <i class="fa-solid fa-check-circle" style="color: var(--green);"></i>
+          <span style="font-size: 14px;">Unified Inbox for all connected pages</span>
+       </div>
+       <div style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid var(--border); text-align: left;">
+          <i class="fa-solid fa-check-circle" style="color: var(--green);"></i>
+          <span style="font-size: 14px;">Smart replies and automated sequences</span>
+       </div>
+       <button class="btn-upgrade" style="margin-top: 10px; padding: 15px; justify-content: center; font-size: 16px;">
+          <i class="fa-solid fa-paper-plane"></i> Notify Me When Ready
+       </button>
+    </div>
+  </div>
+</div>
+
+<div id="settingsView" class="view-container" style="padding: 24px; overflow-y: auto;">
+  <div class="section-hdr" style="margin-bottom: 30px;">
+    <h2 style="margin: 0; display: flex; align-items: center; gap: 12px;">
+      <i class="fa-solid fa-gear" style="color: var(--primary-light);"></i> 
+      Settings & Preferences
+    </h2>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px;">
+    <div class="glass-card" style="padding: 30px;">
+      <h3 style="margin-bottom: 20px; font-size: 18px;"><i class="fa-solid fa-user-gear" style="margin-right: 10px; color: var(--primary-light);"></i> Account Profile</h3>
+      <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 24px; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px solid var(--border);">
+         <div id="settingsAvatar" style="width: 64px; height: 64px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: #fff; border: 3px solid var(--surface);">?</div>
+         <div>
+            <div id="settingsUserName" style="font-size: 18px; font-weight: 700; color: #fff;">-</div>
+            <div id="settingsUserPlan" class="badge b-pro" style="margin-top: 4px;">Free Plan</div>
+         </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+         <div style="display: flex; justify-content: space-between; font-size: 14px; padding: 10px 0; border-bottom: 1px solid var(--border);">
+            <span style="color: var(--text3);">Facebook ID</span>
+            <span id="settingsFbId" style="font-family: monospace; color: var(--text2);">-</span>
+         </div>
+         <div style="display: flex; justify-content: space-between; font-size: 14px; padding: 10px 0;">
+            <span style="color: var(--text3);">Account Status</span>
+            <span style="color: var(--green); font-weight: 700;">Active</span>
+         </div>
+      </div>
+    </div>
+
+    <div class="glass-card" style="padding: 30px;">
+      <h3 style="margin-bottom: 20px; font-size: 18px;"><i class="fa-solid fa-palette" style="margin-right: 10px; color: var(--primary-light);"></i> Appearance & UI</h3>
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+         <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+               <div style="font-size: 14px; font-weight: 600; color: #fff;">Dark Mode</div>
+               <div style="font-size: 12px; color: var(--text3);">Adjust the theme to your preference.</div>
+            </div>
+            <label class="theme-toggle" style="margin: 0;">
+               <input type="checkbox" id="settingsThemeToggle" checked>
+               <span class="tt-track">
+                  <i class="fa-solid fa-moon tt-icon tt-icon--dark"></i>
+                  <i class="fa-solid fa-sun tt-icon tt-icon--light"></i>
+                  <span class="tt-thumb"></span>
+               </span>
+            </label>
+         </div>
+         <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+               <div style="font-size: 14px; font-weight: 600; color: #fff;">Glassmorphism</div>
+               <div style="font-size: 12px; color: var(--text3);">Enable advanced blur and transparency.</div>
+            </div>
+            <input type="checkbox" checked disabled>
+         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="helpView" class="view-container" style="padding: 24px; overflow-y: auto;">
+  <div class="section-hdr" style="margin-bottom: 30px;">
+    <h2 style="margin: 0; display: flex; align-items: center; gap: 12px;">
+      <i class="fa-solid fa-circle-question" style="color: var(--primary-light);"></i> 
+      Help & Support
+    </h2>
+  </div>
+
+  <div class="glass-card" style="padding: 40px; margin-bottom: 30px; text-align: center; background: linear-gradient(rgba(8,102,255,0.05), transparent);">
+    <h3 style="font-size: 24px; margin-bottom: 12px;">How can we help you today?</h3>
+    <p style="color: var(--text2); margin-bottom: 30px;">Search our documentation or contact our support team directly.</p>
+    <div style="position: relative; max-width: 500px; margin: 0 auto;">
+       <input type="text" placeholder="Search for answers..." style="width: 100%; padding: 15px 20px 15px 50px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: #fff; font-size: 14px;">
+       <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text3);"></i>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+    <div class="glass-card" style="padding: 24px;">
+       <h4 style="margin-bottom: 15px; color: var(--primary-light);"><i class="fa-solid fa-book" style="margin-right: 10px;"></i> Getting Started</h4>
+       <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 12px; font-size: 14px;">
+          <li><a href="#" style="color: var(--text2); text-decoration: none; display: flex; justify-content: space-between;">Connecting your first page <i class="fa-solid fa-chevron-right" style="font-size: 10px; margin-top: 4px;"></i></a></li>
+          <li><a href="#" style="color: var(--text2); text-decoration: none; display: flex; justify-content: space-between;">Creating a broadcast campaign <i class="fa-solid fa-chevron-right" style="font-size: 10px; margin-top: 4px;"></i></a></li>
+          <li><a href="#" style="color: var(--text2); text-decoration: none; display: flex; justify-content: space-between;">Managing your message quota <i class="fa-solid fa-chevron-right" style="font-size: 10px; margin-top: 4px;"></i></a></li>
+       </ul>
+    </div>
+    <div class="glass-card" style="padding: 24px;">
+       <h4 style="margin-bottom: 15px; color: var(--amber);"><i class="fa-solid fa-shield-halved" style="margin-right: 10px;"></i> Safety & Compliance</h4>
+       <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 12px; font-size: 14px;">
+          <li><a href="#" style="color: var(--text2); text-decoration: none; display: flex; justify-content: space-between;">Avoiding Facebook spam filters <i class="fa-solid fa-chevron-right" style="font-size: 10px; margin-top: 4px;"></i></a></li>
+          <li><a href="#" style="color: var(--text2); text-decoration: none; display: flex; justify-content: space-between;">Best practices for broadcasting <i class="fa-solid fa-chevron-right" style="font-size: 10px; margin-top: 4px;"></i></a></li>
+          <li><a href="#" style="color: var(--text2); text-decoration: none; display: flex; justify-content: space-between;">Account security tips <i class="fa-solid fa-chevron-right" style="font-size: 10px; margin-top: 4px;"></i></a></li>
+       </ul>
+    </div>
+    <div class="glass-card" style="padding: 24px; background: var(--primary-dim);">
+       <h4 style="margin-bottom: 10px; color: #fff;"><i class="fa-solid fa-headset" style="margin-right: 10px;"></i> Need more help?</h4>
+       <p style="font-size: 13px; color: rgba(255,255,255,0.8); margin-bottom: 20px;">Our team is available 24/7 to assist you with any technical issues.</p>
+       <button class="btn-upgrade" style="background: #fff; color: var(--primary); width: 100%; justify-content: center;">Contact Support</button>
+    </div>
   </div>
 </div>
 

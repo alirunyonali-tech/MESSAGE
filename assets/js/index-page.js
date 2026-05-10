@@ -278,9 +278,11 @@ function switchView(viewId) {
   const historyView = document.getElementById('historyView');
   const homeView = document.getElementById('homeView');
   const templatesView = document.getElementById('templatesView');
+  const settingsView = document.getElementById('settingsView');
+  const helpView = document.getElementById('helpView');
   const items = document.querySelectorAll('.main-sidebar-item');
 
-  if (!promoView || !messengerView || !historyView || !homeView || !templatesView) return;
+  if (!promoView || !messengerView || !historyView || !homeView || !templatesView || !settingsView || !helpView) return;
 
   // Hide all views
   homeView.classList.remove('active');
@@ -288,11 +290,23 @@ function switchView(viewId) {
   messengerView.classList.remove('active');
   historyView.classList.remove('active');
   templatesView.classList.remove('active');
+  settingsView.classList.remove('active');
+  helpView.classList.remove('active');
 
   // Remove active class from sidebar items
   items.forEach(item => item.classList.remove('active'));
 
-  const activeItem = document.querySelector(`.main-sidebar-item[title="${viewId === 'home' ? 'Home' : viewId === 'promo' ? 'Promo Message' : viewId === 'messenger' ? 'Messenger' : viewId === 'history' ? 'Campaign History' : 'Templates'}"]`);
+  const titleMap = {
+    'home': 'Home',
+    'promo': 'Promo Message',
+    'messenger': 'Messenger',
+    'history': 'Campaign History',
+    'templates': 'Templates',
+    'settings': 'Settings',
+    'help': 'Help & Support'
+  };
+
+  const activeItem = document.querySelector(`.main-sidebar-item[title="${titleMap[viewId]}"]`);
   if (activeItem) activeItem.classList.add('active');
 
   if (viewId === 'home') {
@@ -308,9 +322,85 @@ function switchView(viewId) {
   } else if (viewId === 'templates') {
     templatesView.classList.add('active');
     loadTemplateManager();
+  } else if (viewId === 'settings') {
+    settingsView.classList.add('active');
+    loadSettingsView();
+  } else if (viewId === 'help') {
+    helpView.classList.add('active');
   }
 }
 window.switchView = switchView;
+
+function loadSettingsView() {
+  const user = JSON.parse(localStorage.getItem('fbcast_user') || '{}');
+  const quota = getQuota();
+
+  const nameEl = document.getElementById('settingsUserName');
+  if (nameEl) nameEl.textContent = user.fb_name || 'User';
+
+  const avatarEl = document.getElementById('settingsAvatar');
+  if (avatarEl) avatarEl.textContent = (user.fb_name || 'U').charAt(0).toUpperCase();
+
+  const fbIdEl = document.getElementById('settingsFbId');
+  if (fbIdEl) fbIdEl.textContent = user.fb_user_id || '-';
+
+  const planEl = document.getElementById('settingsUserPlan');
+  if (planEl) planEl.textContent = quota.planName + ' Plan';
+}
+
+// Notification Logic
+let notifications = [
+  { id: 1, title: 'Welcome to FBCast Pro!', message: 'Explore the new dashboard and start your first campaign today.', time: new Date(), read: false },
+  { id: 2, title: 'Quota Reset', message: 'Your monthly message quota has been successfully reset.', time: new Date(Date.now() - 86400000), read: true }
+];
+
+function updateNotifUI() {
+  const list = document.getElementById('notifList');
+  const badge = document.getElementById('notifBadge');
+  if (!list) return;
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+  if (badge) badge.style.display = unreadCount > 0 ? 'block' : 'none';
+
+  if (notifications.length === 0) {
+    list.innerHTML = '<div style="padding: 30px 20px; text-align: center; color: var(--text3); font-size: 12px;"><i class="fa-solid fa-bell-slash" style="font-size: 24px; margin-bottom: 10px; opacity: 0.5; display: block;"></i>No new notifications.</div>';
+    return;
+  }
+
+  list.innerHTML = notifications.map(n => `
+    <div class="activity-item" style="flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px; cursor: default; ${!n.read ? 'border-left: 3px solid var(--primary); background: rgba(8,102,255,0.05);' : ''}">
+      <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+         <strong style="font-size: 13px; color: #fff;">${n.title}</strong>
+         <span style="font-size: 10px; color: var(--text3);">${new Date(n.time).toLocaleDateString()}</span>
+      </div>
+      <div style="font-size: 12px; color: var(--text2); line-height: 1.4;">${n.message}</div>
+    </div>
+  `).join('');
+}
+
+window.clearNotifs = function() {
+  notifications.forEach(n => n.read = true);
+  updateNotifUI();
+};
+
+function initNotifPanel() {
+  const btn = document.getElementById('btnNotif');
+  const panel = document.getElementById('notifPanel');
+  if (!btn || !panel) return;
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+  });
+
+  document.addEventListener('click', () => {
+    panel.style.display = 'none';
+  });
+
+  panel.addEventListener('click', (e) => e.stopPropagation());
+  
+  updateNotifUI();
+}
 
 function getSessionId() {
   let id = sessionStorage.getItem(SESSION_ID_KEY);
@@ -966,6 +1056,8 @@ document.addEventListener('DOMContentLoaded', function () {
   // Start Analytics Sync
   syncAnalyticsQueue();
   _analyticsSyncTimer = setInterval(syncAnalyticsQueue, ANALYTICS_SYNC_INTERVAL_MS);
+
+  initNotifPanel();
 
   const navHamburger = document.getElementById('navHamburger');
   const mobileMenuClose = document.getElementById('mobileMenuClose');
