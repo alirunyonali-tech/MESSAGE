@@ -801,9 +801,6 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
     <div class="main-sidebar-item" title="Templates" onclick="switchView('templates')">
       <i class="fa-solid fa-wand-magic-sparkles"></i>
     </div>
-    <div class="main-sidebar-item" title="Help & Support" onclick="switchView('help')">
-      <i class="fa-solid fa-circle-question"></i>
-    </div>
     <div style="margin-top:auto"></div>
     <div class="main-sidebar-item" title="Logout" onclick="triggerLogout()">
       <i class="fa-solid fa-right-from-bracket"></i>
@@ -1569,46 +1566,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
   </div>
 </div>
 
-<div id="helpView" class="view-container" style="padding: 24px; overflow-y: auto;">
-  <div class="section-hdr" style="margin-bottom: 30px;">
-    <h2 style="margin: 0; display: flex; align-items: center; gap: 12px;">
-      <i class="fa-solid fa-circle-question" style="color: var(--primary-light);"></i> 
-      Help & Support
-    </h2>
-  </div>
-
-  <div class="glass-card" style="padding: 40px; margin-bottom: 30px; text-align: center; background: linear-gradient(rgba(8,102,255,0.05), transparent);">
-    <h3 style="font-size: 24px; margin-bottom: 12px;">How can we help you today?</h3>
-    <p style="color: var(--text2); margin-bottom: 30px;">Search our documentation or contact our support team directly.</p>
-    <div style="position: relative; max-width: 500px; margin: 0 auto;">
-       <input type="text" placeholder="Search for answers..." style="width: 100%; padding: 15px 20px 15px 50px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: #fff; font-size: 14px;">
-       <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text3);"></i>
-    </div>
-  </div>
-
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
-    <div class="glass-card" style="padding: 24px;">
-       <h4 style="margin-bottom: 15px; color: var(--primary-light);"><i class="fa-solid fa-book" style="margin-right: 10px;"></i> Getting Started</h4>
-       <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 12px; font-size: 14px;">
-          <li><a href="#" style="color: var(--text2); text-decoration: none; display: flex; justify-content: space-between;">Connecting your first page <i class="fa-solid fa-chevron-right" style="font-size: 10px; margin-top: 4px;"></i></a></li>
-          <li><a href="#" style="color: var(--text2); text-decoration: none; display: flex; justify-content: space-between;">Creating a broadcast campaign <i class="fa-solid fa-chevron-right" style="font-size: 10px; margin-top: 4px;"></i></a></li>
-          <li><a href="#" style="color: var(--text2); text-decoration: none; display: flex; justify-content: space-between;">Managing your message quota <i class="fa-solid fa-chevron-right" style="font-size: 10px; margin-top: 4px;"></i></a></li>
-       </ul>
-    </div>
-    <div class="glass-card" style="padding: 24px;">
-       <h4 style="margin-bottom: 15px; color: var(--amber);"><i class="fa-solid fa-shield-halved" style="margin-right: 10px;"></i> Safety & Compliance</h4>
-       <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 12px; font-size: 14px;">
-          <li><a href="#" style="color: var(--text2); text-decoration: none; display: flex; justify-content: space-between;">Avoiding Facebook spam filters <i class="fa-solid fa-chevron-right" style="font-size: 10px; margin-top: 4px;"></i></a></li>
-          <li><a href="#" style="color: var(--text2); text-decoration: none; display: flex; justify-content: space-between;">Best practices for broadcasting <i class="fa-solid fa-chevron-right" style="font-size: 10px; margin-top: 4px;"></i></a></li>
-          <li><a href="#" style="color: var(--text2); text-decoration: none; display: flex; justify-content: space-between;">Account security tips <i class="fa-solid fa-chevron-right" style="font-size: 10px; margin-top: 4px;"></i></a></li>
-       </ul>
-    </div>
-    <div class="glass-card" style="padding: 24px; background: var(--primary-dim);">
-       <h4 style="margin-bottom: 10px; color: #fff;"><i class="fa-solid fa-headset" style="margin-right: 10px;"></i> Need more help?</h4>
-       <p style="font-size: 13px; color: rgba(255,255,255,0.8); margin-bottom: 20px;">Our team is available 24/7 to assist you with any technical issues.</p>
-       <button class="btn-upgrade" style="background: #fff; color: var(--primary); width: 100%; justify-content: center;">Contact Support</button>
-    </div>
-  </div>
+</div>
 </div>
 
 <div id="templatesView" class="view-container" style="padding: 24px; overflow-y: auto;">

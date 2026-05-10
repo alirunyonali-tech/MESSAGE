@@ -282,7 +282,7 @@ function switchView(viewId) {
   const helpView = document.getElementById('helpView');
   const items = document.querySelectorAll('.main-sidebar-item');
 
-  if (!promoView || !messengerView || !historyView || !homeView || !templatesView || !settingsView || !helpView) return;
+  if (!promoView || !messengerView || !historyView || !homeView || !templatesView || !settingsView) return;
 
   // Hide all views
   homeView.classList.remove('active');
@@ -291,7 +291,7 @@ function switchView(viewId) {
   historyView.classList.remove('active');
   templatesView.classList.remove('active');
   settingsView.classList.remove('active');
-  helpView.classList.remove('active');
+  if (helpView) helpView.classList.remove('active');
 
   // Remove active class from sidebar items
   items.forEach(item => item.classList.remove('active'));
@@ -302,8 +302,7 @@ function switchView(viewId) {
     'messenger': 'Messenger',
     'history': 'Campaign History',
     'templates': 'Templates',
-    'settings': 'Settings',
-    'help': 'Help & Support'
+    'settings': 'Settings'
   };
 
   const activeItem = document.querySelector(`.main-sidebar-item[title="${titleMap[viewId]}"]`);
@@ -325,8 +324,6 @@ function switchView(viewId) {
   } else if (viewId === 'settings') {
     settingsView.classList.add('active');
     loadSettingsView();
-  } else if (viewId === 'help') {
-    helpView.classList.add('active');
   }
 }
 window.switchView = switchView;
