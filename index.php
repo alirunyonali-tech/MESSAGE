@@ -801,9 +801,6 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
     <div class="main-sidebar-item" title="Templates" onclick="switchView('templates')">
       <i class="fa-solid fa-wand-magic-sparkles"></i>
     </div>
-    <div class="main-sidebar-item" title="Settings" onclick="switchView('settings')">
-      <i class="fa-solid fa-gear"></i>
-    </div>
     <div class="main-sidebar-item" title="Help & Support" onclick="switchView('help')">
       <i class="fa-solid fa-circle-question"></i>
     </div>
