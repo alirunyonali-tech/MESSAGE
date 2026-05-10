@@ -873,7 +873,6 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         <div class="topbar-title">
           <div style="display: flex; align-items: center; gap: 8px;">
             <h1>FBCast Pro</h1>
-            <span class="update-badge">UPDATE</span>
           </div>
           <p>Facebook Broadcast Platform</p>
         </div>
@@ -975,12 +974,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
   <div id="homeView" class="view-container">
     <div class="home-hero">
       <div class="home-hero-content">
-        <div class="home-hero-title-row">
-           <h1 class="home-hero-h1">Welcome back, <span id="homeUserName">User</span>! 👋</h1>
-           <button class="btn-refresh" onclick="loadHomeDashboard(true)" title="Refresh Data">
-              <i class="fa-solid fa-rotate-right"></i>
-           </button>
-        </div>
+        <h1 class="home-hero-h1">Welcome back, <span id="homeUserName">User</span>! 👋 <button class="btn-refresh" onclick="loadHomeDashboard(true)" title="Refresh Data"><i class="fa-solid fa-rotate-right"></i></button></h1>
         <p class="home-hero-sub">Your broadcasting engine is primed and ready. You have <strong id="homeHeroQuota">-</strong> messages remaining in your current cycle.</p>
         <div class="home-hero-actions">
            <button class="btn-action-primary" onclick="switchView('promo')">
@@ -1003,7 +997,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <i class="fa-solid fa-rocket home-hero-bg-icon"></i>
     </div>
 
-    <div class="home-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 30px;">
+    <div class="home-stats-grid">
       <div class="home-stat-card glass-card">
         <div class="stat-icon-wrap" style="background: rgba(8,102,255,0.1); color: var(--primary-light);"><i class="fa-solid fa-chart-pie"></i></div>
         <div class="stat-content">

@@ -80,7 +80,7 @@ async function loadHomeDashboard(force = false) {
             </div>
             <div>
               <div style="font-size: 14px; font-weight: 700; color: #fff;">Campaign to ${item.pageName}</div>
-              <div style="font-size: 11px; color: #4E5F7A; margin-top: 2px;">${new Date(item.timestamp).toLocaleDateString()}</div>
+              <div style="font-size: 11px; color: var(--text3); margin-top: 2px;">${new Date(item.timestamp).toLocaleDateString()}</div>
             </div>
           </div>
           <div style="text-align: right">
@@ -90,7 +90,12 @@ async function loadHomeDashboard(force = false) {
         </div>
       `).join('');
     } else {
-      activityList.innerHTML = '<div style="color: var(--text3); text-align: center; padding: 40px;">No recent activity yet.</div>';
+      activityList.innerHTML = `
+        <div style="color: var(--text3); text-align: center; padding: 60px; background: rgba(255,255,255,0.01); border-radius: 20px; border: 1px dashed rgba(255,255,255,0.05);">
+          <i class="fa-solid fa-ghost" style="font-size: 32px; margin-bottom: 12px; opacity: 0.2; display: block;"></i>
+          <p style="font-size: 13px;">No recent activity yet.</p>
+        </div>
+      `;
     }
   }
 
