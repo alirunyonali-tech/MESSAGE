@@ -792,6 +792,9 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
     <div class="main-sidebar-item" title="Messenger" onclick="switchView('messenger')">
       <i class="fa-brands fa-facebook-messenger"></i>
     </div>
+    <div class="main-sidebar-item" title="Campaign History" onclick="switchView('history')">
+      <i class="fa-solid fa-clock-rotate-left"></i>
+    </div>
     <div style="margin-top:auto"></div>
     <div class="main-sidebar-item" title="Logout" onclick="triggerLogout()">
       <i class="fa-solid fa-right-from-bracket"></i>
@@ -1231,16 +1234,6 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         </div>
       </div>
 
-      <!-- Campaign History -->
-      <div class="panel-section" id="campaignHistorySection" style="display:none">
-        <div class="panel-hdr">
-          <span><i class="fa-solid fa-history"></i> Recent Campaigns</span>
-        </div>
-        <div id="campaignHistoryList" class="history-list" style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
-          <!-- History items injected here -->
-        </div>
-      </div>
-
     </div>
 
     <!-- Backdrop for recipients drawer on small screens -->
@@ -1284,6 +1277,20 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
     <i class="fa-brands fa-facebook-messenger" style="font-size:60px;margin-bottom:20px;color:var(--primary-dim)"></i>
     <h2>Messenger</h2>
     <p>Messenger interface coming soon.</p>
+  </div>
+</div>
+
+<div id="historyView" class="view-container" style="padding: 20px; overflow-y: auto;">
+  <div class="section-hdr" style="margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
+    <i class="fa-solid fa-clock-rotate-left" style="font-size: 24px; color: var(--primary-light);"></i>
+    <h2 style="margin: 0;">Campaign History</h2>
+  </div>
+  <div id="campaignHistoryFullList" class="history-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+    <!-- Full History items injected here -->
+    <div class="table-empty" style="grid-column: 1/-1; padding: 60px;">
+       <div class="table-empty-icon">📜</div>
+       <div>No campaign history found yet.</div>
+    </div>
   </div>
 </div>
 </div><!-- /app-main-content -->

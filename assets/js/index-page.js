@@ -34,13 +34,15 @@ window.showPaymentPopup = window.showPaymentPopup || function () { showToast('In
 function switchView(viewId) {
   const promoView = document.getElementById('promoMessageView');
   const messengerView = document.getElementById('messengerView');
+  const historyView = document.getElementById('historyView');
   const items = document.querySelectorAll('.main-sidebar-item');
 
-  if (!promoView || !messengerView) return;
+  if (!promoView || !messengerView || !historyView) return;
 
   // Hide all views
   promoView.classList.remove('active');
   messengerView.classList.remove('active');
+  historyView.classList.remove('active');
 
   // Remove active class from sidebar items
   items.forEach(item => item.classList.remove('active'));
@@ -51,6 +53,10 @@ function switchView(viewId) {
   } else if (viewId === 'messenger') {
     messengerView.classList.add('active');
     document.querySelector('.main-sidebar-item[title="Messenger"]').classList.add('active');
+  } else if (viewId === 'history') {
+    historyView.classList.add('active');
+    document.querySelector('.main-sidebar-item[title="Campaign History"]').classList.add('active');
+    if (typeof window.loadCampaignHistory === 'function') window.loadCampaignHistory();
   }
 }
 window.switchView = switchView;
@@ -1131,30 +1137,40 @@ document.addEventListener('DOMContentLoaded',async()=>{
   });
 
   // Campaign History Logic
-  function loadCampaignHistory() {
-    const section = document.getElementById('campaignHistorySection');
-    const list = document.getElementById('campaignHistoryList');
+  window.loadCampaignHistory = function() {
+    const section = document.getElementById('historyView');
+    const list = document.getElementById('campaignHistoryFullList');
     if (!section || !list) return;
 
     const raw = localStorage.getItem(CAMPAIGN_HISTORY_KEY);
     const history = raw ? JSON.parse(raw) : [];
 
     if (history.length === 0) {
-      section.style.display = 'none';
+      list.innerHTML = `
+        <div class="table-empty" style="grid-column: 1/-1; padding: 60px;">
+           <div class="table-empty-icon">📜</div>
+           <div>No campaign history found yet.</div>
+        </div>
+      `;
       return;
     }
 
-    section.style.display = 'block';
     list.innerHTML = history.map((item, idx) => `
-      <div class="history-item" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-          <strong style="color:var(--text)">${item.pageName || 'Unknown Page'}</strong>
-          <span style="color:var(--text2)">${new Date(item.timestamp).toLocaleDateString()}</span>
+      <div class="history-item" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong style="color:var(--primary-light);font-size:16px"><i class="fa-solid fa-flag" style="margin-right:8px"></i>${item.pageName || 'Unknown Page'}</strong>
+          <span style="color:var(--text3);font-size:11px">${new Date(item.timestamp).toLocaleString()}</span>
         </div>
-        <div style="color:var(--text2);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.message}</div>
-        <div style="display:flex;gap:12px">
-          <span style="color:var(--green)"><i class="fa-solid fa-circle-check"></i> ${item.sent}</span>
-          <span style="color:var(--red)"><i class="fa-solid fa-circle-xmark"></i> ${item.failed}</span>
+        <div style="color:var(--text);font-size:14px;background:var(--bg);padding:12px;border-radius:8px;border:1px solid var(--border2);max-height:80px;overflow:hidden;text-overflow:ellipsis">${item.message}</div>
+        <div style="display:flex;gap:20px;border-top:1px solid var(--border);padding-top:12px">
+          <div style="display:flex;align-items:center;gap:6px">
+             <i class="fa-solid fa-circle-check" style="color:var(--green)"></i>
+             <span style="color:var(--text2);font-weight:700">${item.sent} Sent</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+             <i class="fa-solid fa-circle-xmark" style="color:var(--red)"></i>
+             <span style="color:var(--text2);font-weight:700">${item.failed} Failed</span>
+          </div>
         </div>
       </div>
     `).join('');
