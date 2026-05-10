@@ -2028,6 +2028,7 @@ input:checked + .switch-slider:before { transform: translateX(20px); }
 .sidebar-support-wrap {
   margin-top: auto;
   margin-bottom: 8px;
+  position: relative;
 }
 
 .support-btn {
@@ -2060,18 +2061,17 @@ input:checked + .switch-slider:before { transform: translateX(20px); }
 
 .support-popup {
   position: absolute;
-  left: calc(100% + 15px);
+  left: 65px;
   bottom: 0;
   width: 240px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
+  background: #0D1830;
+  border: 1px solid rgba(8, 102, 255, 0.2);
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8);
   display: none;
   flex-direction: column;
   padding: 8px;
-  z-index: 200;
-  backdrop-filter: blur(10px);
+  z-index: 9999;
 }
 
 .support-popup.active {
@@ -2102,8 +2102,10 @@ input:checked + .switch-slider:before { transform: translateX(20px); }
 }
 
 .support-item i {
-  font-size: 16px;
-  opacity: 0.8;
+  font-size: 18px;
+  width: 20px;
+  text-align: center;
+  opacity: 1;
 }
 
 .app-main-content {

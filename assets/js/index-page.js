@@ -434,14 +434,24 @@ function initSupportPanel() {
 
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
-    menu.classList.toggle('active');
+    const isActive = menu.classList.contains('active');
+    
+    // Close other panels if any
+    const notifPanel = document.getElementById('notifPanel');
+    if (notifPanel) notifPanel.style.display = 'none';
+    
+    if (isActive) {
+      menu.classList.remove('active');
+    } else {
+      menu.classList.add('active');
+    }
   });
 
-  document.addEventListener('click', () => {
-    menu.classList.remove('active');
+  document.addEventListener('click', (e) => {
+    if (!menu.contains(e.target) && e.target !== btn) {
+      menu.classList.remove('active');
+    }
   });
-
-  menu.addEventListener('click', (e) => e.stopPropagation());
 }
 
 function getSessionId() {
