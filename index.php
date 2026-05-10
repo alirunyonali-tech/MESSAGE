@@ -927,13 +927,13 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
              <i class="fa-solid fa-bell" style="font-size: 14px;"></i>
              <span id="notifBadge" style="position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; border: 2px solid var(--bg2); display: none;"></span>
           </button>
-          <div id="notifPanel" class="glass-card" style="position: absolute; top: 45px; right: 0; width: 320px; max-height: 400px; display: none; flex-direction: column; z-index: 1001; padding: 0; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-             <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
-                <strong style="font-size: 14px;">Notifications</strong>
-                <span style="font-size: 11px; color: var(--primary-light); cursor: pointer; font-weight: 600;" onclick="clearNotifs()">Mark all as read</span>
+          <div id="notifPanel" style="position: absolute; top: 45px; right: 0; width: 320px; max-height: 400px; display: none; flex-direction: column; z-index: 1001; padding: 0; overflow: hidden; background: rgba(20, 25, 40, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.6);">
+             <div style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
+                <strong style="font-size: 14px; color: #f1f5f9;">Notifications</strong>
+                <span style="font-size: 11px; color: #60a5fa; cursor: pointer; font-weight: 600;" onclick="clearNotifs()">Mark all as read</span>
              </div>
-             <div id="notifList" style="overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
-                <div style="padding: 30px 20px; text-align: center; color: var(--text3); font-size: 12px;">
+             <div id="notifList" style="overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; color: #e2e8f0;">
+                <div style="padding: 30px 20px; text-align: center; color: #94a3b8; font-size: 12px;">
                    <i class="fa-solid fa-bell-slash" style="font-size: 24px; margin-bottom: 10px; opacity: 0.5; display: block;"></i>
                    No new notifications.
                 </div>
