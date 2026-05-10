@@ -851,7 +851,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
           <a href="https://wa.me/<?= htmlspecialchars($supportWhatsapp ?: 'YOUR_NUMBER') ?>" target="_blank" class="support-item">
              <i class="fa-brands fa-whatsapp"></i> Contact via WhatsApp
           </a>
-          <a href="<?= htmlspecialchars($supportMessenger ?: 'https://m.me/YOUR_PAGE') ?>" target="_blank" class="support-item">
+          <a href="<?= htmlspecialchars($supportMessenger ?: 'https://m.me/castmeepro') ?>" target="_blank" class="support-item">
              <i class="fa-brands fa-facebook-messenger"></i> Contact via Messenger
           </a>
           <a href="mailto:<?= htmlspecialchars($supportEmail ?: 'support@example.com') ?>" class="support-item">
