@@ -682,6 +682,25 @@ if ($action === 'delete_user' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'system_health') {
     requireAuth();
     $db = getDB();
+    
+    // Performance stats helper functions
+    $memUsage = 'N/A';
+    if (function_exists('memory_get_usage')) {
+        $memUsage = round(memory_get_usage() / 1024 / 1024, 2) . ' MB';
+    }
+
+    $diskFree = 'N/A';
+    if (function_exists('disk_free_space')) {
+        $df = disk_free_space("/");
+        $diskFree = round($df / 1024 / 1024 / 1024, 2) . ' GB';
+    }
+
+    $load = 'N/A';
+    if (function_exists('sys_getloadavg')) {
+        $loadArr = sys_getloadavg();
+        $load = $loadArr[0] . ', ' . $loadArr[1] . ', ' . $loadArr[2];
+    }
+
     $health = [
         'php_version' => PHP_VERSION,
         'server_time' => date('Y-m-d H:i:s'),
@@ -693,7 +712,10 @@ if ($action === 'system_health') {
         'total_activity' => (int)$db->query("SELECT COUNT(*) FROM activity_log")->fetchColumn(),
         'active_subscriptions' => (int)$db->query("SELECT COUNT(*) FROM users WHERE plan != 'free' AND (subscription_expires IS NULL OR subscription_expires > NOW())")->fetchColumn(),
         'total_messages_sent' => (int)$db->query("SELECT SUM(messages_used) FROM users")->fetchColumn(),
-        'last_backup' => 'N/A'
+        'last_backup' => 'N/A',
+        'memory_usage' => $memUsage,
+        'disk_free' => $diskFree,
+        'server_load' => $load
     ];
     jsonOut(['success' => true, 'health' => $health]);
 }
@@ -2218,6 +2240,12 @@ async function loadSystemHealth() {
     set('h-subs', h.active_subscriptions.toLocaleString(), 'var(--blue)');
     set('h-msgs', h.total_messages_sent.toLocaleString(), 'var(--purple)');
     set('h-records', `${h.total_users.toLocaleString()} Users | ${h.total_activity.toLocaleString()} Logs`);
+    set('h-mem', h.memory_usage);
+    set('h-disk', h.disk_free);
+    set('h-load', h.server_load);
+    set('h-time', h.server_time);
+    set('h-users', h.total_users.toLocaleString());
+    set('h-activity', h.total_activity.toLocaleString());
   }
 }
 
