@@ -7,6 +7,7 @@ $allowedOrigins = [
     'https://pageinteractorprosite.site',
     'https://www.pageinteractorprosite.site',
     'https://facebook-inbox-production-2a22.up.railway.app',
+    'https://message-production-7b45.up.railway.app',
 ];
 
 $parentOrigin = trim($_GET['origin'] ?? '');
