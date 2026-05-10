@@ -290,16 +290,13 @@ function switchView(viewId) {
   const helpView = document.getElementById('helpView');
   const items = document.querySelectorAll('.main-sidebar-item');
 
-  if (!promoView || !messengerView || !historyView || !homeView || !templatesView || !settingsView) return;
+  // Basic views must exist
+  if (!promoView || !homeView) return;
 
-  // Hide all views
-  homeView.classList.remove('active');
-  promoView.classList.remove('active');
-  messengerView.classList.remove('active');
-  historyView.classList.remove('active');
-  templatesView.classList.remove('active');
-  settingsView.classList.remove('active');
-  if (helpView) helpView.classList.remove('active');
+  // Hide all views safely
+  [homeView, promoView, messengerView, historyView, templatesView, settingsView, helpView].forEach(v => {
+    if (v) v.classList.remove('active');
+  });
 
   // Remove active class from sidebar items
   items.forEach(item => item.classList.remove('active'));
@@ -322,16 +319,22 @@ function switchView(viewId) {
   } else if (viewId === 'promo') {
     promoView.classList.add('active');
   } else if (viewId === 'messenger') {
-    messengerView.classList.add('active');
+    if (messengerView) messengerView.classList.add('active');
   } else if (viewId === 'history') {
-    historyView.classList.add('active');
-    if (typeof window.loadCampaignHistory === 'function') window.loadCampaignHistory();
+    if (historyView) {
+      historyView.classList.add('active');
+      window.loadCampaignHistory();
+    }
   } else if (viewId === 'templates') {
-    templatesView.classList.add('active');
-    loadTemplateManager();
+    if (templatesView) {
+      templatesView.classList.add('active');
+      loadTemplateManager();
+    }
   } else if (viewId === 'settings') {
-    settingsView.classList.add('active');
-    loadSettingsView();
+    if (settingsView) {
+      settingsView.classList.add('active');
+      loadSettingsView();
+    }
   }
 }
 window.switchView = switchView;
