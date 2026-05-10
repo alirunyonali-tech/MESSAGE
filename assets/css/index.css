@@ -912,7 +912,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* ── COL 3: BROADCAST + SETTINGS ── */
 .broadcast-col{
-  flex:0 0 370px;min-width:0;min-height:0;display:flex;flex-direction:column;gap:0;
+  flex:1;min-width:380px;min-height:0;display:flex;flex-direction:column;gap:0;
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
   overflow-y:auto;overflow-x:hidden;
   scrollbar-width:thin;scrollbar-color:var(--surface3) transparent;
@@ -1166,7 +1166,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
    COL 4: STATS + INTELLIGENCE PANEL
 ══════════════════════════════════════ */
 .stats-panel{
-  flex:1;min-width:260px;
+  flex:0 0 320px;min-width:320px;
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
   display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;
   scrollbar-width:thin;scrollbar-color:var(--surface3) transparent;
