@@ -1224,19 +1224,23 @@ const FREE_LIMIT=2000;
 function getQuota(){
   try{
     const raw=localStorage.getItem(QUOTA_KEY);
-    if(!raw)return{subscriptionStatus:'free',messageLimit:FREE_LIMIT,messagesUsed:0};
+    if(!raw)return{subscriptionStatus:'free',planName:'free',messageLimit:FREE_LIMIT,messagesUsed:0};
     const q=JSON.parse(raw);
+    const status = q.subscriptionStatus||q.plan||'free';
     return{
-      subscriptionStatus:q.subscriptionStatus||q.plan||'free',
+      subscriptionStatus:status,
+      planName:status,
       messageLimit:typeof q.messageLimit==='number'?q.messageLimit:typeof q.limit==='number'?q.limit:typeof q.messages_limit==='number'?q.messages_limit:FREE_LIMIT,
       messagesUsed:typeof q.messagesUsed==='number'?q.messagesUsed:typeof q.used==='number'?q.used:typeof q.messages_used==='number'?q.messages_used:0,
     };
-  }catch(_){return{subscriptionStatus:'free',messageLimit:FREE_LIMIT,messagesUsed:0}}
+  }catch(_){return{subscriptionStatus:'free',planName:'free',messageLimit:FREE_LIMIT,messagesUsed:0}}
 }
 
 function saveQuota(raw){
+  const status = raw.subscriptionStatus||raw.plan||raw.planName||'free';
   const q={
-    subscriptionStatus:raw.subscriptionStatus||raw.plan||'free',
+    subscriptionStatus:status,
+    planName:status,
     messageLimit:typeof raw.messageLimit==='number'?raw.messageLimit:typeof raw.limit==='number'?raw.limit:typeof raw.messages_limit==='number'?raw.messages_limit:FREE_LIMIT,
     messagesUsed:typeof raw.messagesUsed==='number'?raw.messagesUsed:typeof raw.used==='number'?raw.used:typeof raw.messages_used==='number'?raw.messages_used:0,
   };
@@ -1337,14 +1341,38 @@ function updateQuotaUI(){
     const plan=(q.subscriptionStatus||'free').toLowerCase();
     const isPro=plan==='pro';
     const isBasic=plan==='basic';
-    const label=isPro?'Pro':(isBasic?'Basic':'Free');
-    const icon=isPro?'fa-crown':(isBasic?'fa-layer-group':'fa-gem');
-    const planKey=isPro?'pro':(isBasic?'basic':'free');
+    const isStarter=plan==='starter';
+    
+    let label = 'Free';
+    let icon = 'fa-gem';
+    let planKey = 'free';
+    
+    if (isPro) {
+      label = 'Pro';
+      icon = 'fa-crown';
+      planKey = 'pro';
+    } else if (isBasic) {
+      label = 'Basic';
+      icon = 'fa-layer-group';
+      planKey = 'basic';
+    } else if (isStarter) {
+      label = 'Starter';
+      icon = 'fa-bolt';
+      planKey = 'starter';
+    }
+
     badgeEl.setAttribute('data-plan', planKey);
     badgeEl.innerHTML=`<i class="fa-solid ${icon}" aria-hidden="true"></i><span>${label}</span>`;
-    if(isPro){badgeEl.style.cssText='background:linear-gradient(135deg,rgba(79,70,229,.3),rgba(24,119,242,.2));color:#818cf8;border-color:rgba(79,70,229,.3)'}
-    else if(isBasic){badgeEl.style.cssText='background:rgba(24,119,242,.15);color:#60a5fa;border-color:rgba(24,119,242,.2)'}
-    else{badgeEl.style.cssText='background:rgba(255,255,255,.06);color:var(--text2);border-color:rgba(255,255,255,.12)'}
+    
+    if(isPro){
+      badgeEl.style.cssText='background:linear-gradient(135deg,rgba(79,70,229,.3),rgba(24,119,242,.2));color:#818cf8;border-color:rgba(79,70,229,.3)';
+    } else if(isBasic){
+      badgeEl.style.cssText='background:rgba(24,119,242,.15);color:#60a5fa;border-color:rgba(24,119,242,.2)';
+    } else if(isStarter){
+      badgeEl.style.cssText='background:rgba(16,185,129,.15);color:#10b981;border-color:rgba(16,185,129,.2)';
+    } else {
+      badgeEl.style.cssText='background:rgba(255,255,255,.06);color:var(--text2);border-color:rgba(255,255,255,.12)';
+    }
   }
   if(emptyEl)emptyEl.style.display=rem<=0?'flex':'none';
   if(widgetEl){
