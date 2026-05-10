@@ -1624,9 +1624,6 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
   </div>
 </div>
 
-</div>
-</div>
-
 <div id="templatesView" class="view-container" style="padding: 24px; overflow-y: auto;">
   <div class="section-hdr" style="margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between;">
     <div style="display: flex; align-items: center; gap: 12px;">

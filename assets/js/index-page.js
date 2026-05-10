@@ -167,14 +167,20 @@ function loadTemplateManager() {
   const list = document.getElementById('templatesFullList');
   if (!list) return;
 
-  const raw = localStorage.getItem(CUSTOM_TEMPLATES_KEY);
-  const tpls = raw ? JSON.parse(raw) : [];
+  let tpls = [];
+  try {
+    const raw = localStorage.getItem(CUSTOM_TEMPLATES_KEY);
+    tpls = raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error('Failed to parse templates', e);
+    tpls = [];
+  }
 
-  if (tpls.length === 0) {
+  if (!Array.isArray(tpls) || tpls.length === 0) {
     list.innerHTML = `
       <div class="table-empty" style="grid-column: 1/-1; padding: 60px;">
          <div class="table-empty-icon">✨</div>
-         <div>No saved templates yet. Go to Promo Message to save your first one!</div>
+         <div style="color: var(--text2); font-size: 14px; margin-top: 10px;">No saved templates yet. Go to Promo Message to save your first one!</div>
       </div>
     `;
     return;
@@ -242,14 +248,20 @@ window.loadCampaignHistory = function() {
     const list = document.getElementById('campaignHistoryFullList');
     if (!section || !list) return;
 
-    const raw = localStorage.getItem(CAMPAIGN_HISTORY_KEY);
-    const history = raw ? JSON.parse(raw) : [];
+    let history = [];
+    try {
+      const raw = localStorage.getItem(CAMPAIGN_HISTORY_KEY);
+      history = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      console.error('Failed to parse campaign history', e);
+      history = [];
+    }
 
-    if (history.length === 0) {
+    if (!Array.isArray(history) || history.length === 0) {
       list.innerHTML = `
         <div class="table-empty" style="grid-column: 1/-1; padding: 60px;">
            <div class="table-empty-icon">📜</div>
-           <div>No campaign history found yet.</div>
+           <div style="color: var(--text2); font-size: 14px; margin-top: 10px;">No campaign history found yet.</div>
         </div>
       `;
       return;
@@ -261,20 +273,20 @@ window.loadCampaignHistory = function() {
           <strong style="color:var(--primary-light);font-size:16px"><i class="fa-solid fa-flag" style="margin-right:8px"></i>${item.pageName || 'Unknown Page'}</strong>
           <span style="color:var(--text3);font-size:11px">${new Date(item.timestamp).toLocaleString()}</span>
         </div>
-        <div style="color:var(--text);font-size:14px;background:var(--bg);padding:12px;border-radius:8px;border:1px solid var(--border2);max-height:80px;overflow:hidden;text-overflow:ellipsis">${item.message}</div>
+        <div style="color:var(--text);font-size:14px;background:var(--bg);padding:12px;border-radius:8px;border:1px solid var(--border2);max-height:80px;overflow:hidden;text-overflow:ellipsis">${item.message || 'No message'}</div>
         <div style="display:flex;gap:20px;border-top:1px solid var(--border);padding-top:12px">
           <div style="display:flex;align-items:center;gap:6px">
              <i class="fa-solid fa-circle-check" style="color:var(--green)"></i>
-             <span style="color:var(--text2);font-weight:700">${item.sent} Sent</span>
+             <span style="color:var(--text2);font-weight:700">${item.sent || 0} Sent</span>
           </div>
           <div style="display:flex;align-items:center;gap:6px">
              <i class="fa-solid fa-circle-xmark" style="color:var(--red)"></i>
-             <span style="color:var(--text2);font-weight:700">${item.failed} Failed</span>
+             <span style="color:var(--text2);font-weight:700">${item.failed || 0} Failed</span>
           </div>
         </div>
       </div>
     `).join('');
-  };
+};
 
   // Safe stubs while modules initialize.
 window.triggerConnect = window.triggerConnect || function () { showToast('Initializing Facebook login...','info'); };
