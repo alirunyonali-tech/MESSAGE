@@ -54,22 +54,35 @@ if (file_exists($config_file)) {
         $app_env          = defined('APP_ENV') ? APP_ENV : 'development';
 
         require_once 'db_config.php';
-        $db = getDB();
         
-        function getSetting($db, $key, $default = '') {
+        function getSetting($key, $default = '') {
             try {
-                $stmt = $db->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
+                // Only try to connect if DB_HOST is set and not empty
+                if (!defined('DB_HOST') || !DB_HOST) return $default;
+                
+                // We use a separate PDO instance here to avoid die() from getDB()
+                $port = defined('DB_PORT') ? (int)DB_PORT : 3306;
+                $dsn = "mysql:host=" . DB_HOST . ";port=" . $port . ";dbname=" . DB_NAME . ";charset=utf8mb4";
+                $options = [
+                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES   => false,
+                    PDO::ATTR_TIMEOUT            => 2, // Short timeout for index page
+                ];
+                $db = new PDO($dsn, DB_USER, DB_PASS, $options);
+                
+                $stmt = $db->prepare("SELECT setting_value FROM site_settings WHERE setting_key = ?");
                 $stmt->execute([$key]);
                 $v = $stmt->fetchColumn();
                 return ($v !== false) ? $v : $default;
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 return $default;
             }
         }
 
-        $supportWhatsapp = getSetting($db, 'support_whatsapp', '');
-         $supportMessenger = getSetting($db, 'support_messenger', '');
-         $supportEmail = getSetting($db, 'support_email', '');
+        $supportWhatsapp = getSetting('support_whatsapp', '');
+         $supportMessenger = getSetting('support_messenger', '');
+         $supportEmail = getSetting('support_email', '');
 
         $requestScheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $requestHost   = $_SERVER['HTTP_HOST'] ?? '';
@@ -959,7 +972,7 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
   <div id="networkBanner" class="network-banner" role="status" aria-live="polite" hidden></div>
 
   <!-- VIEWS -->
-  <div id="homeView" class="view-container active">
+  <div id="homeView" class="view-container">
     <div class="home-hero">
       <div class="home-hero-content">
         <div class="home-hero-title-row">

@@ -12,13 +12,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $db = getDB();
 
 function getSetting($db, $key, $default = '') {
-    $stmt = $db->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
+    $stmt = $db->prepare("SELECT setting_value FROM site_settings WHERE setting_key = ?");
     $stmt->execute([$key]);
     $v = $stmt->fetchColumn();
     return ($v !== false) ? $v : $default;
 }
 function setSetting($db, $key, $value) {
-    $db->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?,?)
+    $db->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES (?,?)
                   ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")
        ->execute([$key, $value]);
 }
