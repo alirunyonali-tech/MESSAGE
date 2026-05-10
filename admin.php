@@ -1778,7 +1778,7 @@ function renderAnalytics(range, stats) {
     })));
   } else if (range==='weekly') {
     rev=sumArr(weekly,'revenue'); tx=sumArr(weekly,'transactions'); log=0;
-    plans={basic:0,pro:0}; lRev='12-Week Revenue'; lTx='12-Week Transactions'; lLog='—';
+    plans={bronze:0,silver:0}; lRev='12-Week Revenue'; lTx='12-Week Transactions'; lLog='—';
     chartTitle='Weekly Revenue — Last 12 Weeks';
     buildChart(weekly.map(d=>({
       label: fmtWeekLabel(d.week_start),
@@ -1800,7 +1800,7 @@ function renderAnalytics(range, stats) {
   setText('chartTitle', chartTitle);
   setText('kpi-rev-lbl', lRev); setText('kpi-tx-lbl', lTx); setText('kpi-login-lbl', lLog);
   setText('kpi-rev',  m(rev)); setText('kpi-tx', tx.toLocaleString()); setText('kpi-login', log?log.toLocaleString():'—');
-  setText('kpi-plan-sub', `Basic: ${plans.basic||0} · Pro: ${plans.pro||0}`);
+  setText('kpi-plan-sub', `Bronze: ${plans.bronze||0} · Silver: ${plans.silver||0}`);
   renderRecordsView(range, stats, m, daily, weekly);
 }
 

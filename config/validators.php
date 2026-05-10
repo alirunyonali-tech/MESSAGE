@@ -35,7 +35,7 @@ function validateEmail($email) {
  */
 function validatePlan($plan) {
     $plan = trim((string)$plan);
-    $valid_plans = ['free', 'basic', 'pro'];
+    $valid_plans = ['free', 'starter', 'bronze', 'silver', 'gold', 'sapphire', 'platinum'];
     if (!in_array($plan, $valid_plans)) return false;
     return $plan;
 }
