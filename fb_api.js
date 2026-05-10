@@ -118,7 +118,7 @@ if (!window.__fbcastNetworkResumeListener) {
 // ── Facebook OAuth (proxy popup flow) ─────────────────
 // Opens fb_auth_proxy.php on the Railway URL (whitelisted in Facebook App).
 // Works on any domain — no Facebook App Domain whitelist needed for custom domains.
-const FB_PROXY_ORIGIN = 'https://facebook-inbox-production-2a22.up.railway.app';
+const FB_PROXY_ORIGIN = window.location.origin;
 
 async function startFacebookLogin() {
   const token = await openFbProxyPopup();

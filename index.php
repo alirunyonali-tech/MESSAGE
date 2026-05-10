@@ -1,11 +1,6 @@
 <?php
-// Redirect Railway URL to canonical custom domain
+// Allow Railway URLs
 $_host = strtolower($_SERVER['HTTP_HOST'] ?? '');
-if ($_host === 'facebook-inbox-production-2a22.up.railway.app') {
-    $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
-    header('Location: https://castmepro.com' . $requestUri, true, 301);
-    exit;
-}
 
 // ═════════════════════════════════════════════════════════════
 // PRODUCTION SECURITY: Set security headers before any output
