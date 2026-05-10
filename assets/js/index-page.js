@@ -47,6 +47,14 @@ async function loadHomeDashboard(force = false) {
 
   const user = JSON.parse(localStorage.getItem('fbcast_user') || '{}');
   const quota = getQuota();
+
+  // Update Plan Badge in Topbar
+  const planBadge = document.getElementById('planBadge');
+  if (planBadge) {
+    planBadge.textContent = quota.planName.toUpperCase();
+    planBadge.className = `badge b-${quota.planName.toLowerCase()}`;
+  }
+
   const pages = JSON.parse(localStorage.getItem('fb_pages') || '[]');
   const history = JSON.parse(localStorage.getItem(CAMPAIGN_HISTORY_KEY) || '[]');
 
@@ -368,7 +376,17 @@ function loadSettingsView() {
   if (fbIdEl) fbIdEl.value = user.fb_user_id || '-';
 
   const planName = document.getElementById('set-plan-name');
-  if (planName) planName.textContent = quota.planName.toUpperCase();
+  if (planName) {
+    let planInfo = quota.planName.toUpperCase();
+    // Use user.subscription_expires if available (from backend usually)
+    if (user.subscription_expires) {
+      const expiry = new Date(user.subscription_expires);
+      if (!isNaN(expiry.getTime())) {
+        planInfo += ` <span style="font-size:12px; font-weight:500; opacity:0.7; margin-left:10px;">(Expires: ${expiry.toLocaleDateString()})</span>`;
+      }
+    }
+    planName.innerHTML = planInfo;
+  }
 
   const quotaStat = document.getElementById('set-quota-stat');
   if (quotaStat) quotaStat.textContent = `${quota.messagesUsed.toLocaleString()} / ${quota.messageLimit.toLocaleString()}`;
