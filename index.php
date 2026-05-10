@@ -920,20 +920,6 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
         </div>
       </div>
 
-      <!-- Notification Panel (Fixed Position) -->
-      <div id="notifPanel" style="position: fixed; top: 70px; right: 20px; width: 320px; max-height: 400px; display: none; flex-direction: column; z-index: 9999; padding: 0; overflow: hidden; background: rgba(20, 25, 40, 0.98); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; box-shadow: 0 15px 50px rgba(0,0,0,0.7);">
-         <div style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
-            <strong style="font-size: 14px; color: #f1f5f9;">Notifications</strong>
-            <span style="font-size: 11px; color: #60a5fa; cursor: pointer; font-weight: 600;" onclick="clearNotifs(); document.getElementById('notifPanel').style.display='none';">Mark all as read</span>
-         </div>
-         <div id="notifList" style="overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; color: #e2e8f0;">
-            <div style="padding: 30px 20px; text-align: center; color: #94a3b8; font-size: 12px;">
-               <i class="fa-solid fa-bell-slash" style="font-size: 24px; margin-bottom: 10px; opacity: 0.5; display: block;"></i>
-               No new notifications.
-            </div>
-         </div>
-      </div>
-
       <div class="topbar-status">
         <!-- Notifications -->
         <div class="topbar-notif-wrap" style="position: relative; margin-right: 15px;">
@@ -1662,6 +1648,19 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
 </div><!-- /app-main-content -->
 </div><!-- /appPage -->
 
+<!-- Notification Panel (Outside appPage, fixed position) -->
+<div id="notifPanel" style="position: fixed; top: 70px; right: 20px; width: 320px; max-height: 400px; display: none; flex-direction: column; z-index: 99999; padding: 0; overflow: hidden; background: rgba(20, 25, 40, 0.98); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; box-shadow: 0 15px 50px rgba(0,0,0,0.7);">
+   <div style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
+      <strong style="font-size: 14px; color: #f1f5f9;">Notifications</strong>
+      <span style="font-size: 11px; color: #60a5fa; cursor: pointer; font-weight: 600;" onclick="clearNotifs(); document.getElementById('notifPanel').style.display='none';">Mark all as read</span>
+   </div>
+   <div id="notifList" style="overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; color: #e2e8f0;">
+      <div style="padding: 30px 20px; text-align: center; color: #94a3b8; font-size: 12px;">
+         <i class="fa-solid fa-bell-slash" style="font-size: 24px; margin-bottom: 10px; opacity: 0.5; display: block;"></i>
+         No new notifications.
+      </div>
+   </div>
+</div>
 
 <!-- ═══ UPGRADE MODAL ═══ -->
 <div class="overlay" id="upgradeModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="upgradeModalTitle" aria-hidden="true">
