@@ -53,15 +53,15 @@ if ($configLoaded) {
     // 5. Stripe
     $sk = defined('STRIPE_SECRET_KEY') ? STRIPE_SECRET_KEY : '';
     $pk = defined('STRIPE_PUBLISHABLE_KEY') ? STRIPE_PUBLISHABLE_KEY : '';
-    $bprice = defined('STRIPE_PLANS') ? STRIPE_PLANS['basic']['price_id'] : '';
-    $pprice = defined('STRIPE_PLANS') ? STRIPE_PLANS['pro']['price_id']   : '';
-    $uprice = defined('STRIPE_PLANS') ? (STRIPE_PLANS['unlimited']['price_id'] ?? '') : '';
+    $bprice = defined('STRIPE_PLANS') ? (STRIPE_PLANS['bronze']['price_id'] ?? '') : '';
+    $pprice = defined('STRIPE_PLANS') ? (STRIPE_PLANS['silver']['price_id'] ?? '')   : '';
+    $uprice = defined('STRIPE_PLANS') ? (STRIPE_PLANS['platinum']['price_id'] ?? '') : '';
 
     $checks['STRIPE_SECRET_KEY']      = ['value' => $sk ? substr($sk,0,10).'...' : 'NOT SET', 'ok' => $sk && strpos($sk,'YOUR') === false && strpos($sk,'_HERE') === false];
     $checks['STRIPE_PUBLISHABLE_KEY'] = ['value' => $pk ? substr($pk,0,10).'...' : 'NOT SET', 'ok' => $pk && strpos($pk,'YOUR') === false && strpos($pk,'_HERE') === false];
-    $checks['STRIPE_BASIC_PRICE_ID']  = ['value' => $bprice ?: 'NOT SET', 'ok' => $bprice && strpos($bprice,'YOUR') === false && strpos($bprice,'PLACEHOLDER') === false && strpos($bprice,'_HERE') === false];
-    $checks['STRIPE_PRO_PRICE_ID']    = ['value' => $pprice ?: 'NOT SET', 'ok' => $pprice && strpos($pprice,'YOUR') === false && strpos($pprice,'PLACEHOLDER') === false && strpos($pprice,'_HERE') === false];
-    $checks['STRIPE_UNLIMITED_PRICE_ID'] = ['value' => $uprice ?: 'NOT SET', 'ok' => $uprice && strpos($uprice,'YOUR') === false && strpos($uprice,'PLACEHOLDER') === false && strpos($uprice,'_HERE') === false];
+    $checks['STRIPE_BRONZE_PRICE_ID']  = ['value' => $bprice ?: 'NOT SET', 'ok' => $bprice && strpos($bprice,'YOUR') === false && strpos($bprice,'PLACEHOLDER') === false && strpos($bprice,'_HERE') === false];
+    $checks['STRIPE_SILVER_PRICE_ID']    = ['value' => $pprice ?: 'NOT SET', 'ok' => $pprice && strpos($pprice,'YOUR') === false && strpos($pprice,'PLACEHOLDER') === false && strpos($pprice,'_HERE') === false];
+    $checks['STRIPE_PLATINUM_PRICE_ID'] = ['value' => $uprice ?: 'NOT SET', 'ok' => $uprice && strpos($uprice,'YOUR') === false && strpos($uprice,'PLACEHOLDER') === false && strpos($uprice,'_HERE') === false];
 
     // 6. FB Config
     $checks['FB_APP_ID']     = ['value' => defined('FB_APP_ID')     && FB_APP_ID     ? FB_APP_ID     : 'NOT SET', 'ok' => defined('FB_APP_ID') && FB_APP_ID !== ''];

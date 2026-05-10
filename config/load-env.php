@@ -159,25 +159,25 @@ define('STRIPE_PLANS', [
         'interval'  => 'month',
         'limit'     => 30000,
         'name'      => 'Starter',
-        'db_plan'   => 'basic'
+        'db_plan'   => 'starter'
     ],
-    'basic' => [
+    'bronze' => [
         'price_id'  => env_value('STRIPE_BASIC_PRICE_ID', ''),
         'amount'    => 1500,  // $15.00
         'currency'  => 'usd',
         'interval'  => 'month',
         'limit'     => 300000,
         'name'      => 'Bronze',
-        'db_plan'   => 'basic'
+        'db_plan'   => 'bronze'
     ],
-    'pro' => [
+    'silver' => [
         'price_id'  => env_value('STRIPE_PRO_PRICE_ID', ''),
         'amount'    => 3000,  // $30.00
         'currency'  => 'usd',
         'interval'  => 'month',
         'limit'     => 650000,
         'name'      => 'Silver',
-        'db_plan'   => 'pro'
+        'db_plan'   => 'silver'
     ],
     'gold' => [
         'price_id'  => env_value('STRIPE_GOLD_PRICE_ID', ''),
@@ -186,7 +186,7 @@ define('STRIPE_PLANS', [
         'interval'  => 'month',
         'limit'     => 1750000,
         'name'      => 'Gold',
-        'db_plan'   => 'pro'
+        'db_plan'   => 'gold'
     ],
     'sapphire' => [
         'price_id'  => env_value('STRIPE_SAPPHIRE_PRICE_ID', ''),
@@ -195,16 +195,16 @@ define('STRIPE_PLANS', [
         'interval'  => 'month',
         'limit'     => 4000000,
         'name'      => 'Sapphire',
-        'db_plan'   => 'pro'
+        'db_plan'   => 'sapphire'
     ],
-    'pro_unlimited' => [
+    'platinum' => [
         'price_id'  => env_value('STRIPE_PRO_UNLIMITED_PRICE_ID', ''),
         'amount'    => 15000, // $150.00
         'currency'  => 'usd',
         'interval'  => 'month',
         'limit'     => 7000000,
         'name'      => 'Platinum',
-        'db_plan'   => 'pro'
+        'db_plan'   => 'platinum'
     ]
 ]);
 

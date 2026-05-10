@@ -175,7 +175,7 @@ function processStripeEvent(PDO $db, array $event): void {
 
             activatePlan($db, $resolvedFbId, $plan, $subId, $email);
             try {
-                $dbPlan = STRIPE_PLANS[$plan]['db_plan'] ?? 'basic';
+                $dbPlan = STRIPE_PLANS[$plan]['db_plan'] ?? 'bronze';
                 $db->prepare(
                     "INSERT IGNORE INTO payment_history
                      (fb_user_id, stripe_invoice_id, plan, amount_cents, status, billing_reason)
@@ -212,7 +212,7 @@ function processStripeEvent(PDO $db, array $event): void {
                             : 'DATE_ADD(NOW(), INTERVAL 1 MONTH)';
                         $amountPaid = (int)($invoice['amount_paid'] ?? 0);
                         $invoiceId = trim((string)($invoice['id'] ?? ''));
-                        $dbPlan = STRIPE_PLANS[$plan]['db_plan'] ?? 'basic';
+                        $dbPlan = STRIPE_PLANS[$plan]['db_plan'] ?? 'bronze';
 
                         $db->prepare(
                             "UPDATE users SET messages_used = 0, messages_limit = ?,
@@ -288,7 +288,7 @@ function ensureWebhookTables(PDO $db): void {
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             fb_user_id VARCHAR(50) NOT NULL,
             stripe_invoice_id VARCHAR(255) NOT NULL DEFAULT '',
-            plan ENUM('free','basic','pro','unknown') NOT NULL DEFAULT 'unknown',
+            plan ENUM('free','starter','bronze','silver','gold','sapphire','platinum','basic','pro','unknown') NOT NULL DEFAULT 'unknown',
             amount_cents INT UNSIGNED NOT NULL DEFAULT 0,
             status ENUM('succeeded','failed','pending') NOT NULL DEFAULT 'pending',
             billing_reason VARCHAR(80) NOT NULL DEFAULT '',

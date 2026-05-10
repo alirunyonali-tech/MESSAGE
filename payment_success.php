@@ -93,7 +93,7 @@ if ($fbUserId === '' || $plan === '' || !isset(STRIPE_PLANS[$plan])) {
 
 // Update user in DB
 $planData  = STRIPE_PLANS[$plan];
-$dbPlan    = $planData['db_plan'] ?? 'basic'; // mapped ENUM value (free/basic/pro)
+$dbPlan    = $planData['db_plan'] ?? 'bronze'; // mapped ENUM value (free/starter/bronze/silver/gold/sapphire/platinum)
 $msgLimit  = (int)$planData['limit'];
 $interval  = strtolower((string)($planData['interval'] ?? 'month'));
 $expiresSql = $interval === 'year'

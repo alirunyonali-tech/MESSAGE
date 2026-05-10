@@ -235,22 +235,22 @@ if ($action === 'stats') {
         $monthBasicTx=$monthProTx=$todayBasicTx=$todayProTx=$totalBasicTx=$totalProTx=0;
         $dailyRevenue = []; $paidEvents = [];
 
-        $starterCents    = (int)(STRIPE_PLANS['starter']['amount']       ?? 500);
-        $basicCents      = (int)(STRIPE_PLANS['basic']['amount']         ?? 1500);
-        $proCents        = (int)(STRIPE_PLANS['pro']['amount']           ?? 3000);
-        $goldCents       = (int)(STRIPE_PLANS['gold']['amount']          ?? 6000);
-        $sapphireCents   = (int)(STRIPE_PLANS['sapphire']['amount']      ?? 10000);
-        $platinumCents   = (int)(STRIPE_PLANS['pro_unlimited']['amount'] ?? 15000);
+        $starterCents    = (int)(STRIPE_PLANS['starter']['amount']    ?? 500);
+        $bronzeCents     = (int)(STRIPE_PLANS['bronze']['amount']      ?? 1500);
+        $silverCents     = (int)(STRIPE_PLANS['silver']['amount']      ?? 3000);
+        $goldCents       = (int)(STRIPE_PLANS['gold']['amount']       ?? 6000);
+        $sapphireCents   = (int)(STRIPE_PLANS['sapphire']['amount']   ?? 10000);
+        $platinumCents   = (int)(STRIPE_PLANS['platinum']['amount']    ?? 15000);
 
         $detailLc        = "LOWER(COALESCE(detail,''))";
         $isStarter   = "($detailLc LIKE '%starter%')";
-        $isBasic     = "($detailLc LIKE '%bronze%' OR ($detailLc LIKE '%basic%' AND $detailLc NOT LIKE '%starter%' AND $detailLc NOT LIKE '%pro%' AND $detailLc NOT LIKE '%gold%' AND $detailLc NOT LIKE '%sapphire%' AND $detailLc NOT LIKE '%platinum%'))";
+        $isBronze   = "($detailLc LIKE '%bronze%' OR ($detailLc LIKE '%basic%' AND $detailLc NOT LIKE '%starter%' AND $detailLc NOT LIKE '%silver%' AND $detailLc NOT LIKE '%gold%' AND $detailLc NOT LIKE '%sapphire%' AND $detailLc NOT LIKE '%platinum%'))";
+        $isSilver   = "($detailLc LIKE '%silver%' OR ($detailLc LIKE '%pro%' AND $detailLc NOT LIKE '%gold%' AND $detailLc NOT LIKE '%sapphire%' AND $detailLc NOT LIKE '%platinum%' AND $detailLc NOT LIKE '%basic%'))";
         $isGold      = "($detailLc LIKE '%gold%')";
         $isSapphire  = "($detailLc LIKE '%sapphire%')";
-        $isPlatinum  = "($detailLc LIKE '%pro_unlimited%' OR $detailLc LIKE '%platinum%')";
-        $isPro       = "($detailLc LIKE '%silver%' OR ($detailLc LIKE '%pro%' AND $detailLc NOT LIKE '%pro_unlimited%' AND $detailLc NOT LIKE '%platinum%' AND $detailLc NOT LIKE '%gold%' AND $detailLc NOT LIKE '%sapphire%'))";
+        $isPlatinum  = "($detailLc LIKE '%platinum%')";
         $paidAction  = "action IN ('payment','renewal','subscription')";
-        $isPaidPlan  = "($isStarter OR $isBasic OR $isPro OR $isGold OR $isSapphire OR $isPlatinum)";
+        $isPaidPlan  = "($isStarter OR $isBronze OR $isSilver OR $isGold OR $isSapphire OR $isPlatinum)";
         $validPaid   = "($paidAction AND $isPaidPlan AND $detailLc NOT LIKE '%cancelled%')";
 
         // SQL case to extract actual amount from payment_history if available, fallback to fixed mapping
@@ -277,7 +277,7 @@ if ($action === 'stats') {
 
         $finalRevCase = "COALESCE($revCase, $revCaseFallback)";
 
-        $planCase    = "CASE WHEN $isPlatinum THEN 'pro_unlimited' WHEN $isSapphire THEN 'sapphire' WHEN $isGold THEN 'gold' WHEN $isPro THEN 'pro' WHEN $isBasic THEN 'basic' WHEN $isStarter THEN 'starter' ELSE 'unknown' END";
+        $planCase    = "CASE WHEN $isPlatinum THEN 'platinum' WHEN $isSapphire THEN 'sapphire' WHEN $isGold THEN 'gold' WHEN $isSilver THEN 'silver' WHEN $isBronze THEN 'bronze' WHEN $isStarter THEN 'starter' ELSE 'unknown' END";
 
         try {
             $sql = "SELECT
@@ -290,32 +290,32 @@ if ($action === 'stats') {
               SUM(CASE WHEN $validPaid THEN 1 ELSE 0 END) AS total_transactions,
               SUM(CASE WHEN $validPaid AND DATE(created_at)=CURDATE() THEN 1 ELSE 0 END) AS today_transactions,
               SUM(CASE WHEN $validPaid AND YEAR(created_at)=YEAR(CURDATE()) AND MONTH(created_at)=MONTH(CURDATE()) THEN 1 ELSE 0 END) AS month_transactions,
-              SUM(CASE WHEN $validPaid AND $isBasic THEN 1 ELSE 0 END) AS total_basic_tx,
-              SUM(CASE WHEN $validPaid AND $isPro THEN 1 ELSE 0 END) AS total_pro_tx,
-              SUM(CASE WHEN $validPaid AND DATE(created_at)=CURDATE() AND $isBasic THEN 1 ELSE 0 END) AS today_basic_tx,
-              SUM(CASE WHEN $validPaid AND DATE(created_at)=CURDATE() AND $isPro THEN 1 ELSE 0 END) AS today_pro_tx,
-              SUM(CASE WHEN $validPaid AND YEAR(created_at)=YEAR(CURDATE()) AND MONTH(created_at)=MONTH(CURDATE()) AND $isBasic THEN 1 ELSE 0 END) AS month_basic_tx,
-              SUM(CASE WHEN $validPaid AND YEAR(created_at)=YEAR(CURDATE()) AND MONTH(created_at)=MONTH(CURDATE()) AND $isPro THEN 1 ELSE 0 END) AS month_pro_tx
+              SUM(CASE WHEN $validPaid AND $isBronze THEN 1 ELSE 0 END) AS total_bronze_tx,
+              SUM(CASE WHEN $validPaid AND $isSilver THEN 1 ELSE 0 END) AS total_silver_tx,
+              SUM(CASE WHEN $validPaid AND DATE(created_at)=CURDATE() AND $isBronze THEN 1 ELSE 0 END) AS today_bronze_tx,
+              SUM(CASE WHEN $validPaid AND DATE(created_at)=CURDATE() AND $isSilver THEN 1 ELSE 0 END) AS today_silver_tx,
+              SUM(CASE WHEN $validPaid AND YEAR(created_at)=YEAR(CURDATE()) AND MONTH(created_at)=MONTH(CURDATE()) AND $isBronze THEN 1 ELSE 0 END) AS month_bronze_tx,
+              SUM(CASE WHEN $validPaid AND YEAR(created_at)=YEAR(CURDATE()) AND MONTH(created_at)=MONTH(CURDATE()) AND $isSilver THEN 1 ELSE 0 END) AS month_silver_tx
             FROM activity_log";
             $a = $db->query($sql)->fetch(PDO::FETCH_ASSOC) ?: [];
             $totalLogins=$a['total_logins']??0; $todayLogins=$a['today_logins']??$todayLogins; $monthLogins=$a['month_logins']??0;
             $totalRevenueCents=$a['total_revenue_cents']??0; $todayRevenueCents=$a['today_revenue_cents']??0; $monthRevenueCents=$a['month_revenue_cents']??0;
             $totalTransactions=$a['total_transactions']??0; $todayTransactions=$a['today_transactions']??0; $monthTransactions=$a['month_transactions']??0;
-            $totalBasicTx=$a['total_basic_tx']??0; $totalProTx=$a['total_pro_tx']??0;
-            $todayBasicTx=$a['today_basic_tx']??0; $todayProTx=$a['today_pro_tx']??0;
-            $monthBasicTx=$a['month_basic_tx']??0; $monthProTx=$a['month_pro_tx']??0;
+            $totalBasicTx=$a['total_bronze_tx']??0; $totalProTx=$a['total_silver_tx']??0;
+            $todayBasicTx=$a['today_bronze_tx']??0; $todayProTx=$a['today_silver_tx']??0;
+            $monthBasicTx=$a['month_bronze_tx']??0; $monthProTx=$a['month_silver_tx']??0;
         } catch (Exception $e) {}
 
         try {
             $rows = $db->query("SELECT DATE(created_at) AS day, SUM($finalRevCase) AS revenue_cents,
               SUM(CASE WHEN $isPaidPlan THEN 1 ELSE 0 END) AS transactions,
-              SUM(CASE WHEN $isBasic THEN 1 ELSE 0 END) AS basic_tx,
-              SUM(CASE WHEN $isPro THEN 1 ELSE 0 END) AS pro_tx
+              SUM(CASE WHEN $isBronze THEN 1 ELSE 0 END) AS bronze_tx,
+              SUM(CASE WHEN $isSilver THEN 1 ELSE 0 END) AS silver_tx
             FROM activity_log WHERE $paidAction AND $detailLc NOT LIKE '%cancelled%'
               AND created_at >= DATE_SUB(CURDATE(), INTERVAL 29 DAY)
             GROUP BY DATE(created_at) ORDER BY day ASC")->fetchAll(PDO::FETCH_ASSOC) ?: [];
             foreach ($rows as $r) {
-                $dailyRevenue[] = ['day'=>$r['day'],'revenue'=>round((int)($r['revenue_cents']??0)/100,2),'transactions'=>(int)($r['transactions']??0),'basic'=>(int)($r['basic_tx']??0),'pro'=>(int)($r['pro_tx']??0)];
+                $dailyRevenue[] = ['day'=>$r['day'],'revenue'=>round((int)($r['revenue_cents']??0)/100,2),'transactions'=>(int)($r['transactions']??0),'bronze'=>(int)($r['bronze_tx']??0),'silver'=>(int)($r['silver_tx']??0)];
             }
         } catch (Exception $e) {}
 
@@ -397,10 +397,10 @@ if ($action === 'stats') {
             'total_transactions'=>(int)$totalTransactions,
             'week7_revenue'=>round($week7RevenueCents/100,2),'week7_transactions'=>$week7Transactions,
             'week7_logins'=>$week7Logins,
-            'plan_breakdown_today'=>['basic'=>(int)$todayBasicTx,'pro'=>(int)$todayProTx],
-            'plan_breakdown_week7'=>['basic'=>$week7BasicTx,'pro'=>$week7ProTx],
-            'plan_breakdown_month'=>['basic'=>(int)$monthBasicTx,'pro'=>(int)$monthProTx],
-            'plan_breakdown_total'=>['basic'=>(int)$totalBasicTx,'pro'=>(int)$totalProTx],
+            'plan_breakdown_today'=>['bronze'=>(int)$todayBasicTx,'silver'=>(int)$todayProTx],
+            'plan_breakdown_week7'=>['bronze'=>$week7BasicTx,'silver'=>$week7ProTx],
+            'plan_breakdown_month'=>['bronze'=>(int)$monthBasicTx,'silver'=>(int)$monthProTx],
+            'plan_breakdown_total'=>['bronze'=>(int)$totalBasicTx,'silver'=>(int)$totalProTx],
             'daily_revenue'=>$dailyRevenue,'weekly_revenue'=>$weeklyRevenue,'monthly_revenue'=>$monthlyRevenue,
             'paid_events'=>$paidEvents,
             'all_users_plans'=>$allUsersPlans,
@@ -504,7 +504,7 @@ if ($action === 'bulk_update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $placeholders = implode(',',array_fill(0,count($ids),'?'));
     $updated = 0;
     try {
-        if ($plan && in_array($plan,['free','starter','basic','pro'])) {
+        if ($plan && in_array($plan,['free','starter','bronze','silver','gold','sapphire','platinum'])) {
             $vals = array_values($ids);
             $stmt = $db->prepare("UPDATE users SET $planCol=? WHERE fb_user_id IN ($placeholders)");
             $stmt->execute(array_merge([$plan],$vals));
@@ -534,7 +534,7 @@ if ($action === 'update_user' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $limit = isset($body['messageLimit']) ? (int)$body['messageLimit'] : (isset($body['messages_limit']) ? (int)$body['messages_limit'] : null);
     if (!$fbId) jsonOut(['error'=>'Invalid or missing fb_user_id'],400);
     $sets=[]; $vals=[];
-    if ($plan && in_array($plan,['free','starter','basic','pro'])) { $sets[]="$planCol = ?"; $vals[]=$plan; }
+    if ($plan && in_array($plan,['free','starter','bronze','silver','gold','sapphire','platinum','basic','pro'])) { $sets[]="$planCol = ?"; $vals[]=$plan; }
     if ($limit!==null && $limit>=0) { $sets[]="$limitCol = ?"; $vals[]=$limit; }
     if (isset($body['messagesUsed'])||isset($body['messages_used'])) { $sets[]="$usedCol = ?"; $vals[]=max(0,(int)($body['messagesUsed']??$body['messages_used'])); }
     if (isset($body['subscription_expires'])) { $sets[]='subscription_expires = ?'; $vals[]=$body['subscription_expires']?:null; }
@@ -657,7 +657,7 @@ if ($action === 'grant_unlimited' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $body=json_decode(get_raw_input(),true)?:[];
     $fbId=validateFbId($body['fb_user_id']??'');
     if (!$fbId) jsonOut(['error'=>'Invalid fb_user_id'],400);
-    $db->prepare("UPDATE users SET $planCol='pro',$limitCol=999999999,$usedCol=0 WHERE fb_user_id=?")->execute([$fbId]);
+    $db->prepare("UPDATE users SET $planCol='platinum',$limitCol=999999999,$usedCol=0 WHERE fb_user_id=?")->execute([$fbId]);
     jsonOut(['success'=>true]);
 }
 
@@ -894,9 +894,12 @@ input[type=checkbox]{width:14px;height:14px;accent-color:var(--blue);cursor:poin
 /* ─── PLAN BADGES ─── */
 .badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
 .b-free{background:rgba(107,114,128,.15);color:#9ca3af;border:1px solid rgba(107,114,128,.2)}
-.b-basic{background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.22)}
-.b-pro{background:rgba(124,58,237,.12);color:#a78bfa;border:1px solid rgba(124,58,237,.22)}
-.b-agency{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.22)}
+.b-starter{background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.22)}
+.b-bronze{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.22)}
+.b-silver{background:rgba(148,163,184,.12);color:#94a3b8;border:1px solid rgba(148,163,184,.22)}
+.b-gold{background:rgba(234,179,8,.12);color:#eab308;border:1px solid rgba(234,179,8,.22)}
+.b-sapphire{background:rgba(59,130,246,.12);color:#3b82f6;border:1px solid rgba(59,130,246,.22)}
+.b-platinum{background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(79,70,229,.15));color:#a78bfa;border:1px solid rgba(124,58,237,.25)}
 
 /* ─── QUOTA BAR ─── */
 .quota-bar-wrap{width:90px}
@@ -1431,8 +1434,8 @@ document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==
       <select id="editPlan">
         <option value="free">Free</option>
         <option value="starter">Starter ($5/mo)</option>
-        <option value="basic">Bronze ($15/mo)</option>
-        <option value="pro">Silver ($30/mo)</option>
+        <option value="bronze">Bronze ($15/mo)</option>
+        <option value="silver">Silver ($30/mo)</option>
         <option value="gold">Gold ($60/mo)</option>
         <option value="sapphire">Sapphire ($100/mo)</option>
         <option value="platinum">Platinum ($150/mo)</option>
@@ -1563,7 +1566,17 @@ async function loadDashboard() {
 function getPct(u) { return u.messages_limit>0 ? Math.round((u.messages_used/u.messages_limit)*100) : 0; }
 function planLabel(plan, limit) {
   limit = parseInt(limit) || 0;
-  if (plan === 'free')  return 'FREE';
+  plan = (plan || 'free').toLowerCase();
+  
+  if (plan === 'free') return 'FREE';
+  if (plan === 'starter') return 'STARTER';
+  if (plan === 'bronze') return 'BRONZE';
+  if (plan === 'silver') return 'SILVER';
+  if (plan === 'gold') return 'GOLD';
+  if (plan === 'sapphire') return 'SAPPHIRE';
+  if (plan === 'platinum') return 'PLATINUM';
+
+  // Legacy fallback
   if (plan === 'basic') {
     if (limit <= 30000)  return 'STARTER';
     return 'BRONZE';
@@ -1574,12 +1587,20 @@ function planLabel(plan, limit) {
     if (limit >= 1750000) return 'GOLD';
     return 'SILVER';
   }
-  return (plan || 'free').toUpperCase();
+  return plan.toUpperCase();
 }
 function planClass(plan, limit) {
   const lbl = planLabel(plan, limit).toLowerCase();
-  const map = {free:'free', starter:'basic', bronze:'basic', silver:'pro', gold:'pro', sapphire:'pro', platinum:'pro'};
-  return map[lbl] || plan || 'free';
+  const map = {
+    free:'free', 
+    starter:'starter', 
+    bronze:'bronze', 
+    silver:'silver', 
+    gold:'gold', 
+    sapphire:'sapphire', 
+    platinum:'platinum'
+  };
+  return map[lbl] || 'free';
 }
 
 /* ─── SETTINGS ─── */
@@ -2125,7 +2146,7 @@ async function bulkAction(type) {
     const d = await api('bulk_update','POST',{ids,reset_quota:true});
     if(d.success) { showToast(`Reset ${d.count} user(s)`); clearSelection(); loadUsers(currentUserPage); } return;
   }
-  const planMap = {starter:'starter',basic:'basic',pro:'pro',free:'free'};
+  const planMap = {starter:'starter',bronze:'bronze',silver:'silver',gold:'gold',sapphire:'sapphire',platinum:'platinum',free:'free'};
   if (planMap[type]) {
     const d = await api('bulk_update','POST',{ids,plan:planMap[type]});
     if(d.success) { showToast(`Updated ${d.count} user(s) to ${planMap[type]}`); clearSelection(); statsCache=null; loadUsers(currentUserPage); }

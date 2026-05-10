@@ -1314,18 +1314,25 @@ function consumeQuota(count){
 function getPlanLabel(plan, limit) {
   limit = parseInt(limit) || 0;
   plan = (plan || 'free').toLowerCase();
+  
   if (plan === 'free') return 'Free';
   if (plan === 'starter') return 'Starter';
-  if (plan === 'basic') {
+  if (plan === 'bronze') return 'Bronze';
+  if (plan === 'silver') return 'Silver';
+  if (plan === 'gold') return 'Gold';
+  if (plan === 'sapphire') return 'Sapphire';
+  if (plan === 'platinum') return 'Platinum';
+
+  // Fallback based on limits if plan is generic 'basic' or 'pro'
+  if (plan === 'basic' || plan === 'pro') {
     if (limit <= 30000) return 'Starter';
-    return 'Bronze';
+    if (limit <= 300000) return 'Bronze';
+    if (limit <= 650000) return 'Silver';
+    if (limit <= 1750000) return 'Gold';
+    if (limit <= 4000000) return 'Sapphire';
+    return 'Platinum';
   }
-  if (plan === 'pro') {
-    if (limit >= 7000000) return 'Platinum';
-    if (limit >= 4000000) return 'Sapphire';
-    if (limit >= 1750000) return 'Gold';
-    return 'Silver';
-  }
+  
   return plan.charAt(0).toUpperCase() + plan.slice(1);
 }
 
@@ -1359,22 +1366,25 @@ function updateQuotaUI(){
 
   if(badgeEl){
     let icon = 'fa-gem';
-    if (['pro','silver','gold','sapphire','platinum'].includes(planKey)) icon = 'fa-crown';
-    else if (planKey === 'basic' || planKey === 'bronze') icon = 'fa-layer-group';
-    else if (planKey === 'starter') icon = 'fa-bolt';
+    let style = 'background:rgba(255,255,255,.06);color:var(--text2);border-color:rgba(255,255,255,.12)';
+
+    const styles = {
+      starter: { icon: 'fa-bolt', css: 'background:rgba(16,185,129,.15);color:#10b981;border-color:rgba(16,185,129,.2)' },
+      bronze: { icon: 'fa-layer-group', css: 'background:rgba(245,158,11,.15);color:#f59e0b;border-color:rgba(245,158,11,.2)' },
+      silver: { icon: 'fa-medal', css: 'background:rgba(148,163,184,.15);color:#94a3b8;border-color:rgba(148,163,184,.2)' },
+      gold: { icon: 'fa-crown', css: 'background:rgba(234,179,8,.15);color:#eab308;border-color:rgba(234,179,8,.2)' },
+      sapphire: { icon: 'fa-gem', css: 'background:rgba(59,130,246,.15);color:#3b82f6;border-color:rgba(59,130,246,.2)' },
+      platinum: { icon: 'fa-wand-magic-sparkles', css: 'background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(79,70,229,.2));color:#a78bfa;border-color:rgba(124,58,237,.3)' }
+    };
+
+    if (styles[planKey]) {
+      icon = styles[planKey].icon;
+      style = styles[planKey].css;
+    }
 
     badgeEl.setAttribute('data-plan', planKey);
     badgeEl.innerHTML=`<i class="fa-solid ${icon}" aria-hidden="true"></i><span>${label.toUpperCase()}</span>`;
-    
-    if (['pro','silver','gold','sapphire','platinum'].includes(planKey)) {
-      badgeEl.style.cssText='background:linear-gradient(135deg,rgba(79,70,229,.3),rgba(24,119,242,.2));color:#818cf8;border-color:rgba(79,70,229,.3)';
-    } else if (planKey === 'basic' || planKey === 'bronze') {
-      badgeEl.style.cssText='background:rgba(24,119,242,.15);color:#60a5fa;border-color:rgba(24,119,242,.2)';
-    } else if (planKey === 'starter') {
-      badgeEl.style.cssText='background:rgba(16,185,129,.15);color:#10b981;border-color:rgba(16,185,129,.2)';
-    } else {
-      badgeEl.style.cssText='background:rgba(255,255,255,.06);color:var(--text2);border-color:rgba(255,255,255,.12)';
-    }
+    badgeEl.style.cssText = style;
   }
   if(emptyEl)emptyEl.style.display=rem<=0?'flex':'none';
   if(widgetEl){

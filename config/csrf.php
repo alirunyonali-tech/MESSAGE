@@ -97,6 +97,32 @@ function requireCsrfToken() {
         return; // Only check POST requests
     }
 
+    $stored_token = $_SESSION['csrf_token'] ?? '';
+
+    if (empty($stored_token)) {
+        // Session exists but no CSRF token - generate one and ask client to retry
+        logger('warn', 'CSRF token not in session - generating new token', [
+            'ip' => $_SERVER['REMOTE_ADDR'],
+            'endpoint' => $_SERVER['REQUEST_URI'],
+            'session_id' => session_id()
+        ]);
+
+        // Generate a new token for future requests
+        if (function_exists('random_bytes')) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        } else {
+            $_SESSION['csrf_token'] = bin2hex(openssl_random_pseudo_bytes(32));
+        }
+
+        http_response_code(403);
+        header('Content-Type: application/json');
+        die(json_encode([
+            'error' => 'CSRF token missing. Please refresh and try again.',
+            'code' => 'CSRF_MISSING',
+            'hint' => 'Refresh the page and try again. If the problem persists, enable cookies.'
+        ]));
+    }
+
     if (!verifyCsrfToken()) {
         http_response_code(403);
         header('Content-Type: application/json');
@@ -104,6 +130,9 @@ function requireCsrfToken() {
             'ip' => $_SERVER['REMOTE_ADDR'],
             'endpoint' => $_SERVER['REQUEST_URI']
         ]);
-        die(json_encode(['error' => 'CSRF token invalid or missing']));
+        die(json_encode([
+            'error' => 'CSRF token invalid. Please refresh the page and try again.',
+            'code' => 'CSRF_INVALID'
+        ]));
     }
 }
