@@ -37,6 +37,10 @@ $csrf_token       = '';
 $app_env          = 'development';
 $canonical_url    = '';
 
+$supportWhatsapp = '';
+$supportMessenger = '';
+$supportEmail = '';
+
 $config_file = __DIR__ . '/config/load-env.php';
 if (file_exists($config_file)) {
     try {
@@ -48,6 +52,24 @@ if (file_exists($config_file)) {
         $js_fb_redirect   = htmlspecialchars(defined('FB_REDIRECT_URI')        ? FB_REDIRECT_URI        : '', ENT_QUOTES, 'UTF-8');
         $csrf_token       = getCsrfToken();
         $app_env          = defined('APP_ENV') ? APP_ENV : 'development';
+
+        require_once 'db_config.php';
+        $db = getDB();
+        
+        function getSetting($db, $key, $default = '') {
+            try {
+                $stmt = $db->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
+                $stmt->execute([$key]);
+                $v = $stmt->fetchColumn();
+                return ($v !== false) ? $v : $default;
+            } catch (Exception $e) {
+                return $default;
+            }
+        }
+
+        $supportWhatsapp = getSetting($db, 'support_whatsapp', '');
+         $supportMessenger = getSetting($db, 'support_messenger', '');
+         $supportEmail = getSetting($db, 'support_email', '');
 
         $requestScheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $requestHost   = $_SERVER['HTTP_HOST'] ?? '';
@@ -813,13 +835,13 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
           <i class="fa-solid fa-up-down support-arrows"></i>
        </button>
        <div id="supportMenu" class="support-popup">
-          <a href="https://wa.me/YOUR_NUMBER" target="_blank" class="support-item">
+          <a href="https://wa.me/<?= htmlspecialchars($supportWhatsapp ?: 'YOUR_NUMBER') ?>" target="_blank" class="support-item">
              <i class="fa-brands fa-whatsapp"></i> Contact via WhatsApp
           </a>
-          <a href="https://m.me/YOUR_PAGE" target="_blank" class="support-item">
+          <a href="<?= htmlspecialchars($supportMessenger ?: 'https://m.me/YOUR_PAGE') ?>" target="_blank" class="support-item">
              <i class="fa-brands fa-facebook-messenger"></i> Contact via Messenger
           </a>
-          <a href="mailto:support@example.com" class="support-item">
+          <a href="mailto:<?= htmlspecialchars($supportEmail ?: 'support@example.com') ?>" class="support-item">
              <i class="fa-solid fa-envelope"></i> Contact via Email
           </a>
        </div>
@@ -836,7 +858,10 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       <div class="topbar-brand">
         <div class="topbar-mark"><img src="images/castpro2.png" alt="FBCast Pro" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;"></div>
         <div class="topbar-title">
-          <h1>FBCast Pro</h1>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h1>FBCast Pro</h1>
+            <span class="update-badge">UPDATE</span>
+          </div>
           <p>Facebook Broadcast Platform</p>
         </div>
       </div>
@@ -906,13 +931,13 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
 
         <!-- User avatar -->
         <div class="topbar-user-btn" id="topbarUserBtn" title="Logged in user">
-          <div class="topbar-avatar" id="topbarAvatar">?</div>
-          <span class="topbar-user-name" id="topbarUserName">Not connected</span>
+          <div class="topbar-avatar" id="topbarAvatar">MF</div>
+          <span class="topbar-user-name" id="topbarUserName">Muhammad</span>
         </div>
 
-        <div id="loginStatus">
+        <div id="loginStatus" class="status-pill">
           <span class="ls-dot"></span>
-          <span id="loginStatusText">Not connected</span>
+          <span id="loginStatusText">Connected</span>
         </div>
 
         <!-- THEME TOGGLE -->
@@ -934,35 +959,35 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
   <div id="networkBanner" class="network-banner" role="status" aria-live="polite" hidden></div>
 
   <!-- VIEWS -->
-  <div id="homeView" class="view-container active" style="padding: 24px; overflow-y: auto;">
-    <div class="home-hero" style="background: linear-gradient(135deg, var(--primary), #7c3aed); border-radius: 24px; padding: 48px; color: #fff; margin-bottom: 30px; box-shadow: 0 12px 40px rgba(8,102,255,0.3); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between;">
-      <div style="position: relative; z-index: 2; max-width: 60%;">
-        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 12px;">
-           <h1 style="font-size: 38px; margin: 0; font-weight: 850; letter-spacing: -1px;">Welcome back, <span id="homeUserName">User</span>! 👋</h1>
-           <button class="btn-refresh" onclick="loadHomeDashboard(true)" title="Refresh Data" style="background: rgba(255,255,255,0.1); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+  <div id="homeView" class="view-container active">
+    <div class="home-hero">
+      <div class="home-hero-content">
+        <div class="home-hero-title-row">
+           <h1 class="home-hero-h1">Welcome back, <span id="homeUserName">User</span>! 👋</h1>
+           <button class="btn-refresh" onclick="loadHomeDashboard(true)" title="Refresh Data">
               <i class="fa-solid fa-rotate-right"></i>
            </button>
         </div>
-        <p style="opacity: 0.9; font-size: 18px; line-height: 1.6;">Your broadcasting engine is primed and ready. You have <strong id="homeHeroQuota">-</strong> messages remaining in your current cycle.</p>
-        <div style="display: flex; gap: 12px; margin-top: 24px;">
-           <button class="btn-upgrade" onclick="switchView('promo')" style="background: #fff; color: var(--primary); padding: 12px 24px; font-size: 14px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: none;">
-             <i class="fa-solid fa-paper-plane" style="margin-right: 8px;"></i> Start Campaign
+        <p class="home-hero-sub">Your broadcasting engine is primed and ready. You have <strong id="homeHeroQuota">-</strong> messages remaining in your current cycle.</p>
+        <div class="home-hero-actions">
+           <button class="btn-action-primary" onclick="switchView('promo')">
+             <i class="fa-solid fa-paper-plane"></i> Start Campaign
            </button>
-           <button class="btn-upgrade" onclick="switchView('templates')" style="background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 12px 24px; font-size: 14px; border-radius: 12px; backdrop-filter: blur(10px);">
-             <i class="fa-solid fa-wand-magic-sparkles" style="margin-right: 8px;"></i> My Templates
+           <button class="btn-action-secondary" onclick="switchView('templates')">
+             <i class="fa-solid fa-wand-magic-sparkles"></i> My Templates
            </button>
         </div>
       </div>
-      <div style="position: relative; z-index: 2; text-align: right;">
-         <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2);">
-            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; margin-bottom: 4px;">Platform Status</div>
-            <div style="display: flex; align-items: center; gap: 8px; font-weight: 700;">
-               <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px #22c55e;"></span>
+      <div class="home-hero-status">
+         <div class="status-card">
+            <div class="status-card-label">Platform Status</div>
+            <div class="status-card-value">
+               <span class="status-dot"></span>
                Operational
             </div>
          </div>
       </div>
-      <i class="fa-solid fa-rocket" style="position: absolute; right: -20px; bottom: -30px; font-size: 240px; opacity: 0.1; transform: rotate(-15deg);"></i>
+      <i class="fa-solid fa-rocket home-hero-bg-icon"></i>
     </div>
 
     <div class="home-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 30px;">
@@ -989,27 +1014,30 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; margin-bottom: 30px;">
-      <div class="glass-card" style="padding: 28px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-           <h3 style="margin: 0; display: flex; align-items: center; gap: 12px; font-size: 18px;">
+    <div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 32px; margin-bottom: 32px;">
+      <div class="glass-card" style="padding: 32px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;">
+           <h3 style="margin: 0; display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 800;">
              <i class="fa-solid fa-chart-line" style="color: var(--primary-light);"></i> 
              Performance Overview
            </h3>
-           <span style="font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase;">Last 7 Days</span>
+           <span style="font-size: 10px; color: var(--text3); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; background: rgba(255,255,255,0.05); padding: 4px 12px; border-radius: 100px;">Last 7 Days</span>
         </div>
-        <div style="height: 240px; position: relative;">
+        <div style="height: 280px; position: relative;">
            <canvas id="homePerformanceChart"></canvas>
         </div>
       </div>
       
-      <div class="glass-card" style="padding: 28px;">
-        <h3 style="margin: 0 0 24px 0; display: flex; align-items: center; gap: 12px; font-size: 18px;">
+      <div class="glass-card" style="padding: 32px;">
+        <h3 style="margin: 0 0 24px 0; display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 800;">
           <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary-light);"></i>
           Recent Activity
         </h3>
-        <div id="homeRecentActivity" style="display: flex; flex-direction: column; gap: 14px;">
-          <div style="color: var(--text3); text-align: center; padding: 60px;">No recent activity yet.</div>
+        <div id="homeRecentActivity" style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="color: var(--text3); text-align: center; padding: 80px; background: rgba(255,255,255,0.01); border-radius: 20px; border: 1px dashed rgba(255,255,255,0.05);">
+            <i class="fa-solid fa-ghost" style="font-size: 40px; margin-bottom: 16px; opacity: 0.2;"></i>
+            <p>No recent activity yet.</p>
+          </div>
         </div>
       </div>
     </div>

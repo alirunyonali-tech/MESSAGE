@@ -74,18 +74,18 @@ async function loadHomeDashboard(force = false) {
     if (history.length > 0) {
       activityList.innerHTML = history.slice(0, 4).map(item => `
         <div class="activity-item">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 36px; height: 36px; background: var(--primary-dim); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--primary-light);">
-              <i class="fa-solid fa-paper-plane" style="font-size: 14px;"></i>
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="activity-icon-circle">
+              <i class="fa-solid fa-paper-plane"></i>
             </div>
             <div>
-              <div style="font-size: 13px; font-weight: 700; color: var(--text);">Campaign to ${item.pageName}</div>
-              <div style="font-size: 11px; color: var(--text3);">${new Date(item.timestamp).toLocaleDateString()}</div>
+              <div style="font-size: 14px; font-weight: 700; color: #fff;">Campaign to ${item.pageName}</div>
+              <div style="font-size: 11px; color: #4E5F7A; margin-top: 2px;">${new Date(item.timestamp).toLocaleDateString()}</div>
             </div>
           </div>
           <div style="text-align: right">
-            <div style="font-size: 13px; font-weight: 800; color: var(--green);">+${item.sent}</div>
-            <div style="font-size: 10px; color: var(--text3);">Sent</div>
+            <div class="activity-amount">+${item.sent}</div>
+            <div class="activity-status">Sent</div>
           </div>
         </div>
       `).join('');

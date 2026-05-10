@@ -594,6 +594,10 @@ if ($action === 'update_settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         setSetting($db, 'announcement_link_url', $linkUrl);
     }
+    if (isset($body['support_whatsapp'])) setSetting($db, 'support_whatsapp', trim($body['support_whatsapp']));
+    if (isset($body['support_messenger'])) setSetting($db, 'support_messenger', trim($body['support_messenger']));
+    if (isset($body['support_email'])) setSetting($db, 'support_email', trim($body['support_email']));
+
     jsonOut(['success'=>true]);
 }
 
@@ -701,6 +705,11 @@ if (strlen($announcementText) > 280) {
 }
 $announcementMediaUrl = sanitizeHttpUrl(getSetting($db, 'announcement_media_url', ''));
 $announcementLinkUrl = sanitizeHttpUrl(getSetting($db, 'announcement_link_url', ''));
+
+$supportWhatsapp = getSetting($db, 'support_whatsapp', '');
+$supportMessenger = getSetting($db, 'support_messenger', '');
+$supportEmail = getSetting($db, 'support_email', '');
+
 $csrfToken=getCsrfToken();
 if ($isLoggedIn) checkExpiredSubscriptions($db, $freeLimit);
 ?>
@@ -1327,6 +1336,24 @@ document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==
               <input type="url" id="settAnnouncementLinkUrl" placeholder="https://your-offer-page.com" value="<?= htmlspecialchars($announcementLinkUrl, ENT_QUOTES, 'UTF-8') ?>">
             </div>
             <button class="btn btn-success" onclick="saveAnnouncementSetting()"><i class="fa-solid fa-bullhorn"></i> Save Announcement</button>
+          </div>
+
+          <div class="settings-card">
+            <h3><i class="fa-solid fa-headset" style="color:#60a5fa"></i> Support Contact Settings</h3>
+            <p>Configure the contact links shown in the dashboard's support popup.</p>
+            <div class="form-row">
+              <label>WhatsApp Number</label>
+              <input type="text" id="settSupportWhatsapp" placeholder="e.g. 923001234567" value="<?= htmlspecialchars($supportWhatsapp) ?>">
+            </div>
+            <div class="form-row">
+              <label>Facebook Page Link</label>
+              <input type="text" id="settSupportMessenger" placeholder="e.g. https://m.me/yourpage" value="<?= htmlspecialchars($supportMessenger) ?>">
+            </div>
+            <div class="form-row">
+              <label>Support Email (Gmail)</label>
+              <input type="email" id="settSupportEmail" placeholder="e.g. support@gmail.com" value="<?= htmlspecialchars($supportEmail) ?>">
+            </div>
+            <button class="btn btn-primary" onclick="saveSupportSettings()"><i class="fa-solid fa-floppy-disk"></i> Save Support Info</button>
           </div>
 
           <div class="settings-card">
@@ -2231,6 +2258,20 @@ async function saveAnnouncementSetting() {
 
   if (d.success) showToast('Announcement saved and published');
   else showToast(d.error||'Failed','error');
+}
+async function saveSupportSettings() {
+  const whatsapp = (document.getElementById('settSupportWhatsapp')?.value || '').trim();
+  const messenger = (document.getElementById('settSupportMessenger')?.value || '').trim();
+  const email = (document.getElementById('settSupportEmail')?.value || '').trim();
+
+  const d = await api('update_settings', 'POST', {
+    support_whatsapp: whatsapp,
+    support_messenger: messenger,
+    support_email: email
+  });
+
+  if (d.success) showToast('Support contact settings updated');
+  else showToast(d.error || 'Failed', 'error');
 }
 async function savePasswordSetting() {
   const pw1 = document.getElementById('settPw1').value.trim();
