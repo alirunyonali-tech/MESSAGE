@@ -229,9 +229,12 @@ window.addCampaignToHistory = function(campaign) {
     ...campaign,
     timestamp: Date.now()
   });
-  if (history.length > 5) history.pop();
+  if (history.length > 50) history.pop(); // Increased from 5 to 50 for better history
   localStorage.setItem(CAMPAIGN_HISTORY_KEY, JSON.stringify(history));
-  loadCampaignHistory();
+  
+  // Refresh UI if we are on dashboard or history view
+  if (typeof loadHomeDashboard === 'function') loadHomeDashboard();
+  if (typeof loadCampaignHistory === 'function') loadCampaignHistory();
 };
 
 window.loadCampaignHistory = function() {
