@@ -31,6 +31,30 @@ let _analyticsSyncTimer = null;
 window.triggerConnect = window.triggerConnect || function () { showToast('Initializing Facebook login...','info'); };
 window.showPaymentPopup = window.showPaymentPopup || function () { showToast('Initializing payment...','info'); };
 
+function switchView(viewId) {
+  const promoView = document.getElementById('promoMessageView');
+  const messengerView = document.getElementById('messengerView');
+  const items = document.querySelectorAll('.main-sidebar-item');
+
+  if (!promoView || !messengerView) return;
+
+  // Hide all views
+  promoView.classList.remove('active');
+  messengerView.classList.remove('active');
+
+  // Remove active class from sidebar items
+  items.forEach(item => item.classList.remove('active'));
+
+  if (viewId === 'promo') {
+    promoView.classList.add('active');
+    document.querySelector('.main-sidebar-item[title="Promo Message"]').classList.add('active');
+  } else if (viewId === 'messenger') {
+    messengerView.classList.add('active');
+    document.querySelector('.main-sidebar-item[title="Messenger"]').classList.add('active');
+  }
+}
+window.switchView = switchView;
+
 function getSessionId() {
   let id = sessionStorage.getItem(SESSION_ID_KEY);
   if (!id) {

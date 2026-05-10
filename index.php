@@ -782,17 +782,32 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
 
 
 <!-- ═══ APP DASHBOARD ═══ -->
-<div id="appPage" style="display:none">
+<div id="appPage" style="display:none" class="app-container">
 
-  <!-- TOPBAR -->
-  <div class="topbar">
-    <div class="topbar-brand">
-      <div class="topbar-mark"><img src="images/castpro2.png" alt="FBCast Pro" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;"></div>
-      <div class="topbar-title">
-        <h1>FBCast Pro</h1>
-        <p>Facebook Broadcast Platform</p>
-      </div>
+  <!-- MAIN SIDEBAR (LEFT) -->
+  <div class="main-sidebar">
+    <div class="main-sidebar-item active" title="Promo Message" onclick="switchView('promo')">
+      <i class="fa-solid fa-bullhorn"></i>
     </div>
+    <div class="main-sidebar-item" title="Messenger" onclick="switchView('messenger')">
+      <i class="fa-brands fa-facebook-messenger"></i>
+    </div>
+    <div style="margin-top:auto"></div>
+    <div class="main-sidebar-item" title="Logout" onclick="triggerLogout()">
+      <i class="fa-solid fa-right-from-bracket"></i>
+    </div>
+  </div>
+
+  <div class="app-main-content">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-brand">
+        <div class="topbar-mark"><img src="images/castpro2.png" alt="FBCast Pro" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;"></div>
+        <div class="topbar-title">
+          <h1>FBCast Pro</h1>
+          <p>Facebook Broadcast Platform</p>
+        </div>
+      </div>
 
     <div id="statusBar" role="status" aria-live="polite"></div>
 
@@ -866,8 +881,10 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
   <!-- STATUS BAR -->
   <div id="networkBanner" class="network-banner" role="status" aria-live="polite" hidden></div>
 
-  <!-- BODY -->
-  <div class="app-body">
+  <!-- VIEWS -->
+  <div id="promoMessageView" class="view-container active">
+    <!-- BODY -->
+    <div class="app-body">
 
     <!-- COL 1: SIDEBAR / PAGES -->
     <div class="sidebar">
@@ -1260,6 +1277,16 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
     </div>
 
   </div><!-- /app-body -->
+</div><!-- /promoMessageView -->
+
+<div id="messengerView" class="view-container">
+  <div style="text-align:center">
+    <i class="fa-brands fa-facebook-messenger" style="font-size:60px;margin-bottom:20px;color:var(--primary-dim)"></i>
+    <h2>Messenger</h2>
+    <p>Messenger interface coming soon.</p>
+  </div>
+</div>
+</div><!-- /app-main-content -->
 </div><!-- /appPage -->
 
 
