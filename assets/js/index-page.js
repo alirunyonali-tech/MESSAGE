@@ -27,7 +27,248 @@ let _announcementPollTimer = null;
 let _announcementPollStarted = false;
 let _analyticsSyncTimer = null;
 
-// Safe stubs while modules initialize.
+let performanceChart = null;
+
+async function loadHomeDashboard(force = false) {
+  const homeView = document.getElementById('homeView');
+  if (!homeView || !homeView.classList.contains('active')) return;
+
+  if (force) {
+    const btn = homeView.querySelector('.btn-refresh i');
+    if (btn) btn.classList.add('fa-spin');
+    try {
+      await Promise.all([
+        syncQuotaFromServer({ force: true, silent: true }),
+        typeof window.loadPagesFromFacebook === 'function' ? window.loadPagesFromFacebook({ silent: true }) : Promise.resolve()
+      ]);
+    } catch (e) {}
+    if (btn) btn.classList.remove('fa-spin');
+  }
+
+  const user = JSON.parse(localStorage.getItem('fbcast_user') || '{}');
+  const quota = getQuota();
+  const pages = JSON.parse(localStorage.getItem('fb_pages') || '[]');
+  const history = JSON.parse(localStorage.getItem(CAMPAIGN_HISTORY_KEY) || '[]');
+
+  const homeUser = document.getElementById('homeUserName');
+  if (homeUser) homeUser.textContent = user.fb_name || 'User';
+
+  const remaining = quota.messageLimit - quota.messagesUsed;
+  const homeHeroQuota = document.getElementById('homeHeroQuota');
+  if (homeHeroQuota) homeHeroQuota.textContent = remaining.toLocaleString();
+
+  const homeQuota = document.getElementById('homeStatQuota');
+  if (homeQuota) homeQuota.textContent = remaining.toLocaleString();
+
+  const homeSent = document.getElementById('homeStatSent');
+  if (homeSent) {
+    const totalSent = history.reduce((sum, item) => sum + (item.sent || 0), 0);
+    homeSent.textContent = totalSent.toLocaleString();
+  }
+
+  const homePages = document.getElementById('homeStatPages');
+  if (homePages) homePages.textContent = pages.length;
+
+  const activityList = document.getElementById('homeRecentActivity');
+  if (activityList) {
+    if (history.length > 0) {
+      activityList.innerHTML = history.slice(0, 4).map(item => `
+        <div class="activity-item">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; background: var(--primary-dim); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--primary-light);">
+              <i class="fa-solid fa-paper-plane" style="font-size: 14px;"></i>
+            </div>
+            <div>
+              <div style="font-size: 13px; font-weight: 700; color: var(--text);">Campaign to ${item.pageName}</div>
+              <div style="font-size: 11px; color: var(--text3);">${new Date(item.timestamp).toLocaleDateString()}</div>
+            </div>
+          </div>
+          <div style="text-align: right">
+            <div style="font-size: 13px; font-weight: 800; color: var(--green);">+${item.sent}</div>
+            <div style="font-size: 10px; color: var(--text3);">Sent</div>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      activityList.innerHTML = '<div style="color: var(--text3); text-align: center; padding: 40px;">No recent activity yet.</div>';
+    }
+  }
+
+  initPerformanceChart(history);
+}
+
+function initPerformanceChart(history) {
+  const ctx = document.getElementById('homePerformanceChart');
+  if (!ctx) return;
+
+  // Generate last 7 days labels
+  const labels = [];
+  const data = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    labels.push(dateStr);
+    
+    // Filter history for this day
+    const daySent = history
+      .filter(item => new Date(item.timestamp).toDateString() === d.toDateString())
+      .reduce((sum, item) => sum + (item.sent || 0), 0);
+    data.push(daySent);
+  }
+
+  if (performanceChart) performanceChart.destroy();
+
+  performanceChart = new Chart(ctx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Messages Sent',
+        data: data,
+        borderColor: '#1877f2',
+        backgroundColor: 'rgba(24, 119, 242, 0.1)',
+        fill: true,
+        tension: 0.4,
+        borderWidth: 3,
+        pointRadius: 4,
+        pointBackgroundColor: '#fff',
+        pointBorderColor: '#1877f2',
+        pointBorderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: '#9ca3af', font: { size: 10 } }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#9ca3af', font: { size: 10 } }
+        }
+      }
+    }
+  });
+}
+
+function loadTemplateManager() {
+  const list = document.getElementById('templatesFullList');
+  if (!list) return;
+
+  const raw = localStorage.getItem(CUSTOM_TEMPLATES_KEY);
+  const tpls = raw ? JSON.parse(raw) : [];
+
+  if (tpls.length === 0) {
+    list.innerHTML = `
+      <div class="table-empty" style="grid-column: 1/-1; padding: 60px;">
+         <div class="table-empty-icon">✨</div>
+         <div>No saved templates yet. Go to Promo Message to save your first one!</div>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = tpls.map((txt, idx) => `
+    <div class="history-item" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:15px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="width: 36px; height: 36px; background: var(--primary-dim); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--primary-light);">
+          <i class="fa-solid fa-file-lines"></i>
+        </div>
+        <button onclick="deleteTemplate(${idx})" style="background:none; border:none; color:var(--red); cursor:pointer; font-size:14px;"><i class="fa-solid fa-trash-can"></i></button>
+      </div>
+      <div style="color:var(--text);font-size:14px;background:var(--bg);padding:15px;border-radius:10px;border:1px solid var(--border2);line-height:1.6;flex:1">${txt}</div>
+      <button onclick="useTemplate('${idx}')" class="btn-upgrade" style="width:100%; justify-content:center; padding:10px;">
+        <i class="fa-solid fa-paper-plane"></i> Use Template
+      </button>
+    </div>
+  `).join('');
+}
+
+window.useTemplate = function(idx) {
+  const raw = localStorage.getItem(CUSTOM_TEMPLATES_KEY);
+  const tpls = raw ? JSON.parse(raw) : [];
+  const txt = tpls[idx];
+  if (txt) {
+    localStorage.setItem(MESSAGE_DRAFT_KEY, txt);
+    switchView('promo');
+    setTimeout(() => {
+      const ta = document.getElementById('messageText');
+      if (ta) {
+        ta.value = txt;
+        updateCharBar(txt.length);
+      }
+    }, 100);
+  }
+};
+
+window.deleteTemplate = function(idx) {
+  const raw = localStorage.getItem(CUSTOM_TEMPLATES_KEY);
+  const tpls = raw ? JSON.parse(raw) : [];
+  tpls.splice(idx, 1);
+  localStorage.setItem(CUSTOM_TEMPLATES_KEY, JSON.stringify(tpls));
+  loadTemplateManager();
+  if (typeof window.showToast === 'function') window.showToast('Template deleted', 'info');
+};
+
+window.addCampaignToHistory = function(campaign) {
+  const raw = localStorage.getItem(CAMPAIGN_HISTORY_KEY);
+  const history = raw ? JSON.parse(raw) : [];
+  history.unshift({
+    ...campaign,
+    timestamp: Date.now()
+  });
+  if (history.length > 5) history.pop();
+  localStorage.setItem(CAMPAIGN_HISTORY_KEY, JSON.stringify(history));
+  loadCampaignHistory();
+};
+
+window.loadCampaignHistory = function() {
+    const section = document.getElementById('historyView');
+    const list = document.getElementById('campaignHistoryFullList');
+    if (!section || !list) return;
+
+    const raw = localStorage.getItem(CAMPAIGN_HISTORY_KEY);
+    const history = raw ? JSON.parse(raw) : [];
+
+    if (history.length === 0) {
+      list.innerHTML = `
+        <div class="table-empty" style="grid-column: 1/-1; padding: 60px;">
+           <div class="table-empty-icon">📜</div>
+           <div>No campaign history found yet.</div>
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = history.map((item, idx) => `
+      <div class="history-item" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong style="color:var(--primary-light);font-size:16px"><i class="fa-solid fa-flag" style="margin-right:8px"></i>${item.pageName || 'Unknown Page'}</strong>
+          <span style="color:var(--text3);font-size:11px">${new Date(item.timestamp).toLocaleString()}</span>
+        </div>
+        <div style="color:var(--text);font-size:14px;background:var(--bg);padding:12px;border-radius:8px;border:1px solid var(--border2);max-height:80px;overflow:hidden;text-overflow:ellipsis">${item.message}</div>
+        <div style="display:flex;gap:20px;border-top:1px solid var(--border);padding-top:12px">
+          <div style="display:flex;align-items:center;gap:6px">
+             <i class="fa-solid fa-circle-check" style="color:var(--green)"></i>
+             <span style="color:var(--text2);font-weight:700">${item.sent} Sent</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+             <i class="fa-solid fa-circle-xmark" style="color:var(--red)"></i>
+             <span style="color:var(--text2);font-weight:700">${item.failed} Failed</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  };
+
+  // Safe stubs while modules initialize.
 window.triggerConnect = window.triggerConnect || function () { showToast('Initializing Facebook login...','info'); };
 window.showPaymentPopup = window.showPaymentPopup || function () { showToast('Initializing payment...','info'); };
 
@@ -1152,208 +1393,13 @@ document.addEventListener('DOMContentLoaded',async()=>{
   });
 
   // Campaign History Logic
-  window.loadCampaignHistory = function() {
-    const section = document.getElementById('historyView');
-    const list = document.getElementById('campaignHistoryFullList');
-    if (!section || !list) return;
+  // Campaign history loaded globally
 
-    const raw = localStorage.getItem(CAMPAIGN_HISTORY_KEY);
-    const history = raw ? JSON.parse(raw) : [];
+  let _localPerfChart = null; // Renamed to avoid collision
 
-    if (history.length === 0) {
-      list.innerHTML = `
-        <div class="table-empty" style="grid-column: 1/-1; padding: 60px;">
-           <div class="table-empty-icon">📜</div>
-           <div>No campaign history found yet.</div>
-        </div>
-      `;
-      return;
-    }
+  // Using global loadHomeDashboard
 
-    list.innerHTML = history.map((item, idx) => `
-      <div class="history-item" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <strong style="color:var(--primary-light);font-size:16px"><i class="fa-solid fa-flag" style="margin-right:8px"></i>${item.pageName || 'Unknown Page'}</strong>
-          <span style="color:var(--text3);font-size:11px">${new Date(item.timestamp).toLocaleString()}</span>
-        </div>
-        <div style="color:var(--text);font-size:14px;background:var(--bg);padding:12px;border-radius:8px;border:1px solid var(--border2);max-height:80px;overflow:hidden;text-overflow:ellipsis">${item.message}</div>
-        <div style="display:flex;gap:20px;border-top:1px solid var(--border);padding-top:12px">
-          <div style="display:flex;align-items:center;gap:6px">
-             <i class="fa-solid fa-circle-check" style="color:var(--green)"></i>
-             <span style="color:var(--text2);font-weight:700">${item.sent} Sent</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px">
-             <i class="fa-solid fa-circle-xmark" style="color:var(--red)"></i>
-             <span style="color:var(--text2);font-weight:700">${item.failed} Failed</span>
-          </div>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  let performanceChart = null;
-
-  async function loadHomeDashboard(force = false) {
-    const homeView = document.getElementById('homeView');
-    if (!homeView || !homeView.classList.contains('active')) return;
-
-    if (force) {
-      const btn = homeView.querySelector('.btn-refresh i');
-      if (btn) btn.classList.add('fa-spin');
-      try {
-        await Promise.all([
-          syncQuotaFromServer({ force: true, silent: true }),
-          typeof window.loadPagesFromFacebook === 'function' ? window.loadPagesFromFacebook({ silent: true }) : Promise.resolve()
-        ]);
-      } catch (e) {}
-      if (btn) btn.classList.remove('fa-spin');
-    }
-
-    const user = JSON.parse(localStorage.getItem('fbcast_user') || '{}');
-    const quota = getQuota();
-    const pages = JSON.parse(localStorage.getItem('fb_pages') || '[]');
-    const history = JSON.parse(localStorage.getItem(CAMPAIGN_HISTORY_KEY) || '[]');
-
-    const homeUser = document.getElementById('homeUserName');
-    if (homeUser) homeUser.textContent = user.fb_name || 'User';
-
-    const remaining = quota.messageLimit - quota.messagesUsed;
-    const homeHeroQuota = document.getElementById('homeHeroQuota');
-    if (homeHeroQuota) homeHeroQuota.textContent = remaining.toLocaleString();
-
-    const homeQuota = document.getElementById('homeStatQuota');
-    if (homeQuota) homeQuota.textContent = remaining.toLocaleString();
-
-    const homeSent = document.getElementById('homeStatSent');
-    if (homeSent) {
-      const totalSent = history.reduce((sum, item) => sum + (item.sent || 0), 0);
-      homeSent.textContent = totalSent.toLocaleString();
-    }
-
-    const homePages = document.getElementById('homeStatPages');
-    if (homePages) homePages.textContent = pages.length;
-
-    const activityList = document.getElementById('homeRecentActivity');
-    if (activityList) {
-      if (history.length > 0) {
-        activityList.innerHTML = history.slice(0, 4).map(item => `
-          <div class="activity-item">
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <div style="width: 36px; height: 36px; background: var(--primary-dim); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--primary-light);">
-                <i class="fa-solid fa-paper-plane" style="font-size: 14px;"></i>
-              </div>
-              <div>
-                <div style="font-size: 13px; font-weight: 700; color: var(--text);">Campaign to ${item.pageName}</div>
-                <div style="font-size: 11px; color: var(--text3);">${new Date(item.timestamp).toLocaleDateString()}</div>
-              </div>
-            </div>
-            <div style="text-align: right">
-              <div style="font-size: 13px; font-weight: 800; color: var(--green);">+${item.sent}</div>
-              <div style="font-size: 10px; color: var(--text3);">Sent</div>
-            </div>
-          </div>
-        `).join('');
-      } else {
-        activityList.innerHTML = '<div style="color: var(--text3); text-align: center; padding: 40px;">No recent activity yet.</div>';
-      }
-    }
-
-    initPerformanceChart(history);
-  }
-
-  function initPerformanceChart(history) {
-    const ctx = document.getElementById('homePerformanceChart');
-    if (!ctx) return;
-
-    // Generate last 7 days labels
-    const labels = [];
-    const data = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-      labels.push(dateStr);
-      
-      // Filter history for this day
-      const daySent = history
-        .filter(item => new Date(item.timestamp).toDateString() === d.toDateString())
-        .reduce((sum, item) => sum + (item.sent || 0), 0);
-      data.push(daySent);
-    }
-
-    if (performanceChart) performanceChart.destroy();
-
-    performanceChart = new Chart(ctx.getContext('2d'), {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Messages Sent',
-          data: data,
-          borderColor: '#1877f2',
-          backgroundColor: 'rgba(24, 119, 242, 0.1)',
-          fill: true,
-          tension: 0.4,
-          borderWidth: 3,
-          pointRadius: 4,
-          pointBackgroundColor: '#fff',
-          pointBorderColor: '#1877f2',
-          pointBorderWidth: 2
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: { color: 'rgba(255,255,255,0.05)' },
-            ticks: { color: '#9ca3af', font: { size: 10 } }
-          },
-          x: {
-            grid: { display: false },
-            ticks: { color: '#9ca3af', font: { size: 10 } }
-          }
-        }
-      }
-    });
-  }
-
-  function loadTemplateManager() {
-    const list = document.getElementById('templatesFullList');
-    if (!list) return;
-
-    const raw = localStorage.getItem(CUSTOM_TEMPLATES_KEY);
-    const tpls = raw ? JSON.parse(raw) : [];
-
-    if (tpls.length === 0) {
-      list.innerHTML = `
-        <div class="table-empty" style="grid-column: 1/-1; padding: 60px;">
-           <div class="table-empty-icon">✨</div>
-           <div>No saved templates yet. Go to Promo Message to save your first one!</div>
-        </div>
-      `;
-      return;
-    }
-
-    list.innerHTML = tpls.map((txt, idx) => `
-      <div class="history-item" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:15px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div style="width: 36px; height: 36px; background: var(--primary-dim); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--primary-light);">
-            <i class="fa-solid fa-file-lines"></i>
-          </div>
-          <button onclick="deleteTemplate(${idx})" style="background:none; border:none; color:var(--red); cursor:pointer; font-size:14px;"><i class="fa-solid fa-trash-can"></i></button>
-        </div>
-        <div style="color:var(--text);font-size:14px;background:var(--bg);padding:15px;border-radius:10px;border:1px solid var(--border2);line-height:1.6;flex:1">${txt}</div>
-        <button onclick="useTemplate('${idx}')" class="btn-upgrade" style="width:100%; justify-content:center; padding:10px;">
-          <i class="fa-solid fa-paper-plane"></i> Use Template
-        </button>
-      </div>
-    `).join('');
-  }
+  // Functions moved to top level
 
   window.useTemplate = function(idx) {
     const raw = localStorage.getItem(CUSTOM_TEMPLATES_KEY);
