@@ -621,6 +621,10 @@ getCsrfToken();
 function closeMobileMenu() {
   const menu = document.getElementById('mobileMenu');
   if (menu) menu.classList.remove('open');
+  window.addEventListener('fbcast:user-updated', () => {
+    loadHomeDashboard();
+  });
+
   const navHamburger = document.getElementById('navHamburger');
   if (navHamburger) navHamburger.setAttribute('aria-expanded', 'false');
 }
@@ -849,6 +853,7 @@ async function syncQuotaFromServer(options = {}){
       localStorage.setItem('fbcast_user',JSON.stringify({fb_user_id:data.fb_user_id,fb_name:data.fb_name}));
       updateQuotaUI();
       updateHeroAvatars();
+      if (typeof loadHomeDashboard === 'function') loadHomeDashboard();
       _lastTrackUserSyncAt = Date.now();
       return true;
     }
@@ -1188,7 +1193,22 @@ document.addEventListener('DOMContentLoaded',async()=>{
 
   let performanceChart = null;
 
-  function loadHomeDashboard() {
+  async function loadHomeDashboard(force = false) {
+    const homeView = document.getElementById('homeView');
+    if (!homeView || !homeView.classList.contains('active')) return;
+
+    if (force) {
+      const btn = homeView.querySelector('.btn-refresh i');
+      if (btn) btn.classList.add('fa-spin');
+      try {
+        await Promise.all([
+          syncQuotaFromServer({ force: true, silent: true }),
+          typeof window.loadPagesFromFacebook === 'function' ? window.loadPagesFromFacebook({ silent: true }) : Promise.resolve()
+        ]);
+      } catch (e) {}
+      if (btn) btn.classList.remove('fa-spin');
+    }
+
     const user = JSON.parse(localStorage.getItem('fbcast_user') || '{}');
     const quota = getQuota();
     const pages = JSON.parse(localStorage.getItem('fb_pages') || '[]');
@@ -1214,24 +1234,28 @@ document.addEventListener('DOMContentLoaded',async()=>{
     if (homePages) homePages.textContent = pages.length;
 
     const activityList = document.getElementById('homeRecentActivity');
-    if (activityList && history.length > 0) {
-      activityList.innerHTML = history.slice(0, 4).map(item => `
-        <div class="activity-item">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 36px; height: 36px; background: var(--primary-dim); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--primary-light);">
-              <i class="fa-solid fa-paper-plane" style="font-size: 14px;"></i>
+    if (activityList) {
+      if (history.length > 0) {
+        activityList.innerHTML = history.slice(0, 4).map(item => `
+          <div class="activity-item">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 36px; height: 36px; background: var(--primary-dim); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--primary-light);">
+                <i class="fa-solid fa-paper-plane" style="font-size: 14px;"></i>
+              </div>
+              <div>
+                <div style="font-size: 13px; font-weight: 700; color: var(--text);">Campaign to ${item.pageName}</div>
+                <div style="font-size: 11px; color: var(--text3);">${new Date(item.timestamp).toLocaleDateString()}</div>
+              </div>
             </div>
-            <div>
-              <div style="font-size: 13px; font-weight: 700; color: var(--text);">Campaign to ${item.pageName}</div>
-              <div style="font-size: 11px; color: var(--text3);">${new Date(item.timestamp).toLocaleDateString()}</div>
+            <div style="text-align: right">
+              <div style="font-size: 13px; font-weight: 800; color: var(--green);">+${item.sent}</div>
+              <div style="font-size: 10px; color: var(--text3);">Sent</div>
             </div>
           </div>
-          <div style="text-align: right">
-            <div style="font-size: 13px; font-weight: 800; color: var(--green);">+${item.sent}</div>
-            <div style="font-size: 10px; color: var(--text3);">Sent</div>
-          </div>
-        </div>
-      `).join('');
+        `).join('');
+      } else {
+        activityList.innerHTML = '<div style="color: var(--text3); text-align: center; padding: 40px;">No recent activity yet.</div>';
+      }
     }
 
     initPerformanceChart(history);
@@ -1413,6 +1437,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
       
       // Load Home Dashboard by default on auto-restore
       switchView('home');
+      loadHomeDashboard(true);
       // Show cached pages immediately so UI is not blank
       const cachedPages=JSON.parse(localStorage.getItem('fb_pages')||'[]');
       if(cachedPages.length&&typeof window.renderPages==='function'){
@@ -1560,7 +1585,8 @@ window.triggerConnect = async function(plan = null) {
       if (typeof setLoginOnline === 'function') setLoginOnline();
       
       // Load Home Dashboard by default on new login
-      switchView('home');
+  switchView('home');
+  loadHomeDashboard(true);
       
       const _cachedPages = JSON.parse(localStorage.getItem('fb_pages') || '[]');
       if (_cachedPages.length && typeof window.renderPages === 'function') {

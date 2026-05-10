@@ -894,7 +894,12 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
   <div id="homeView" class="view-container active" style="padding: 24px; overflow-y: auto;">
     <div class="home-hero" style="background: linear-gradient(135deg, var(--primary), #7c3aed); border-radius: 24px; padding: 48px; color: #fff; margin-bottom: 30px; box-shadow: 0 12px 40px rgba(8,102,255,0.3); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between;">
       <div style="position: relative; z-index: 2; max-width: 60%;">
-        <h1 style="font-size: 38px; margin-bottom: 12px; font-weight: 850; letter-spacing: -1px;">Welcome back, <span id="homeUserName">User</span>! 👋</h1>
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 12px;">
+           <h1 style="font-size: 38px; margin: 0; font-weight: 850; letter-spacing: -1px;">Welcome back, <span id="homeUserName">User</span>! 👋</h1>
+           <button class="btn-refresh" onclick="loadHomeDashboard(true)" title="Refresh Data" style="background: rgba(255,255,255,0.1); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+              <i class="fa-solid fa-rotate-right"></i>
+           </button>
+        </div>
         <p style="opacity: 0.9; font-size: 18px; line-height: 1.6;">Your broadcasting engine is primed and ready. You have <strong id="homeHeroQuota">-</strong> messages remaining in your current cycle.</p>
         <div style="display: flex; gap: 12px; margin-top: 24px;">
            <button class="btn-upgrade" onclick="switchView('promo')" style="background: #fff; color: var(--primary); padding: 12px 24px; font-size: 14px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: none;">
