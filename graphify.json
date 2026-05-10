@@ -1,6 +1,6 @@
 {
     "name": "FBCast Pro Graphify Map",
-    "generated_at": "2026-05-10T01:17:54+00:00",
+    "generated_at": "2026-05-10T01:21:01+00:00",
     "project_root": "DEVELOPER WEBSITE",
     "summary": {
         "total_files": 70,
@@ -159,7 +159,7 @@
         {
             "id": "assets/css/index.css",
             "type": "styles",
-            "size": 125717
+            "size": 126191
         },
         {
             "id": "assets/css/ui-components.css",
@@ -244,7 +244,7 @@
         {
             "id": "graphify-ai.md",
             "type": "docs",
-            "size": 3008
+            "size": 3023
         },
         {
             "id": "graphify.php",
