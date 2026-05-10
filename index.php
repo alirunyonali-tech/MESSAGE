@@ -922,12 +922,12 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
 
       <div class="topbar-status">
         <!-- Notifications -->
-        <div class="topbar-notif-wrap" style="position: relative; margin-right: 15px;">
-          <button class="btn-ghost" id="btnNotif" title="Notifications" style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text);">
+        <div class="topbar-notif-wrap" style="position: relative; margin-right: 15px; z-index: 1000;">
+          <button class="btn-ghost" id="btnNotif" title="Notifications" onclick="toggleNotifPanel(event)" style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text); cursor: pointer;">
              <i class="fa-solid fa-bell" style="font-size: 14px;"></i>
              <span id="notifBadge" style="position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; border: 2px solid var(--bg2); display: none;"></span>
           </button>
-          <div id="notifPanel" class="glass-card" style="position: absolute; top: 45px; right: 0; width: 320px; max-height: 400px; display: none; flex-direction: column; z-index: 200; padding: 0; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+          <div id="notifPanel" class="glass-card" style="position: absolute; top: 45px; right: 0; width: 320px; max-height: 400px; display: none; flex-direction: column; z-index: 1001; padding: 0; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
              <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
                 <strong style="font-size: 14px;">Notifications</strong>
                 <span style="font-size: 11px; color: var(--primary-light); cursor: pointer; font-weight: 600;" onclick="clearNotifs()">Mark all as read</span>

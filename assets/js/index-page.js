@@ -456,9 +456,18 @@ function initNotifPanel() {
   });
 
   panel.addEventListener('click', (e) => e.stopPropagation());
-  
+
   updateNotifUI();
 }
+
+// Global function for inline onclick
+window.toggleNotifPanel = function(e) {
+  if(e) e.stopPropagation();
+  const panel = document.getElementById('notifPanel');
+  if(panel) {
+    panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+  }
+};
 
 function initSupportPanel() {
   const btn = document.getElementById('btnSupport');
