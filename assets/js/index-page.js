@@ -49,10 +49,43 @@ async function loadHomeDashboard(force = false) {
   const quota = getQuota();
 
   // Update Plan Badge in Topbar
-  const planBadge = document.getElementById('planBadge');
-  if (planBadge) {
-    planBadge.textContent = quota.planName.toUpperCase();
-    planBadge.className = `badge b-${quota.planName.toLowerCase()}`;
+  const badgeEl = document.getElementById('planBadge');
+  if (badgeEl) {
+    const plan = (quota.planName || 'free').toLowerCase();
+    const isPro = plan === 'pro';
+    const isBasic = plan === 'basic';
+    const isStarter = plan === 'starter';
+    
+    let label = (quota.planName || 'Free').charAt(0).toUpperCase() + (quota.planName || 'Free').slice(1).toLowerCase();
+    let icon = 'fa-gem';
+    let planKey = 'free';
+    
+    if (isPro) {
+      label = 'Pro';
+      icon = 'fa-crown';
+      planKey = 'pro';
+    } else if (isBasic) {
+      label = 'Basic';
+      icon = 'fa-layer-group';
+      planKey = 'basic';
+    } else if (isStarter) {
+      label = 'Starter';
+      icon = 'fa-bolt';
+      planKey = 'starter';
+    }
+
+    badgeEl.setAttribute('data-plan', planKey);
+    badgeEl.innerHTML = `<i class="fa-solid ${icon}" aria-hidden="true"></i><span>${label}</span>`;
+    
+    if (isPro) {
+      badgeEl.style.cssText = 'background:linear-gradient(135deg,rgba(79,70,229,.3),rgba(24,119,242,.2));color:#818cf8;border-color:rgba(79,70,229,.3)';
+    } else if (isBasic) {
+      badgeEl.style.cssText = 'background:rgba(24,119,242,.15);color:#60a5fa;border-color:rgba(24,119,242,.2)';
+    } else if (isStarter) {
+      badgeEl.style.cssText = 'background:rgba(16,185,129,.15);color:#10b981;border-color:rgba(16,185,129,.2)';
+    } else {
+      badgeEl.style.cssText = 'background:rgba(255,255,255,.06);color:var(--text2);border-color:rgba(255,255,255,.12)';
+    }
   }
 
   const pages = JSON.parse(localStorage.getItem('fb_pages') || '[]');
