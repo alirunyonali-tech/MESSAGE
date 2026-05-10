@@ -73,27 +73,27 @@ async function loadHomeDashboard(force = false) {
   if (activityList) {
     if (history.length > 0) {
       activityList.innerHTML = history.slice(0, 4).map(item => `
-        <div class="activity-item">
-          <div style="display: flex; align-items: center; gap: 15px;">
-            <div class="activity-icon-circle">
+        <div class="activity-item" style="padding: 12px 16px; border-radius: 12px; margin-bottom: 8px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="activity-icon-circle" style="width: 36px; height: 36px; font-size: 14px;">
               <i class="fa-solid fa-paper-plane"></i>
             </div>
             <div>
-              <div style="font-size: 14px; font-weight: 700; color: #fff;">Campaign to ${item.pageName}</div>
-              <div style="font-size: 11px; color: var(--text3); margin-top: 2px;">${new Date(item.timestamp).toLocaleDateString()}</div>
+              <div style="font-size: 13px; font-weight: 700; color: #fff;">Campaign to ${item.pageName}</div>
+              <div style="font-size: 10px; color: var(--text3); margin-top: 2px;">${new Date(item.timestamp).toLocaleDateString()}</div>
             </div>
           </div>
           <div style="text-align: right">
-            <div class="activity-amount">+${item.sent}</div>
-            <div class="activity-status">Sent</div>
+            <div class="activity-amount" style="font-size: 13px;">+${item.sent}</div>
+            <div class="activity-status" style="font-size: 9px;">Sent</div>
           </div>
         </div>
       `).join('');
     } else {
       activityList.innerHTML = `
-        <div style="color: var(--text3); text-align: center; padding: 60px; background: rgba(255,255,255,0.01); border-radius: 20px; border: 1px dashed rgba(255,255,255,0.05);">
-          <i class="fa-solid fa-ghost" style="font-size: 32px; margin-bottom: 12px; opacity: 0.2; display: block;"></i>
-          <p style="font-size: 13px;">No recent activity yet.</p>
+        <div style="color: var(--text3); text-align: center; padding: 40px; background: rgba(255,255,255,0.01); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.05);">
+          <i class="fa-solid fa-ghost" style="font-size: 28px; margin-bottom: 10px; opacity: 0.2; display: block;"></i>
+          <p style="font-size: 12px;">No recent activity yet.</p>
         </div>
       `;
     }

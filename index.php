@@ -1021,29 +1021,29 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
       </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 32px; margin-bottom: 32px;">
-      <div class="glass-card" style="padding: 32px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;">
-           <h3 style="margin: 0; display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 800;">
+    <div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 24px; margin-bottom: 24px;">
+      <div class="glass-card" style="padding: 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+           <h3 style="margin: 0; display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 800;">
              <i class="fa-solid fa-chart-line" style="color: var(--primary-light);"></i> 
              Performance Overview
            </h3>
-           <span style="font-size: 10px; color: var(--text3); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; background: rgba(255,255,255,0.05); padding: 4px 12px; border-radius: 100px;">Last 7 Days</span>
+           <span style="font-size: 9px; color: var(--text3); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; background: rgba(255,255,255,0.05); padding: 3px 10px; border-radius: 100px;">Last 7 Days</span>
         </div>
-        <div style="height: 280px; position: relative;">
+        <div style="height: 240px; position: relative;">
            <canvas id="homePerformanceChart"></canvas>
         </div>
       </div>
       
-      <div class="glass-card" style="padding: 32px;">
-        <h3 style="margin: 0 0 24px 0; display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 800;">
+      <div class="glass-card" style="padding: 24px;">
+        <h3 style="margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 800;">
           <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary-light);"></i>
           Recent Activity
         </h3>
-        <div id="homeRecentActivity" style="display: flex; flex-direction: column; gap: 16px;">
-          <div style="color: var(--text3); text-align: center; padding: 80px; background: rgba(255,255,255,0.01); border-radius: 20px; border: 1px dashed rgba(255,255,255,0.05);">
-            <i class="fa-solid fa-ghost" style="font-size: 40px; margin-bottom: 16px; opacity: 0.2;"></i>
-            <p>No recent activity yet.</p>
+        <div id="homeRecentActivity" style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="color: var(--text3); text-align: center; padding: 60px; background: rgba(255,255,255,0.01); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.05);">
+            <i class="fa-solid fa-ghost" style="font-size: 32px; margin-bottom: 12px; opacity: 0.2; display: block;"></i>
+            <p style="font-size: 13px;">No recent activity yet.</p>
           </div>
         </div>
       </div>
