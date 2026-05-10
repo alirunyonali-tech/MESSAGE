@@ -442,30 +442,35 @@ window.clearNotifs = function() {
 };
 
 function initNotifPanel() {
-  const btn = document.getElementById('btnNotif');
   const panel = document.getElementById('notifPanel');
-  if (!btn || !panel) return;
+  if (!panel) return;
 
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+  // Close panel when clicking outside
+  document.addEventListener('click', (e) => {
+    if (panel && panel.style.display === 'flex') {
+      const btn = document.getElementById('btnNotif');
+      if (btn && !btn.contains(e.target) && !panel.contains(e.target)) {
+        panel.style.display = 'none';
+      }
+    }
   });
-
-  document.addEventListener('click', () => {
-    panel.style.display = 'none';
-  });
-
-  panel.addEventListener('click', (e) => e.stopPropagation());
 
   updateNotifUI();
 }
 
 // Global function for inline onclick
 window.toggleNotifPanel = function(e) {
-  if(e) e.stopPropagation();
+  if(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
   const panel = document.getElementById('notifPanel');
   if(panel) {
+    // Check if using fixed positioning
+    const computedStyle = window.getComputedStyle(panel);
+    const position = computedStyle.position;
     panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+    console.log('Notification panel toggled, position:', position);
   }
 };
 
