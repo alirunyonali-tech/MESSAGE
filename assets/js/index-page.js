@@ -35,28 +35,38 @@ function switchView(viewId) {
   const promoView = document.getElementById('promoMessageView');
   const messengerView = document.getElementById('messengerView');
   const historyView = document.getElementById('historyView');
+  const homeView = document.getElementById('homeView');
+  const templatesView = document.getElementById('templatesView');
   const items = document.querySelectorAll('.main-sidebar-item');
 
-  if (!promoView || !messengerView || !historyView) return;
+  if (!promoView || !messengerView || !historyView || !homeView || !templatesView) return;
 
   // Hide all views
+  homeView.classList.remove('active');
   promoView.classList.remove('active');
   messengerView.classList.remove('active');
   historyView.classList.remove('active');
+  templatesView.classList.remove('active');
 
   // Remove active class from sidebar items
   items.forEach(item => item.classList.remove('active'));
 
-  if (viewId === 'promo') {
+  const activeItem = document.querySelector(`.main-sidebar-item[title="${viewId === 'home' ? 'Home' : viewId === 'promo' ? 'Promo Message' : viewId === 'messenger' ? 'Messenger' : viewId === 'history' ? 'Campaign History' : 'Templates'}"]`);
+  if (activeItem) activeItem.classList.add('active');
+
+  if (viewId === 'home') {
+    homeView.classList.add('active');
+    loadHomeDashboard();
+  } else if (viewId === 'promo') {
     promoView.classList.add('active');
-    document.querySelector('.main-sidebar-item[title="Promo Message"]').classList.add('active');
   } else if (viewId === 'messenger') {
     messengerView.classList.add('active');
-    document.querySelector('.main-sidebar-item[title="Messenger"]').classList.add('active');
   } else if (viewId === 'history') {
     historyView.classList.add('active');
-    document.querySelector('.main-sidebar-item[title="Campaign History"]').classList.add('active');
     if (typeof window.loadCampaignHistory === 'function') window.loadCampaignHistory();
+  } else if (viewId === 'templates') {
+    templatesView.classList.add('active');
+    loadTemplateManager();
   }
 }
 window.switchView = switchView;
@@ -1176,6 +1186,105 @@ document.addEventListener('DOMContentLoaded',async()=>{
     `).join('');
   }
 
+  function loadHomeDashboard() {
+    const user = JSON.parse(localStorage.getItem('fbcast_user') || '{}');
+    const quota = getQuota();
+    const pages = JSON.parse(localStorage.getItem('fb_pages') || '[]');
+    const history = JSON.parse(localStorage.getItem(CAMPAIGN_HISTORY_KEY) || '[]');
+
+    const homeUser = document.getElementById('homeUserName');
+    if (homeUser) homeUser.textContent = user.fb_name || 'User';
+
+    const homeQuota = document.getElementById('homeStatQuota');
+    if (homeQuota) homeQuota.textContent = (quota.messageLimit - quota.messagesUsed).toLocaleString();
+
+    const homeSent = document.getElementById('homeStatSent');
+    if (homeSent) {
+      const totalSent = history.reduce((sum, item) => sum + (item.sent || 0), 0);
+      homeSent.textContent = totalSent.toLocaleString();
+    }
+
+    const homePages = document.getElementById('homeStatPages');
+    if (homePages) homePages.textContent = pages.length;
+
+    const activityList = document.getElementById('homeRecentActivity');
+    if (activityList && history.length > 0) {
+      activityList.innerHTML = history.slice(0, 4).map(item => `
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 32px; height: 32px; background: var(--primary-dim); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--primary-light);">
+              <i class="fa-solid fa-paper-plane" style="font-size: 12px;"></i>
+            </div>
+            <div>
+              <div style="font-size: 13px; font-weight: 600; color: var(--text);">Campaign to ${item.pageName}</div>
+              <div style="font-size: 11px; color: var(--text3);">${new Date(item.timestamp).toLocaleDateString()}</div>
+            </div>
+          </div>
+          <div style="font-size: 12px; font-weight: 700; color: var(--green);">+${item.sent}</div>
+        </div>
+      `).join('');
+    }
+  }
+
+  function loadTemplateManager() {
+    const list = document.getElementById('templatesFullList');
+    if (!list) return;
+
+    const raw = localStorage.getItem(CUSTOM_TEMPLATES_KEY);
+    const tpls = raw ? JSON.parse(raw) : [];
+
+    if (tpls.length === 0) {
+      list.innerHTML = `
+        <div class="table-empty" style="grid-column: 1/-1; padding: 60px;">
+           <div class="table-empty-icon">✨</div>
+           <div>No saved templates yet. Go to Promo Message to save your first one!</div>
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = tpls.map((txt, idx) => `
+      <div class="history-item" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:15px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="width: 36px; height: 36px; background: var(--primary-dim); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--primary-light);">
+            <i class="fa-solid fa-file-lines"></i>
+          </div>
+          <button onclick="deleteTemplate(${idx})" style="background:none; border:none; color:var(--red); cursor:pointer; font-size:14px;"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+        <div style="color:var(--text);font-size:14px;background:var(--bg);padding:15px;border-radius:10px;border:1px solid var(--border2);line-height:1.6;flex:1">${txt}</div>
+        <button onclick="useTemplate('${idx}')" class="btn-upgrade" style="width:100%; justify-content:center; padding:10px;">
+          <i class="fa-solid fa-paper-plane"></i> Use Template
+        </button>
+      </div>
+    `).join('');
+  }
+
+  window.useTemplate = function(idx) {
+    const raw = localStorage.getItem(CUSTOM_TEMPLATES_KEY);
+    const tpls = raw ? JSON.parse(raw) : [];
+    const txt = tpls[idx];
+    if (txt) {
+      localStorage.setItem(MESSAGE_DRAFT_KEY, txt);
+      switchView('promo');
+      setTimeout(() => {
+        const ta = document.getElementById('messageText');
+        if (ta) {
+          ta.value = txt;
+          updateCharBar(txt.length);
+        }
+      }, 100);
+    }
+  };
+
+  window.deleteTemplate = function(idx) {
+    const raw = localStorage.getItem(CUSTOM_TEMPLATES_KEY);
+    const tpls = raw ? JSON.parse(raw) : [];
+    tpls.splice(idx, 1);
+    localStorage.setItem(CUSTOM_TEMPLATES_KEY, JSON.stringify(tpls));
+    loadTemplateManager();
+    if (typeof window.showToast === 'function') window.showToast('Template deleted', 'info');
+  };
+
   window.addCampaignToHistory = function(campaign) {
     const raw = localStorage.getItem(CAMPAIGN_HISTORY_KEY);
     const history = raw ? JSON.parse(raw) : [];
@@ -1229,6 +1338,9 @@ document.addEventListener('DOMContentLoaded',async()=>{
       document.body.style.overflow='hidden';
       applyTheme();
       if(typeof setLoginOnline==='function')setLoginOnline();
+      
+      // Load Home Dashboard by default on auto-restore
+      switchView('home');
       // Show cached pages immediately so UI is not blank
       const cachedPages=JSON.parse(localStorage.getItem('fb_pages')||'[]');
       if(cachedPages.length&&typeof window.renderPages==='function'){
@@ -1374,6 +1486,9 @@ window.triggerConnect = async function(plan = null) {
       document.body.style.overflow = 'hidden';
       applyTheme();
       if (typeof setLoginOnline === 'function') setLoginOnline();
+      
+      // Load Home Dashboard by default on new login
+      switchView('home');
       
       const _cachedPages = JSON.parse(localStorage.getItem('fb_pages') || '[]');
       if (_cachedPages.length && typeof window.renderPages === 'function') {

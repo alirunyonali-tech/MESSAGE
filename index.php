@@ -786,7 +786,10 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
 
   <!-- MAIN SIDEBAR (LEFT) -->
   <div class="main-sidebar">
-    <div class="main-sidebar-item active" title="Promo Message" onclick="switchView('promo')">
+    <div class="main-sidebar-item active" title="Home" onclick="switchView('home')">
+      <i class="fa-solid fa-house"></i>
+    </div>
+    <div class="main-sidebar-item" title="Promo Message" onclick="switchView('promo')">
       <i class="fa-solid fa-bullhorn"></i>
     </div>
     <div class="main-sidebar-item" title="Messenger" onclick="switchView('messenger')">
@@ -794,6 +797,9 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
     </div>
     <div class="main-sidebar-item" title="Campaign History" onclick="switchView('history')">
       <i class="fa-solid fa-clock-rotate-left"></i>
+    </div>
+    <div class="main-sidebar-item" title="Templates" onclick="switchView('templates')">
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
     </div>
     <div style="margin-top:auto"></div>
     <div class="main-sidebar-item" title="Logout" onclick="triggerLogout()">
@@ -885,7 +891,50 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
   <div id="networkBanner" class="network-banner" role="status" aria-live="polite" hidden></div>
 
   <!-- VIEWS -->
-  <div id="promoMessageView" class="view-container active">
+  <div id="homeView" class="view-container active" style="padding: 24px; overflow-y: auto;">
+    <div class="home-hero" style="background: linear-gradient(135deg, var(--primary), #7c3aed); border-radius: 20px; padding: 40px; color: #fff; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(8,102,255,0.3); position: relative; overflow: hidden;">
+      <div style="position: relative; z-index: 2;">
+        <h1 style="font-size: 32px; margin-bottom: 10px;">Welcome back, <span id="homeUserName">User</span>! 👋</h1>
+        <p style="opacity: 0.9; font-size: 16px;">Ready to reach your audience? Here's your campaign overview for today.</p>
+      </div>
+      <i class="fa-solid fa-rocket" style="position: absolute; right: 40px; top: 50%; transform: translateY(-50%); font-size: 120px; opacity: 0.15;"></i>
+    </div>
+
+    <div class="home-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px;">
+      <div class="home-stat-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div style="color: var(--text3); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Quota Remaining</div>
+        <div style="font-size: 28px; font-weight: 800; color: var(--primary-light); font-family: 'JetBrains Mono', monospace;" id="homeStatQuota">-</div>
+      </div>
+      <div class="home-stat-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div style="color: var(--text3); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Total Sent</div>
+        <div style="font-size: 28px; font-weight: 800; color: var(--green);" id="homeStatSent">-</div>
+      </div>
+      <div class="home-stat-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div style="color: var(--text3); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Pages Connected</div>
+        <div style="font-size: 28px; font-weight: 800; color: var(--amber);" id="homeStatPages">-</div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px;">
+        <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-chart-line" style="margin-right: 10px; color: var(--primary-light);"></i> Recent Activity</h3>
+        <div id="homeRecentActivity" style="display: flex; flex-direction: column; gap: 12px;">
+          <!-- Recent activity items -->
+          <div style="color: var(--text3); text-align: center; padding: 40px;">No recent activity yet.</div>
+        </div>
+      </div>
+      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px;">
+        <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-lightbulb" style="margin-right: 10px; color: var(--amber);"></i> Pro Tips</h3>
+        <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 16px;">
+          <li style="font-size: 13px; color: var(--text2); display: flex; gap: 12px;"><i class="fa-solid fa-circle-check" style="color: var(--green); margin-top: 3px;"></i> Use personalized names for 2x more replies.</li>
+          <li style="font-size: 13px; color: var(--text2); display: flex; gap: 12px;"><i class="fa-solid fa-circle-check" style="color: var(--green); margin-top: 3px;"></i> Attach images to increase trust and engagement.</li>
+          <li style="font-size: 13px; color: var(--text2); display: flex; gap: 12px;"><i class="fa-solid fa-circle-check" style="color: var(--green); margin-top: 3px;"></i> Best time to send is between 10 AM and 4 PM.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="promoMessageView" class="view-container">
     <!-- BODY -->
     <div class="app-body">
 
@@ -1277,6 +1326,26 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
     <i class="fa-brands fa-facebook-messenger" style="font-size:60px;margin-bottom:20px;color:var(--primary-dim)"></i>
     <h2>Messenger</h2>
     <p>Messenger interface coming soon.</p>
+  </div>
+</div>
+
+<div id="templatesView" class="view-container" style="padding: 24px; overflow-y: auto;">
+  <div class="section-hdr" style="margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 24px; color: var(--primary-light);"></i>
+      <h2 style="margin: 0;">Template Manager</h2>
+    </div>
+    <button class="btn-upgrade" onclick="switchView('promo')" style="padding: 10px 20px;">
+      <i class="fa-solid fa-plus"></i> Create New Template
+    </button>
+  </div>
+  
+  <div id="templatesFullList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+    <!-- Template cards -->
+    <div class="table-empty" style="grid-column: 1/-1; padding: 60px;">
+       <div class="table-empty-icon">✨</div>
+       <div>No saved templates yet. Go to Promo Message to save your first one!</div>
+    </div>
   </div>
 </div>
 
