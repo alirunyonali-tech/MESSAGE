@@ -1411,60 +1411,163 @@ window.FB_CONFIG={appId:window.APP_CONFIG.fbAppId,csrfToken:window.APP_CONFIG.cs
 </div>
 
 <div id="settingsView" class="view-container" style="padding: 24px; overflow-y: auto;">
-  <div class="section-hdr" style="margin-bottom: 30px;">
+  <div class="section-hdr" style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
     <h2 style="margin: 0; display: flex; align-items: center; gap: 12px;">
       <i class="fa-solid fa-gear" style="color: var(--primary-light);"></i> 
-      Settings & Preferences
+      System Configuration
     </h2>
+    <button class="btn-upgrade" onclick="saveAllSettings()" style="padding: 10px 24px; font-size: 14px;">
+       <i class="fa-solid fa-floppy-disk"></i> Save Changes
+    </button>
   </div>
 
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px;">
-    <div class="glass-card" style="padding: 30px;">
-      <h3 style="margin-bottom: 20px; font-size: 18px;"><i class="fa-solid fa-user-gear" style="margin-right: 10px; color: var(--primary-light);"></i> Account Profile</h3>
-      <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 24px; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px solid var(--border);">
-         <div id="settingsAvatar" style="width: 64px; height: 64px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: #fff; border: 3px solid var(--surface);">?</div>
-         <div>
-            <div id="settingsUserName" style="font-size: 18px; font-weight: 700; color: #fff;">-</div>
-            <div id="settingsUserPlan" class="badge b-pro" style="margin-top: 4px;">Free Plan</div>
-         </div>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-         <div style="display: flex; justify-content: space-between; font-size: 14px; padding: 10px 0; border-bottom: 1px solid var(--border);">
-            <span style="color: var(--text3);">Facebook ID</span>
-            <span id="settingsFbId" style="font-family: monospace; color: var(--text2);">-</span>
-         </div>
-         <div style="display: flex; justify-content: space-between; font-size: 14px; padding: 10px 0;">
-            <span style="color: var(--text3);">Account Status</span>
-            <span style="color: var(--green); font-weight: 700;">Active</span>
-         </div>
-      </div>
+  <div style="display: grid; grid-template-columns: 280px 1fr; gap: 30px;">
+    <!-- Settings Nav -->
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+       <div class="settings-nav-item active" onclick="switchSettingsTab('profile')" data-tab="profile">
+          <i class="fa-solid fa-user"></i> Account Profile
+       </div>
+       <div class="settings-nav-item" onclick="switchSettingsTab('broadcast')" data-tab="broadcast">
+          <i class="fa-solid fa-tower-broadcast"></i> Broadcast Engine
+       </div>
+       <div class="settings-nav-item" onclick="switchSettingsTab('security')" data-tab="security">
+          <i class="fa-solid fa-shield-halved"></i> API & Security
+       </div>
+       <div class="settings-nav-item" onclick="switchSettingsTab('billing')" data-tab="billing">
+          <i class="fa-solid fa-credit-card"></i> Billing & Subscription
+       </div>
+       <div class="settings-nav-item" onclick="switchSettingsTab('notifications')" data-tab="notifications">
+          <i class="fa-solid fa-bell"></i> Notifications
+       </div>
     </div>
 
-    <div class="glass-card" style="padding: 30px;">
-      <h3 style="margin-bottom: 20px; font-size: 18px;"><i class="fa-solid fa-palette" style="margin-right: 10px; color: var(--primary-light);"></i> Appearance & UI</h3>
-      <div style="display: flex; flex-direction: column; gap: 20px;">
-         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-               <div style="font-size: 14px; font-weight: 600; color: #fff;">Dark Mode</div>
-               <div style="font-size: 12px; color: var(--text3);">Adjust the theme to your preference.</div>
-            </div>
-            <label class="theme-toggle" style="margin: 0;">
-               <input type="checkbox" id="settingsThemeToggle" checked>
-               <span class="tt-track">
-                  <i class="fa-solid fa-moon tt-icon tt-icon--dark"></i>
-                  <i class="fa-solid fa-sun tt-icon tt-icon--light"></i>
-                  <span class="tt-thumb"></span>
-               </span>
-            </label>
-         </div>
-         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-               <div style="font-size: 14px; font-weight: 600; color: #fff;">Glassmorphism</div>
-               <div style="font-size: 12px; color: var(--text3);">Enable advanced blur and transparency.</div>
-            </div>
-            <input type="checkbox" checked disabled>
-         </div>
-      </div>
+    <!-- Settings Content -->
+    <div id="settingsTabContent">
+       <!-- Profile Tab -->
+       <div id="set-tab-profile" class="settings-tab-pane active">
+          <div class="glass-card" style="padding: 30px;">
+             <h3 style="margin-bottom: 24px; font-size: 18px;">Profile Information</h3>
+             <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 30px; padding: 24px; background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px solid var(--border);">
+                <div id="settingsAvatar" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #7c3aed); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 850; color: #fff; border: 4px solid var(--surface); box-shadow: 0 8px 20px rgba(0,0,0,0.3);">?</div>
+                <div>
+                   <div id="settingsUserName" style="font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 4px;">-</div>
+                   <div id="settingsUserPlan" class="badge b-pro">Free Plan</div>
+                </div>
+             </div>
+             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                   <label style="display: block; font-size: 12px; color: var(--text3); margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">Display Name</label>
+                   <input type="text" id="set-name" class="form-control" style="width: 100%; background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 10px;" readonly>
+                </div>
+                <div class="form-group">
+                   <label style="display: block; font-size: 12px; color: var(--text3); margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">Facebook ID</label>
+                   <input type="text" id="set-fbid" class="form-control" style="width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text3); padding: 12px; border-radius: 10px; font-family: monospace;" readonly>
+                </div>
+             </div>
+          </div>
+       </div>
+
+       <!-- Broadcast Tab -->
+       <div id="set-tab-broadcast" class="settings-tab-pane">
+          <div class="glass-card" style="padding: 30px;">
+             <h3 style="margin-bottom: 24px; font-size: 18px;">Broadcast Engine Defaults</h3>
+             <div style="display: flex; flex-direction: column; gap: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                   <div>
+                      <div style="font-weight: 600; color: #fff;">Default Delay Speed</div>
+                      <div style="font-size: 12px; color: var(--text3);">Initial delay between messages for new campaigns.</div>
+                   </div>
+                   <select id="set-def-delay" style="background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 8px 12px; border-radius: 8px;">
+                      <option value="slow">Slow (3000ms)</option>
+                      <option value="normal" selected>Normal (1200ms)</option>
+                      <option value="fast">Fast (500ms)</option>
+                   </select>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                   <div>
+                      <div style="font-weight: 600; color: #fff;">Auto-Retry Failed</div>
+                      <div style="font-size: 12px; color: var(--text3);">Automatically retry messages that fail due to network errors.</div>
+                   </div>
+                   <label class="switch-toggle">
+                      <input type="checkbox" checked>
+                      <span class="switch-slider"></span>
+                   </label>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                   <div>
+                      <div style="font-weight: 600; color: #fff;">Safety Guard</div>
+                      <div style="font-size: 12px; color: var(--text3);">Pause campaign if Facebook rate limits are detected.</div>
+                   </div>
+                   <label class="switch-toggle">
+                      <input type="checkbox" checked>
+                      <span class="switch-slider"></span>
+                   </label>
+                </div>
+             </div>
+          </div>
+       </div>
+
+       <!-- Security Tab -->
+       <div id="set-tab-security" class="settings-tab-pane">
+          <div class="glass-card" style="padding: 30px;">
+             <h3 style="margin-bottom: 24px; font-size: 18px;">API & Integration Security</h3>
+             <div style="display: flex; flex-direction: column; gap: 24px;">
+                <div style="padding: 15px; background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.2); border-radius: 12px; display: flex; gap: 15px;">
+                   <i class="fa-solid fa-triangle-exclamation" style="color: var(--amber); margin-top: 3px;"></i>
+                   <div style="font-size: 13px; color: var(--text2); line-height: 1.5;">Your Facebook Access Token is used only for broadcasting and is never stored on our servers permanently.</div>
+                </div>
+                <div class="form-group">
+                   <label style="display: block; font-size: 12px; color: var(--text3); margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">Facebook App ID</label>
+                   <div style="display: flex; gap: 10px;">
+                      <input type="password" value="847291038472910" class="form-control" style="flex: 1; background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 10px;" readonly>
+                      <button class="btn-ghost" style="padding: 0 15px;"><i class="fa-solid fa-eye"></i></button>
+                   </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                   <div>
+                      <div style="font-weight: 600; color: #fff;">Two-Factor Authentication</div>
+                      <div style="font-size: 12px; color: var(--text3);">Requires 2FA for sensitive admin actions.</div>
+                   </div>
+                   <button class="btn-ghost" style="color: var(--primary-light); font-weight: 700;">Enable</button>
+                </div>
+             </div>
+          </div>
+       </div>
+
+       <!-- Billing Tab -->
+       <div id="set-tab-billing" class="settings-tab-pane">
+          <div class="glass-card" style="padding: 30px;">
+             <h3 style="margin-bottom: 24px; font-size: 18px;">Subscription & Billing</h3>
+             <div style="background: var(--bg2); border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                   <div>
+                      <div style="font-size: 12px; text-transform: uppercase; color: var(--text3); letter-spacing: 1px;">Current Plan</div>
+                      <div style="font-size: 24px; font-weight: 850; color: #fff;" id="set-plan-name">BASIC</div>
+                   </div>
+                   <button class="btn-upgrade" onclick="openUpgradeModal()">Upgrade Now</button>
+                </div>
+                <div class="quota-progress-container" style="margin-top: 15px;">
+                   <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px;">
+                      <span style="color: var(--text2);">Message Quota</span>
+                      <span style="color: #fff; font-weight: 700;" id="set-quota-stat">0 / 2,000</span>
+                   </div>
+                   <div style="height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden;">
+                      <div id="set-quota-fill" style="height: 100%; background: var(--primary); width: 0%;"></div>
+                   </div>
+                </div>
+             </div>
+             <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button class="btn-ghost" style="width: 100%; text-align: left; padding: 15px; border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+                   <span><i class="fa-solid fa-file-invoice" style="margin-right: 12px; color: var(--text3);"></i> View Billing History</span>
+                   <i class="fa-solid fa-chevron-right" style="font-size: 12px;"></i>
+                </button>
+                <button class="btn-ghost" style="width: 100%; text-align: left; padding: 15px; border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+                   <span><i class="fa-solid fa-credit-card" style="margin-right: 12px; color: var(--text3);"></i> Manage Payment Methods</span>
+                   <i class="fa-solid fa-chevron-right" style="font-size: 12px;"></i>
+                </button>
+             </div>
+          </div>
+       </div>
     </div>
   </div>
 </div>

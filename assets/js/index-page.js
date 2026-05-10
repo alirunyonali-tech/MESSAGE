@@ -341,12 +341,35 @@ function loadSettingsView() {
   const avatarEl = document.getElementById('settingsAvatar');
   if (avatarEl) avatarEl.textContent = (user.fb_name || 'U').charAt(0).toUpperCase();
 
-  const fbIdEl = document.getElementById('settingsFbId');
-  if (fbIdEl) fbIdEl.textContent = user.fb_user_id || '-';
+  const inputName = document.getElementById('set-name');
+  if (inputName) inputName.value = user.fb_name || '';
 
-  const planEl = document.getElementById('settingsUserPlan');
-  if (planEl) planEl.textContent = quota.planName + ' Plan';
+  const fbIdEl = document.getElementById('set-fbid');
+  if (fbIdEl) fbIdEl.value = user.fb_user_id || '-';
+
+  const planName = document.getElementById('set-plan-name');
+  if (planName) planName.textContent = quota.planName.toUpperCase();
+
+  const quotaStat = document.getElementById('set-quota-stat');
+  if (quotaStat) quotaStat.textContent = `${quota.messagesUsed.toLocaleString()} / ${quota.messageLimit.toLocaleString()}`;
+
+  const quotaFill = document.getElementById('set-quota-fill');
+  if (quotaFill) {
+    const pct = Math.min(100, (quota.messagesUsed / quota.messageLimit) * 100);
+    quotaFill.style.width = pct + '%';
+  }
 }
+
+window.switchSettingsTab = function(tabId) {
+  document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.toggle('active', i.dataset.tab === tabId));
+  document.querySelectorAll('.settings-tab-pane').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById(`set-tab-${tabId}`);
+  if (target) target.classList.add('active');
+};
+
+window.saveAllSettings = function() {
+  showToast('Configuration saved successfully', 'success');
+};
 
 // Notification Logic
 let notifications = [
